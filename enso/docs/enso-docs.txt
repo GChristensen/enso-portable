@@ -1,0 +1,332 @@
+============
+Introduction
+============
+
+The Enso Project is the open-source release of Enso, an extensible,
+cross-platform, graphical command-line interface written in Python.
+
+Enso's goal is to provide a way of accessing whatever piece of
+functionality you need--be it calculating an expression, calling up
+a map, or performing a Google search--with a few, semantically
+meaningful keystrokes.
+
+Enso was originally commercial software created and sold by
+`Humanized, Inc`_. In early 2008, a new BSD-licensed open-source
+repository was created for Enso, and much of its code was inherited
+from the commercial version.
+
+Commercial Enso vs. Open-Source Enso
+====================================
+
+The version of Enso that can be downloaded from The Humanized Website
+is known as the "commercial" version of Enso; it is sometimes also
+called the "frozen" version of Enso.
+
+Commercial Enso is a binary-only distribution, based on a closed-source
+code-line kept on a private SVN server. Development on it has ceased
+and will not be resumed. Development-wise, it is a dead end; but it
+will continue to be the version that users download and install, and
+Humanized will continue to distribute and support it, until such time
+as development on the open source Enso code-line creates a suitable
+replacement.
+
+Commercial Enso runs on Windows 2000, XP, and Vista only.
+
+Open-Source Enso consists of the code tree located at `The Enso
+Project`_ and was started "from scratch" in early 2008.  Modules and
+chunks of code were rapidly brought over from the old code and
+integrated; this process could be thought of as a combination of code
+migration and massive refactoring to remove all the cruft that Enso no
+longer needed, and to make Enso more flexible towards certain things
+that it needs to support better, such as internationalization and
+cross-platform support.
+
+Another way to view the difference is that Commercial Enso `embeds`
+Python, whereas Open-Source Enso attempts to `extend` Python.  The
+difference between the two, and their implications, is nicely
+summarized in Glyph Lefkowitz's article `Extending vs. Embedding:
+There is Only One Correct Decision`_.
+
+Once Open-Source Enso matures to the point that it's at least as
+functional and stable as Commercial Enso, we'll also package and
+distribute a pre-compiled binary in whatever way is most humane for
+non-technical end users.
+
+.. _`The Enso Project`: http://code.google.com/p/enso
+.. _`Extending vs. Embedding: There is Only One Correct Decision`: http://twistedmatrix.com/users/glyph/rant/extendit.html
+
+More Information
+================
+
+For more information about the use of and philosophy behind Enso, you
+may want to visit the following resources:
+
+  * `The Enso Product Page`_ on humanized.com
+  * `The Graphical Keyboard User Interface`_ by Alex Faaborg
+  * `The Linguistic Command Line`_ by Aza Raskin
+
+.. _`Humanized, Inc`: http://www.humanized.com
+.. _`The Enso Product Page`: http://www.humanized.com/enso
+.. _`The Graphical Keyboard User Interface`: http://blog.mozilla.com/faaborg/2007/07/05/the-graphical-keyboard-user-interface/
+.. _`The Linguistic Command Line`: http://mags.acm.org/interactions/20080102/?pg=20&pm=2
+
+============
+Getting Enso
+============
+
+At present, the primary way to obtain Enso is by `retrieving the
+code`_ via Subversion.  Once that is done, please read the ``README``
+file contained in the root directory to build the software.
+
+In the future, pre-built binaries of Enso will be available on
+relevant platforms so that those who are developing commands for Enso
+(as opposed those who are developing Enso itself) will be able to use
+it without needing a C compiler.
+
+The remainder of this documentation assumes that you have Enso up and
+running, and can use it to execute commands.
+
+.. _`retrieving the code`: http://code.google.com/p/enso/source/checkout
+
+==============
+Extending Enso
+==============
+
+Creating Enso Commands
+======================
+
+Creating, running, and modifying Enso commands is intended to be as
+easy as possible.  To create a command, simply create an
+``.ensocommands`` file in your home directory if it doesn't already
+exist (if you're on Windows, this directory is pointed to by the
+``HOME`` environment variable).  This file is just a Python script
+containing classes and functions representing available commands.
+
+Hello World: Displaying Transparent Messages
+--------------------------------------------
+
+A simple command called "hello world" can be created by entering the
+following into your .ensocommands file::
+
+  def cmd_hello_world(ensoapi):
+    ensoapi.display_message("Hello World!")
+
+As soon as the ``.ensocommands`` file is saved, the Enso quasimode can
+be entered and the command used: Enso scans this file and its
+dependencies whenever the quasimode is entered, and if the contents
+have changed, Enso reloads them, so there is never a need to restart
+Enso itself when developing commands.
+
+.. TODO: Insert image/video here.
+
+From the source code of the command, a number of things can be
+observed:
+
+  * A command is a function that starts with the prefix ``cmd_``.
+  * The name of a command is everything following the prefix,
+    with underscores converted to spaces.
+  * A command takes an ``ensoapi`` object as a parameter, which can
+    be used to access Enso-specific functionality. [#]_
+
+You may want to take the time to play around with the "hello world"
+example; try raising an exception in the function body; try adding a
+syntax error in the file and see what happens.  It should be apparent
+that such human errors have been accounted for and are handled in a
+way that is considerate of one's frailties, allowing the programmer to
+write and test code with minimal interruptions to their train of
+thought.
+
+.. [#] One may wonder why the ``ensoapi`` object has to be explicitly
+   passed-in rather than being imported.  The reasons for this are
+   manifold: firstly, importing a specific module, e.g. ``enso.api``,
+   would tie the command to a particular implementation of the Enso
+   API.  Yet it should be possible for the command to run in different
+   kinds of contexts--for instance, one where Enso itself is in a
+   separate process or even on a separate computer, and ``ensoapi`` is
+   just a proxy object.  Secondly, explicitly passing in the object
+   makes the unit testing of commands easier.
+
+Adding Help Text
+----------------
+
+When using the "hello world" command, you may notice that the help
+text displayed above the command entry display isn't very helpful.
+You can set it to something nicer by adding a docstring to your
+command function, like so::
+
+  def cmd_hello_world(ensoapi):
+    "Displays a friendly greeting."
+
+    ensoapi.display_message("Hello World!")
+
+If you add anything past a first line in the docstring, it will be
+rendered as HTML in the documentation for the command when the user
+runs the "help" command::
+
+  def cmd_hello_world(ensoapi):
+    """
+    Displays a friendly greeting.
+
+    This command can be used in any application, at any time,
+    providing you with a hearty salutation at a moment's notice.
+    """
+
+    ensoapi.display_message("Hello World!")
+
+Interacting with The Current Selection
+--------------------------------------
+
+To obtain the current selection, use ``ensoapi.get_selection()``.
+This method returns a *selection dictionary*, or seldict for short.  A
+seldict is simply a dictionary that maps a data format identifier to
+selection data in that format.
+
+Some valid data formats in a seldict are:
+
+  * ``text``: Plain unicode text of the current selection.
+  * ``files``: A list of filenames representing the current selection.
+
+.. TODO: Provide a link to the reference for all data types
+
+Setting the current selection works similarly: just pass
+``ensoapi.set_selection()`` a seldict containing the selection data to
+set.
+
+The following is an implementation of an "upper case" command that
+converts the user's current selection to upper case::
+
+  def cmd_upper_case(ensoapi):
+    text = ensoapi.get_selection().get("text")
+    if text:
+      ensoapi.set_selection({"text" : text.upper()})
+    else:
+      ensoapi.display_message("No selection!")
+
+Command Arguments
+-----------------
+
+It's possible for a command to take arbitrary arguments; an example of
+this is the "google" command, which allows you to optionally specify a
+search term following the command name.  To create a command like
+this, just add a parameter to the command function::
+
+  def cmd_boogle(ensoapi, query):
+    ensoapi.display_message("You said: %s" % query)
+
+Unless you specify a default for your argument, however, a friendly
+error message will be displayed when the user runs the command without
+specifying one.  If you don't want this to be the case, just add a
+default argument to the command function::
+
+  def cmd_boogle(ensoapi, query="pants"):
+    ensoapi.display_message("You said: %s" % query)
+
+If you want the argument to be bounded to a particular set of options,
+you can specify them by attaching a ``valid_args`` property to your
+command function.  For instance::
+
+  def cmd_vote_for(ensoapi, candidate):
+    ensoapi.display_message("You voted for: %s" % candidate)
+  cmd_vote_for.valid_args = ["barack obama", "john mccain"]
+
+Prolonged Execution
+-------------------
+
+It's expected that some commands, such as ones that need to fetch
+resources from the internet, may take some time to execute.  If this
+is the case, a command function may use Python's ``yield`` statement
+to return control back to Enso when it needs to wait for something to
+finish.  For example::
+
+  def cmd_rest_awhile(ensoapi):
+    import time, threading
+
+    def do_something():
+      time.sleep(3)
+    t = threading.Thread(target = do_something)
+    t.start()
+    ensoapi.display_message("Please wait...")
+    while t.isAlive():
+      yield
+    ensoapi.display_message("Done!")
+
+Returning control back to Enso is highly encouraged--without it, your
+command will monopolize Enso's resources and you won't be able to use
+Enso until your command has finished executing!
+
+Class-based Commands
+--------------------
+
+More complex commands can be encapsulated into classes and
+instantiated as objects; in fact, all Enso really looks for when
+importing commands are callables that start with ``cmd_``.  This means
+that the following works::
+
+  class VoteCommand(object):
+    def __init__(self, candidates):
+      self.valid_args = candidates
+
+    def __call__(self, ensoapi, candidate):
+      ensoapi.display_message("You voted for: %s" % candidate)
+
+  cmd_vote_for = VoteCommand(["barack obama", "john mccain"])
+
+Command Updating
+----------------
+
+Some commands may need to do processing while not being executed; for
+instance, an ``open`` command that allows the user to open an
+application installed on their computer may want to update its
+``valid_args`` property whenever a new application is installed or
+uninstalled.
+
+If a command object has an ``on_quasimode_start()`` function attached
+to it, it will be called whenever the command quasimode is entered.
+This allows the command to do any processing it may need to do.  As
+with the command execution call itself, ``on_quasimode_start()`` may
+use ``yield`` to relegate control back to Enso when it knows that some
+operation will take a while to finish.
+
+Including Other Files
+---------------------
+
+The ``.ensocommands`` file may include other files containing command
+definitions by using Python's ``execfile()`` built-in method.  Enso
+automatically keeps track of what files command objects come from; if
+any of those files change, it reloads ``.ensocommands``, which should
+in turn reload those files.
+
+Python's standard ``import`` statement can also be used from command
+scripts, of course, but the disadvantage of doing this with evolving
+code is that--at present, at least--imported modules won't be reloaded
+if their contents change. [#]_
+
+.. [#] This feature in particular is something that can, and probably
+   will change a lot in the future, as code reuse via ``execfile()``
+   isn't particularly Pythonic.  Other options, among others, include
+   having commands live in their own process, their own tinypy-based
+   virtual machine, and autodetecting changes in modules and
+   re-importing them like Django's development server does.
+
+Enso Plugins and The ``.ensorc`` File
+=====================================
+
+One way to extend and customize Enso is through the use of
+**plugins**.  A plugin is just a Python module or package with a
+single function in it, ``load()``, which takes no parameters, and is
+called when the Enso quasimode is about to start itself.
+
+The easiest way to add a plugin is through an ``.ensorc`` file, which
+can be created in your home directory (if you're on Windows, this
+directory is pointed to by the ``HOME`` environment variable).  This
+file is actually just a Python script that's executed before any other
+code when Enso starts up.
+
+The following ``.ensorc`` tells Enso to load a plugin contained at
+``mypackage.myplugin``::
+
+  import enso.config
+
+  enso.config.PLUGINS.extend(
+    ["mypackage.myplugin"]
+    )
