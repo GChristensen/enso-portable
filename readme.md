@@ -7,7 +7,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher wi
 v0.1.1
 
 ---
-[Download]() the binary distribution.
+[Download](https://github.com/downloads/GChristensen/enso-portable/enso-portable.7z.sfx.exe) the binary distribution.
 
 
 Background: I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](http://humanized.com/enso/launcher).
