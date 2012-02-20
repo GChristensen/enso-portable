@@ -24,6 +24,7 @@ The GIT repository contains only the Enso source code without a Python interpret
 #### The Additional Command List
 
 >>**session.py**
+
 >>>Session/Power management commands (self explanatory):
       
 >>>* log off
@@ -33,18 +34,21 @@ The GIT repository contains only the Enso source code without a Python interpret
 * hibernate
 
 >>**system.py**
+
 >>>System commands:
 
 >>>* kill [process name or id] - kill a process using its executable name
                                    (without extension) or id
 
 >>**dial.py**
+
 >>>Dial-up network related commands:
   
 >>>* dial [connection name] - connect to the Internet using a dialup connection
 * hangup [connection name] - close an Internet connection
 
 >>**idgen.py**
+
 >>>Generate UUID in several formats (upper/lower case, numeric):
 
 >>>* guid [format]
@@ -55,6 +59,7 @@ The GIT repository contains only the Enso source code without a Python interpret
 >>>* random [from num to num]
 
 >>**lingvo.py**
+
 >>>Control Abbyy Lingvo dictionary software with Enso Launcher. It's possible to specify translation direction attributes, see command help for the details.
      
 >>>* lingvo [word from lang to lang] - translate a word
