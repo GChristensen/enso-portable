@@ -16,6 +16,8 @@ The source code of the original community Enso application could be found here:
 
 The GIT repository contains only the Enso source code without a Python interpreter, it's more convenient to use the binary package above (which includes a trimmed down Python interpreter), to develop your own commands, so you need only the Notepad to do this.
 
+To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](https://github.com/GChristensen/enso-portable/blob/master/enso/docs/enso-docs.txt) on command authoring).
+
 ####Dependencies
 
 * Abbyy Lingvo dictionary software (optional)
