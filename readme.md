@@ -51,12 +51,12 @@ To add a new command you need to put a Python file with its source code into the
 
 >>**idgen.py**
 
->>>Generate UUID in several formats (upper/lower case, numeric):
+>>>Generate a UUID in several formats (upper/lower case, numeric):
 
 >>>* guid [format]
 
->>>Generate random number in the Int32 positive range [0, 2147483646].
-    It possible to narrow the range using command arguments:
+>>>Generate a random number in the Int32 positive range [0, 2147483646].
+    It's possible to narrow the range using command arguments:
 
 >>>* random [from num to num]
 
