@@ -82,7 +82,7 @@ To add a new command you need to put a Python file with its source code into the
 
 >>**wireless.py** <font color="red">warning: does not work out of the box, hacking required</font>
 
->>>A [dd-wrt](http://www.dd-wrt.com) router wireless management commands:
+>>>[dd-wrt](http://www.dd-wrt.com) router wireless management commands:
 
 >>>* switch wireless - turn wireless radio on/off
 
