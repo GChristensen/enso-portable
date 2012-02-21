@@ -13,9 +13,9 @@ triggered by pressing the CAPSLOCK key. It's possible to create your own command
 
 [Download](https://github.com/downloads/GChristensen/enso-portable/enso-portable.7z.sfx.exe) the portable binary distribution (no installation is required).
 
-Background: I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](http://humanized.com/enso/launcher).
+Background: I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](http://humanized.com/enso/launcher) (the original application is orphaned now).
 The source code of the original community Enso application could be found here:
-[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) 
+[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned).
 
 The GIT repository contains only the Enso source code without a Python interpreter, it's more convenient to use the binary package above (which includes a trimmed down Python interpreter) to develop your own commands, so you need only the Notepad to do this.
 
