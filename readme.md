@@ -23,7 +23,12 @@ To add a new command you need to put a Python file with its source code into the
 * Abbyy Lingvo dictionary software (optional)
 
 
-#### The Additional Command List
+####Additional functionality not found in the original Enso
+
+* Ability to restart using a tray menu item or the `enso restart' command
+
+
+####Additional Commands 
 
 >>**session.py**
 
@@ -85,8 +90,3 @@ To add a new command you need to put a Python file with its source code into the
 >>>[dd-wrt](http://www.dd-wrt.com) router wireless management commands:
 
 >>>* switch wireless - turn wireless radio on/off
-
-
-####Additional functionality not found in the original Enso
-
-* Ability to restart using a tray menu item or the `enso restart' command
