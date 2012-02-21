@@ -1,6 +1,6 @@
 ## Enso Portable
 
-A portable distribution of the *community* version of Humanized Enso Launcher with some additional commands
+A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
 (C) 2011-2012 g/christensen (gchristnsn@gmail.com)
 
