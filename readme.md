@@ -93,3 +93,7 @@ To add a new command you need to put a Python file with its source code into the
 >>>[dd-wrt](http://www.dd-wrt.com) router wireless management commands:
 
 >>>* switch wireless - turn wireless radio on/off
+
+####Known Issues
+
+* The trigger key will not show the command line if Windows Taskbar is under the focus.
