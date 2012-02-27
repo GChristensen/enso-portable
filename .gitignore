@@ -1,0 +1,5 @@
+*.pyc
+/launcher/launcher/*.user
+/enso/run-enso.exe
+/enso/python
+/enso/*.ilk

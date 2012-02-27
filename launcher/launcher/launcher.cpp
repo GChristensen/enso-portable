@@ -1,8 +1,6 @@
 #include "stdafx.h"
 
-//#include <windows.h>
-//#include <stdlib.h>
-//#include <tchar.h>
+#include "LimitSingleInstance.h"
 
 #define MAX_ARGS_LENGTH 260
 
@@ -41,6 +39,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
+
 	if (_tcsstr(lpCmdLine, _T("--restart")))
 	{
 		TCHAR *stop, *spc = _tcsrchr(lpCmdLine, _T(' '));
@@ -49,6 +48,15 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		HANDLE hproc = OpenProcess(SYNCHRONIZE, FALSE, pid);
 		WaitForSingleObject(hproc, INFINITE);
 		CloseHandle(hproc);
+	}
+	else
+	{
+		CLimitSingleInstance limit(_T("__enso_portable__"));
+
+		if (limit.IsAnotherInstanceRunning())
+		{
+			return 0;
+		}
 	}
 
 	TCHAR *point = NULL;
@@ -62,7 +70,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	lstrcpyn(python_path, module_name, module_name_len);
 
 	point = _tcsrchr(python_path, _T('\\'));
-	_tcscpy(point + 1, _T("python\\pythonw.exe"));
+	*(++point) = NULL;
+
+	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
+
+	_tcscpy(point, _T("python\\pythonw.exe"));
 
 	// Enso startup script path
 	TCHAR enso_executable_path[MAX_PATH];

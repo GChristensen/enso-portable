@@ -32,6 +32,16 @@
 #
 # ----------------------------------------------------------------------------
 
+import os
+import sys
+
+enso_dir = os.path.dirname(os.path.realpath(__file__))
+enso_dir = os.path.dirname(enso_dir)
+sys.path.append(enso_dir)
+
+enso_executable = enso_dir + "\\run-enso"
+
+
 def run():
     """
     Initializes and runs Enso.

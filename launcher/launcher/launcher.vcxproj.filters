@@ -36,6 +36,9 @@
     <ClInclude Include="launcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LimitSingleInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

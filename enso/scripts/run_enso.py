@@ -8,12 +8,6 @@ import pythoncom
 import subprocess
 from win32com.shell import shell, shellcon
 
-ENSO_DIR = os.path.dirname(os.path.realpath(__file__))
-ENSO_DIR = os.path.dirname(ENSO_DIR)
-sys.path.append(ENSO_DIR)
-
-ENSO_EXECUTABLE = ENSO_DIR + "\\run-enso.exe"
-
 import enso
 from enso.messages import displayMessage
 from enso.platform.win32.taskbar import SysTrayIcon
@@ -63,8 +57,8 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
                 shell.IID_IShellLink
             )
 
-            shortcut.SetPath(ENSO_EXECUTABLE)
-            enso_root_dir = os.path.dirname(ENSO_EXECUTABLE)
+            shortcut.SetPath(enso.enso_executable)
+            enso_root_dir = os.path.dirname(enso.enso_executable)
             shortcut.SetWorkingDirectory(enso_root_dir)
             shortcut.SetIconLocation(os.path.join(enso_root_dir, "Enso.ico"), 0)
 
@@ -83,7 +77,7 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
 
 def tray_on_enso_restart(systray, get_state = False):
     if not get_state:
-        subprocess.Popen([ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
+        subprocess.Popen([enso.enso_executable, "--restart " + str(os.getpid())])
         tray_on_enso_quit(systray)
 
 def systray(enso_config):
@@ -124,6 +118,8 @@ def process_options(argv):
 
 def main(argv = None):
     global options
+
+
 
     opts, args = process_options(argv)
     options = opts
