@@ -54,12 +54,12 @@ def translate_word(ensoapi, suffix):
         ensoapi.display_message(ERROR_MESSAGE)
 
 def cmd_lingvo(ensoapi, word_from_lang_to_lang = ""):
-    """Translate a word with Abbyy Lingvo dictionary software
+    """Translate a word with the Abbyy Lingvo dictionary software
     Use this command to translate an argument word or
-    the current selection with the Abbyy Lingvo dictionary
+    a current selection with the Abbyy Lingvo dictionary
     software.<br/>
     You can (optionally) specify source and destination languages
-    after <i>from</i> or <i>to</i> words respectively, for example:
+    after the <i>from</i> or <i>to</i> keywords respectively, for example:
     <br/><br/>lingvo espoir from fr to ru<br/><br/>
     Supported language abbreviations are:<br/>
     de - German<br/>

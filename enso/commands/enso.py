@@ -8,6 +8,7 @@ import subprocess
 import enso
 import enso.config
 from enso.messages import displayMessage
+from enso.commands.manager import CommandManager
 
 def cmd_enso(ensoapi, cmd):
     """ Enso system command """
@@ -23,9 +24,6 @@ def cmd_enso(ensoapi, cmd):
     elif cmd == 'about':
         displayMessage(enso.config.ABOUT_BOX_XML)
 
-# TODO: add command listing handler to the webui.py to make this command work
-#    elif cmd == "commands":
-#        ensoapi.display_message("Enso commands", "enso")
 
 cmd_enso.valid_args = ['about', 'quit', 'restart']
 

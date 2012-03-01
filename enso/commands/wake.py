@@ -6,7 +6,7 @@ USER = "root"
 PASSWORD = "" # provide a password
 
 def cmd_wake_slave(ensoapi):
-    """Wake slave server"""
+    """Wake a slave server"""
     tn = Telnet(HOST)
     tn.read_until("login: ")
     tn.write(USER + "\n")
