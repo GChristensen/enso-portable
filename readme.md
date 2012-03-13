@@ -84,17 +84,15 @@ To add a new command you need to put a Python file with its source code into the
 >>>* truecrypt mount [letter] - mount a truecrypt volume assigned to the specified letter 
 * truecrypt umount - unmount all mounted volumes
 
->>**wake.py** <font color="red">warning: does not work out of the box, hacking required</font>
+>>**dd_wrt.py** <font color="red">warning: does not work out of the box, hacking required</font>
 
->>>Wake on LAN related commands (requires terminal access to a [dd-wrt](http://www.dd-wrt.com) router):
+>>>A set of dd-wrt shortcut commands (requires terminal access to a [dd-wrt](http://www.dd-wrt.com) router):
 
 >>>* wake slave - send a magic packet to a workstation with MAC address hardcoded in the command file
 
->>**wireless.py** <font color="red">warning: does not work out of the box, hacking required</font>
-
->>>[dd-wrt](http://www.dd-wrt.com) router wireless management commands:
-
 >>>* switch wireless - turn wireless radio on/off
+
+>>>* wan reconnect - reconnect the ppoe daemon (may be useful to get a new IP from a dynamic pool)
 
 ####Known Issues
 

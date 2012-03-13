@@ -6,7 +6,7 @@ gencache.EnsureModule('{6B73A708-B5CD-408D-B20D-4690130C494E}', 0, 14, 0)
 
 ERROR_MESSAGE = "Can not communicate with Lingvo"
 
-LINGVO_CORE_LANG = "ru"
+LINGVO_PRIMARY_LANG = "en" # provide the primary language
 LINGVO_SECONDARY_LANG = "en"
 
 lang2code = {
@@ -41,11 +41,11 @@ def translate_word(ensoapi, suffix):
     
     from_ = m.group(1)
     if not from_ in lang2code.keys():
-        from_ = LINGVO_SECONDARY_LANG if isLatin else LINGVO_CORE_LANG
+        from_ = LINGVO_SECONDARY_LANG if isLatin else LINGVO_PRIMARY_LANG
     
     to = m.group(2)
     if not to in lang2code.keys():
-        to = LINGVO_CORE_LANG if isLatin else LINGVO_SECONDARY_LANG
+        to = LINGVO_PRIMARY_LANG if isLatin else LINGVO_SECONDARY_LANG
 
     lingvo = win32com.client.Dispatch("Lingvo.Application")
     try:

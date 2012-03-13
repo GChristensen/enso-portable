@@ -29,3 +29,27 @@ def cmd_switch_wireless(ensoapi):
     
     tn.write("exit\n")
     tn.read_all()
+
+def cmd_wake_slave(ensoapi):
+    """Wake a slave server"""
+    tn = Telnet(HOST)
+    tn.read_until("login: ")
+    tn.write(USER + "\n")
+    tn.read_until("Password: ")
+    tn.write(PASSWORD + "\n")
+
+    tn.write("/usr/sbin/wol -i 192.168.1.255 -p 9 00:00:00:00:00:00\n") # provide a MAC address
+    tn.write("exit\n")
+    tn.read_all()
+
+def cmd_wan_reconnect(ensoapi):
+    """Reconnect WAN"""
+    tn = Telnet(HOST)
+    tn.read_until("login: ")
+    tn.write(USER + "\n")
+    tn.read_until("Password: ")
+    tn.write(PASSWORD + "\n")
+
+    tn.write("killall -HUP pppd\n")
+    tn.write("exit\n")
+    tn.read_all()
