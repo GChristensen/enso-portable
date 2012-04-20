@@ -4,7 +4,7 @@
 
 #define MAX_ARGS_LENGTH 260
 
-DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments)
+DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir)
 {
 	STARTUPINFOW siStartupInfo;
     PROCESS_INFORMATION piProcessInfo;
@@ -24,7 +24,7 @@ DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments)
 	_tcsncpy(args + target_len + 3, arguments, MAX_ARGS_LENGTH - target_len - 4);
 
 	if (CreateProcess(target, args, NULL, NULL, TRUE, CREATE_NO_WINDOW,
-			NULL, NULL, &siStartupInfo, &piProcessInfo))
+			NULL, dir, &siStartupInfo, &piProcessInfo))
 	{
 		CloseHandle(piProcessInfo.hProcess);
 		CloseHandle(piProcessInfo.hThread); 
@@ -67,10 +67,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	// Python path
 	TCHAR python_path[MAX_PATH];
+	TCHAR exec_dir[MAX_PATH];
 	lstrcpyn(python_path, module_name, module_name_len);
 
 	point = _tcsrchr(python_path, _T('\\'));
 	*(++point) = NULL;
+
+	_tcscpy(exec_dir, python_path);
 
 	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
 
@@ -83,5 +86,5 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	point = _tcsrchr(enso_executable_path, _T('\\'));
 	_tcscpy(point + 1, _T("scripts\\run_enso.py"));
 
-    return LaunchTarget(python_path, enso_executable_path);
+    return LaunchTarget(python_path, enso_executable_path, exec_dir);
 }
