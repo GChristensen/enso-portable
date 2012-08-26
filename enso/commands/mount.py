@@ -12,7 +12,7 @@ def dump_table(table, file_path):
     dst = StringIO.StringIO()
     p = pickle.Pickler(dst)
     out = open(file_path, 'wb')
-    pickle.dump(volumes, dst)
+    pickle.dump(table, dst)
     out.write(base64.b64encode(zlib.compress(dst.getvalue())))
     out.close()
 
