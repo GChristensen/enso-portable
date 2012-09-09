@@ -593,7 +593,7 @@ def cmd_learn_as_open(ensoapi, name):
 
 
 def cmd_unlearn_open(ensoapi, name):
-    u""" Unlearn \u201copen {name}\u201d command """
+    u""" Unlearn "open {name}" command """
 
     file_path = os.path.join(LEARN_AS_DIR, name)
     if os.path.isfile(file_path + ".lnk"):
@@ -619,7 +619,7 @@ cmd_unlearn_open.valid_args = [s[1] for s in shortcuts_map.values()]
 
 
 def cmd_undo_unlearn(ensoapi):
-    u""" Undoes your last \u201cunlearn open\u201d command """
+    u""" Undoes your last "unlearn open" command """
     if len(unlearn_open_undo) > 0:
         name, sl = unlearn_open_undo.pop()
         sl.save()

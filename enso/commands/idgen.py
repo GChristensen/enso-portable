@@ -4,6 +4,10 @@ import uuid
 import random
 
 def cmd_guid(ensoapi, format = "lowercase"):
+    """
+    Replaces selected text with a guid.
+    format must be one of "lowecase", "uppercase" or "numeric".
+    """
     if format == "numeric":
         ensoapi.set_selection({"text": str(uuid.uuid4().hex)})
     elif format == "uppercase":
@@ -19,6 +23,7 @@ random.seed()
 boundsParser = re.compile(r"(?:from ?(\d+))? ?(?:to ?(\d+))?")
 
 def cmd_random(ensoapi, from_num_to_num = ""):
+    """Replaces selected text with a random number"""
     m = boundsParser.match(from_num_to_num)
 
     from_ = 0

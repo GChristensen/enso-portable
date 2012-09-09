@@ -64,7 +64,7 @@ def cmd_datetime(ensoapi):
 
 
 def cmd_unquote_url(ensoapi):
-    """ Unquote URL """
+    """ Decodes encoded characters in a URL """
     import urllib
     seldict = ensoapi.get_selection()
     text = seldict.get("text", "")

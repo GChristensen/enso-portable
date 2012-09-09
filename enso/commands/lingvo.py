@@ -75,6 +75,7 @@ def cmd_lingvo(ensoapi, word_from_lang_to_lang = ""):
     translate_word(ensoapi, word_from_lang_to_lang)
 
 def cmd_quit_lingvo(ensoapi):
+    """ Quit the Abbyy Lingvo dictionary software """
     lingvo = win32com.client.Dispatch("Lingvo.Application")
     try:
         lingvo.Quit()

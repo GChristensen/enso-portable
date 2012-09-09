@@ -549,7 +549,7 @@ TASKBAR = WindowsTaskbar()
 
 
 class SetWindowTitle(CommandObject):
-    '''Set the title of the front window'''
+    '''Set the title of the window'''
 
     def __init__(self, parameter = None):
         CommandObject.__init__( self )
@@ -564,7 +564,7 @@ cmd_win_title = SetWindowTitle()
 
 
 def cmd_height_to_maximum(ensoapi):
-    """ Maximize front window height"""
+    """ Maximize window height"""
     win = DESK.GetForegroundWindow()
     work_area = DESK.GetWorkArea()
     win_x, _ = win.GetPosition()
@@ -574,7 +574,7 @@ def cmd_height_to_maximum(ensoapi):
 
 
 def cmd_width_to_maximum(ensoapi):
-    """ Maximize front window width"""
+    """ Maximize window width"""
     win = DESK.GetForegroundWindow()
     work_area = DESK.GetWorkArea()
     _, win_y = win.GetPosition()
@@ -586,7 +586,7 @@ def cmd_width_to_maximum(ensoapi):
 fullscreen_windows = {}
 
 def cmd_fullscreen(ensoapi):
-    """ Enlarge front window full-screen """
+    """ Put window into full-screen mode """
     win = DESK.GetForegroundWindow()
     logging.debug(win)
     style = win32gui.GetWindowLong(win.GetHwnd(), win32con.GWL_STYLE)
@@ -678,25 +678,25 @@ def cmd_fullscreen(ensoapi):
 
 
 def cmd_maximize(ensoapi):
-    """ Maximize front window """
+    """ Maximize window """
     win = DESK.GetForegroundWindow()
     win.Maximize()
 
 
 def cmd_minimize(ensoapi):
-    """ Minimize front window """
+    """ Minimize window """
     win = DESK.GetForegroundWindow()
     win.Minimize()
 
 
 def cmd_restore(ensoapi):
-    """ Restore front window """
+    """ Restore window if it is maximized """
     win = DESK.GetForegroundWindow()
     win.Restore()
 
 
 def cmd_unmaximize(ensoapi):
-    """ Unmaximize front window if it is maximized """
+    """ Unmaximize window if it is maximized """
     cmd_restore(ensoapi)
 
 
@@ -754,7 +754,7 @@ cmd_restore_all = RestoreAllWindows()
 
 
 class SoloWindow(CommandObject):
-    ''' Minimize all windows but the foreground window '''
+    ''' Minimize all windows except the current one'''
 
     def __init__(self, parameter = None):
         CommandObject.__init__( self )
@@ -770,7 +770,7 @@ cmd_solo = SoloWindow()
 
 
 class SnapWindow(CommandObject):
-    '''Snap the front window to the specified edge or corner of the screen'''
+    '''Snap the window to the specified edge or corner of the screen'''
 
     def __init__(self, parameter = None):
         CommandObject.__init__( self )

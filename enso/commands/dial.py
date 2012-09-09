@@ -15,6 +15,7 @@ class RASDIALDLG(Structure):
                 ("reserved2", c_ulong)]
 
 class HangupCommand(object):
+    """ Disconnect a remote connection """
     def hangup(self, ensoapi, entryName):
         try:
             conn = (i for i in win32ras.EnumConnections() if i[1] == entryName).next()
@@ -27,6 +28,7 @@ class HangupCommand(object):
         self.valid_args = win32ras.EnumEntries()
 
 class DialCommand(object):
+    """ Connect to a remote connection """
     def connect(self, ensoapi, entryName):
         try:
             info = RASDIALDLG()
