@@ -114,7 +114,7 @@ def _extract_url_from_text(text):
 
 
 def cmd_abbreviation(ensoapi, query = None):
-    """ Search for abbreviation meaning """
+    """ Search for the definition of an abbreviation """
     ws = WebSearchCmd("http://www.urbandictionary.com/define.php?term=%(query)s")
     ws(ensoapi, query)
 
@@ -213,7 +213,7 @@ def cmd_website(ensoapi, text = None):
 
 
 def website_set_description(arg):
-    return u"Go to web site \u201c%s\u201d" % arg
+    return u"Go to web site \"%s\"" % arg
 
 cmd_website.set_description = website_set_description
 

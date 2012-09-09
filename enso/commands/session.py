@@ -21,8 +21,8 @@ def perform_exit(ensoapi, action):
         adjust_privilege(win32con.SE_SHUTDOWN_NAME, 0)
 
 def cmd_shutdown(ensoapi):
-    """Shut down the PC",
-    <p>The <b>shutdown</b> power management command shuts down the computer.</p>"""
+    """Shut down the PC
+    The <b>shutdown</b> power management command shuts down the computer."""
     try:
         perform_exit(ensoapi, win32con.EWX_SHUTDOWN)
     except:
@@ -30,7 +30,7 @@ def cmd_shutdown(ensoapi):
  
 def cmd_reboot(ensoapi):
     """Reboot the PC
-    <p>The <b>reboot</b> power management command reboots the computer.</p>"""
+    The <b>reboot</b> power management command reboots the computer."""
     try:
         perform_exit(ensoapi, win32con.EWX_REBOOT)
     except:
@@ -38,7 +38,7 @@ def cmd_reboot(ensoapi):
  
 def cmd_logoff(ensoapi):
     """Log off the PC
-    "<p>The <b>logoff</b> power management command logs of the computer.</p>"""
+    The <b>logoff</b> power management command logs of the computer."""
     try:
         perform_exit(ensoapi, win32con.EWX_LOGOFF)
     except:
@@ -46,7 +46,7 @@ def cmd_logoff(ensoapi):
 
 def cmd_suspend(ensoapi):
     """Suspend the PC
-    <p>The <b>suspend</b> power management command suspends the computer.</p>"""
+    The <b>suspend</b> power management command suspends the computer."""
     try:
         windll.powrprof.SetSuspendState(c_int(0), c_int(1), c_int(1))
     except:
@@ -54,7 +54,7 @@ def cmd_suspend(ensoapi):
  
 def cmd_hibernate(ensoapi):
     """Hibernate the PC
-    "<p>The <b>hibernate</b> power management command hibernates the computer.</p>"""
+    The <b>hibernate</b> power management command hibernates the computer."""
     try:
         windll.powrprof.SetSuspendState(c_int(1), c_int(1), c_int(1))
     except:

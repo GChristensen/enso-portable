@@ -131,8 +131,7 @@ def _handle_currency_symbols(expression):
 # $115.50
 # ¥100
 def cmd_calculate(ensoapi, expression = None):
-    u""" Calculate %s
-    <p>
+    u""" Calculate the given expression
     Calculate mathematical expression.<br/><br/>
     Supported operators:<br/>
     <code>
@@ -159,7 +158,6 @@ def cmd_calculate(ensoapi, expression = None):
     <code>to eur</code> 
     (when some text representing amount + currency is selected, 
     like $1000, gbp10, €4.5, 10 GBP)<br/>
-    </p>
     """
     #_cache_currencies()
     #print "TO CURRENCIES: " + "|".join(_to_currencies.keys())
@@ -273,6 +271,7 @@ if paste_command:
     print dir(paste_command)
 
 def cmd_calculation_paste(ensoapi):
+    """ Paste the results of the last calculation """
     global last_calculation
     
     #paste_command = CommandManager.get().getCommand("paste")

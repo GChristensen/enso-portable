@@ -31,7 +31,7 @@ def cmd_switch_wireless(ensoapi):
     tn.read_all()
 
 def cmd_wake_slave(ensoapi):
-    """Wake a slave server"""
+    """Wake a slave server with a magic packet"""
     tn = Telnet(HOST)
     tn.read_until("login: ")
     tn.write(USER + "\n")

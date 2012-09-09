@@ -146,13 +146,14 @@ class GoogleCommandFactory( ArbitraryPostfixFactory ):
     
     def _generateCommandObj( self, postfix ):
         if postfix:
+            # TODO: postfix never seems to be used. Perhaps this command
+            # could be simplified.
             cmd = GoogleCommand( postfix )
         else:
             cmd = GoogleCommand()
             cmd.setDescription(
-                "Performs a Google web search on the selected "
-                "or typed text."
-                )
+                "Performs a Google web search on the selected or typed text."
+            )
         return cmd
 
 
@@ -161,9 +162,13 @@ class GoogleCommandFactory( ArbitraryPostfixFactory ):
 # ---------------------------------------------------------------------------
 
 def load():
+    cmd = GoogleCommandFactory()
+    cmd.setDescription(
+        "Performs a Google web search on the selected or typed text."
+    )
     CommandManager.get().registerCommand(
         GoogleCommandFactory.NAME,
-        GoogleCommandFactory()
+        cmd
         )
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:
