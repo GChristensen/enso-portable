@@ -58,6 +58,7 @@ class ArgFuncMixin( object ):
         self.PREFIX = "%s " % cmdName
         self.DESCRIPTION_TEXT = desc
         self.setHelp( help )
+        self.setDescription( desc )
 
     def _generateCommandObj( self, postfix ):
         """

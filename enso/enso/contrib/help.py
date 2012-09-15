@@ -80,17 +80,59 @@ class DefaultHtmlHelp( object ):
 
     def _render( self ):
         with open( self.filename, "w" ) as fileobj:
-            fileobj.write( "<html><head><title>Enso Help</title></head>" )
+            fileobj.write( "<html><head><title>Enso Help</title>" )
+            fileobj.write("""
+                <style>
+                    body { 
+                        font-family: sans-serif; margin: 0; padding: 0; 
+                    }
+                    h1 { 
+                        font-weight: normal; padding: 0.2em; background-color: #B2CB78; 
+                        color: white; border-radius: 0 0 0.2em; display: inline; 
+                    }
+                    ul { list-style-type: none; padding: 1em; margin: 1em; }
+                    li { margin: 0.2em 1em 0.2em 0; display: inline; line-height: 1.5em;}
+                    h2 { 
+                        clear: both; font-weight: normal; padding: 0.2em; background-color: #272727; 
+                        color: white; 
+                        margin: 0.4em 0 0 0;
+                        display: inline;
+                        border-radius: 0 0.2em 0.2em 0; 
+                    }
+                    h3 {
+                        font-weight: normal; padding: 0.2em; background-color: #B2CB78; 
+                        color: white; margin: 0; 
+                        display: inline;
+                    }         
+                    p { margin-bottom: 3em; margin-top: 0.5em; }
+                </style>
+            """)
+            fileobj.write( "</head>" )
             fileobj.write( "<body>" )
             fileobj.write( "<h1>Enso Help</h1>" )
-            fileobj.write( "<h2>Your Commands</h2>" )
+
+            fileobj.write( "<ul>" )
             for name, command in self._cmdMan.getCommands().items():
+                fileobj.write( "<li>" )
+                fileobj.write( "<a href=\"#%s\">%s</a>" % (name, name) )
+                fileobj.write( "</li>" )
+            fileobj.write( "</ul>" )
+                
+
+            for name, command in self._cmdMan.getCommands().items():
+
+                fileobj.write( "<h2 id=\"%s\">%s</h2>" % (name, name) )
+
+                desc = command.getDescription()
+                fileobj.write( "<h3>%s</h3>" % desc )
+
                 helpText = command.getHelp()
                 if not helpText:
                     helpText = "This command has no help content."
-                helpText = helpText.encode( "ascii", "xmlcharrefreplace" )
-                fileobj.write( "<b>%s</b>" % name )
+                helpText = helpText.encode( "utf-8", "xmlcharrefreplace" )
+
                 fileobj.write( "<p>%s</p>" %  helpText )
+
             fileobj.write( "</body></html>" )
 
     def view( self ):
