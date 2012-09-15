@@ -4,7 +4,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher fo
 
 (C) 2011-2012 g/christensen (gchristnsn@gmail.com)
 
-v0.1.3
+v0.1.4
 
 ---
 
@@ -105,3 +105,7 @@ The source code of the original community Enso application could be found here:
 ####Known Issues
 
 * The trigger key will not show the command line if Windows Taskbar is under the focus.
+
+####Contributors
+
+* [Brian Peiris](https://github.com/brianpeiris)
