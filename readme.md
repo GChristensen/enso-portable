@@ -14,6 +14,7 @@ Description: the Enso Launcher application allows to launch programs found in th
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using the Python (version 2.5) programming language.
 
 [Download](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5-7z.sfx.exe) a portable binary distribution (no installation is required).
+Also available as a [7-zip archive](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.7z)
 
 ####Notes
 
