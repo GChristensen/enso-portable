@@ -4,7 +4,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher fo
 
 (C) 2011-2012 g/christensen (gchristnsn@gmail.com)
 
-v0.1.4
+v0.1.5
 
 ---
 
@@ -13,7 +13,7 @@ v0.1.4
 Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using the Python (version 2.5) programming language.
 
-[Download](https://github.com/downloads/GChristensen/enso-portable/enso-portable.7z.sfx.exe) a portable binary distribution (no installation is required).
+[Download](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5-7z.sfx.exe) a portable binary distribution (no installation is required).
 
 ####Notes
 
@@ -106,6 +106,20 @@ The source code of the original community Enso application could be found here:
 
 * The trigger key will not show the command line if Windows Taskbar is under the focus.
 
+####Change Log
+
+#####15.10.2012
+
+* Fixed `help' command, internal fixes [Brian Peiris]
+
+#####05.01.2015
+
+* Additional symbols in calc command (+, -, etc.) [thodan]
+* Fixed `close' command [Caleb John]
+* Fixed `website' command (by adding `simplejson' library)
+
 ####Contributors
 
 * [Brian Peiris](https://github.com/brianpeiris)
+* [thdoan](https://github.com/thdoan)
+* [Caleb John](https://github.com/CalebJohn)

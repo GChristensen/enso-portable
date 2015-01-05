@@ -1,6 +1,6 @@
 # Copyright (c) 2008, Humanized, Inc.
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -14,7 +14,7 @@
 #    3. Neither the name of Enso nor the names of its contributors may
 #       be used to endorse or promote products derived from this
 #       software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY Humanized, Inc. ``AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -61,7 +61,6 @@ STANDARD_ALLOWED_KEYCODES = {
     55: "7",
     56: "8",
     57: "9",
-    InputManager.KEYCODE_SPACE: " ",
     65: "a",
     66: "b",
     67: "c",
@@ -88,11 +87,55 @@ STANDARD_ALLOWED_KEYCODES = {
     88: "x",
     89: "y",
     90: "z",
-    # Some manually checked key codes:
-    191: "?",
-    220: "\\",
-    190: ".",
-    186: ":",
-    187: "+",
+    # Symbols:
+    186: ";",
+    187: "=",
+    188: ",",
     189: "-",
+    190: ".",
+    191: "/",
+    192: "`",
+    219: "[",
+    220: "\\",
+    221: "]",
+    222: "'",
+    # Shift symbols:
+    1048: ")",
+    1049: "!",
+    1050: "@",
+    1051: "#",
+    1052: "$",
+    1053: "%",
+    1054: "^",
+    1055: "&",
+    1056: "*",
+    1057: "(",
+    1186: ":",
+    1187: "+",
+    1188: "<",
+    1189: "_",
+    1190: ">",
+    1191: "?",
+    1192: "~",
+    1219: "{",
+    1220: "|",
+    1221: "}",
+    1222: "\"",
+    InputManager.KEYCODE_SPACE: " ",
+    # Keypad entry:
+    InputManager.KEYCODE_NUMPAD0: "0",
+    InputManager.KEYCODE_NUMPAD1: "1",
+    InputManager.KEYCODE_NUMPAD2: "2",
+    InputManager.KEYCODE_NUMPAD3: "3",
+    InputManager.KEYCODE_NUMPAD4: "4",
+    InputManager.KEYCODE_NUMPAD5: "5",
+    InputManager.KEYCODE_NUMPAD6: "6",
+    InputManager.KEYCODE_NUMPAD7: "7",
+    InputManager.KEYCODE_NUMPAD8: "8",
+    InputManager.KEYCODE_NUMPAD9: "9",
+    InputManager.KEYCODE_DECIMAL: ".",
+    InputManager.KEYCODE_DIVIDE: "/",
+    InputManager.KEYCODE_MULTIPLY: "*",
+    InputManager.KEYCODE_SUBTRACT: "-",
+    InputManager.KEYCODE_ADD: "+"
     }
