@@ -4,7 +4,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher fo
 
 (C) 2011-2012 g/christensen (gchristnsn@gmail.com)
 
-v0.1.5
+v0.1.6
 
 ---
 
@@ -127,6 +127,10 @@ The source code of the original community Enso application could be found here:
 * Additional symbols in calc command (+, -, etc.) [thodan]
 * Fixed `close' command [Caleb John]
 * Fixed `website' command (by adding `simplejson' library)
+
+#####28.05.2015
+
+* Added Python 2.7 support
 
 ####Contributors
 
