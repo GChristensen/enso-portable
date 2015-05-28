@@ -27,16 +27,16 @@ def restore_table(file_path):
 def cmd_truecrypt_mount(ensoapi, letter):
     """Mount a truecrypt volume"""
     args = letter.split()
-    volumes = restore_table(get_script_folder_name() + "\\vdata.dat")
-    if args[0] in volumes:
-        volume = volumes[args[0]][0]
-        subprocess.call([os.environ["ProgramFiles"] +
+    containers = restore_table(get_script_folder_name() + "\\vdata.dat")
+    if args[0] in containers:
+        container = containers[args[0]]
+        subprocess.call([os.environ["ProgramW6432"] +
                          "\\TrueCrypt\\TrueCrypt.exe", 
-                         "/v", volumes[args[0]][0],
+                         "/v", container,
                          "/l" + args[0], "/a", "/p", "", "/q"])
 
 def cmd_truecrypt_umount(ensoapi):
     """Dismount a truecrypt volume"""
-    subprocess.call([os.environ["ProgramFiles"] +
+    subprocess.call([os.environ["ProgramW6432"] +
                      "\\TrueCrypt\\TrueCrypt.exe",
                      "/d", "/q", "/f"])

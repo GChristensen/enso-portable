@@ -166,7 +166,7 @@ def cmd_deviantart(ensoapi, query = None):
 def cmd_website(ensoapi, text = None):
     """ Go to web site {text} """
     import urllib
-    import simplejson
+    import json
     import urllib2
     import time
     import threading
@@ -175,7 +175,7 @@ def cmd_website(ensoapi, text = None):
     def set_description(arg):
         print arg
 
-    json = None
+    json_obj = None
 
     if text is None:
         sel = None
@@ -200,10 +200,10 @@ def cmd_website(ensoapi, text = None):
     url = 'http://ajax.googleapis.com/ajax/services/search/web?v=1.0&%s' % (query)
     #print url
     resp = urllib2.urlopen(url)
-    json = simplejson.loads(resp.read())
+    json_obj = json.loads(resp.read())
     #logging.info(json)
-    if json and json['responseStatus'] == 200 and len(json.get('responseData').get('results')) > 0:
-        url = json.get('responseData').get('results')[0].get('url')
+    if json_obj and json_obj['responseStatus'] == 200 and len(json_obj.get('responseData').get('results')) > 0:
+        url = json_obj.get('responseData').get('results')[0].get('url')
         #ensoapi.display_message(url, "Translated text")
     
         try:

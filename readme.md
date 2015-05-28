@@ -11,10 +11,19 @@ v0.1.5
 <img src="https://raw.github.com/GChristensen/enso-portable/master/screen.jpg" />
 
 Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
-triggered by pressing the CAPSLOCK key. It's possible to create your own commands using the Python (version 2.5) programming language.
+triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
 
-[Download](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.zip) a portable binary distribution (no installation is required).
-Also available as a [7-zip archive](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.7z)
+####Download a portable binary distribution (no installation is required)
+
+v0.1.6 (Python 2.7)
+
+* [ZIP archive (18 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.zip)
+* [7-ZIP archive (28 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.7z)
+
+v0.1.5 (Python 2.5)
+
+* [ZIP archive (6.65 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.zip)
+* [7-ZIP archive (10 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.7z)
 
 ####Notes
 
