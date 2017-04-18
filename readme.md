@@ -13,7 +13,7 @@ v0.1.6
 Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
 
-####Download a portable binary distribution (no installation is required)
+#### Download a portable binary distribution (no installation is required)
 
 v0.1.6 (Python 2.7)
 
@@ -25,7 +25,7 @@ v0.1.5 (Python 2.5)
 * [ZIP archive (6.65 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.zip)
 * [7-ZIP archive (10 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.5/enso-portable-0.1.5.7z)
 
-####Notes
+#### Notes
 
 * There is no need to hold down the CAPSLOCK key as in the original version (it's only necessary to hit it once, the settings could be adjusted at the enso/config.py file).
 
@@ -35,23 +35,23 @@ v0.1.5 (Python 2.5)
 
 * To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](https://github.com/GChristensen/enso-portable/blob/master/enso/docs/enso-docs.txt) on command authoring).
 
-####Background
+#### Background
 
 I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](http://humanized.com/enso/launcher) (the original application is orphaned now).
 The source code of the original community Enso application could be found here:
 [https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned).
 
-####Dependencies
+#### Dependencies
 
 * Abbyy Lingvo dictionary software (optional)
 
 
-####Additional functionality not found in the original Enso
+#### Additional functionality not found in the original Enso
 
 * Ability to restart using a tray menu item or the `enso restart' command
 
 
-####Additional Commands 
+#### Additional Commands 
 
 >>**session.py**
 
@@ -112,27 +112,27 @@ The source code of the original community Enso application could be found here:
 
 >>>* wan reconnect - reconnect the ppoe daemon (may be useful to get a new IP from a dynamic pool)
 
-####Known Issues
+#### Known Issues
 
 * The trigger key will not show the command line if Windows Taskbar is under the focus.
 
-####Change Log
+#### Change Log
 
-#####15.10.2012
+##### 15.10.2012
 
 * Fixed `help' command, internal fixes [Brian Peiris]
 
-#####05.01.2015
+##### 05.01.2015
 
 * Additional symbols in calc command (+, -, etc.) [thodan]
 * Fixed `close' command [Caleb John]
 * Fixed `website' command (by adding `simplejson' library)
 
-#####28.05.2015
+##### 28.05.2015
 
 * Added Python 2.7 support
 
-####Contributors
+#### Contributors
 
 * [Brian Peiris](https://github.com/brianpeiris)
 * [thdoan](https://github.com/thdoan)
