@@ -17,8 +17,8 @@ triggered by pressing the CAPSLOCK key. It's possible to create your own command
 
 v0.1.6 (Python 2.7)
 
-* [ZIP archive (18 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.zip)
-* [7-ZIP archive (28 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.7z)
+* [ZIP archive (28 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.zip)
+* [7-ZIP archive (18 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.7z)
 
 v0.1.5 (Python 2.5)
 
@@ -75,7 +75,7 @@ The source code of the original community Enso application could be found here:
 >>>Dial-up network related commands:
   
 >>>* dial [connection name] - connect to the Internet using a dialup connection
-* hangup [connection name] - close an Internet connection
+>>>* hangup [connection name] - close an Internet connection
 
 >>**idgen.py**
 
@@ -100,7 +100,7 @@ The source code of the original community Enso application could be found here:
 >>>A set of shortcuts to [un]mount TrueCrypt volumes:
 
 >>>* truecrypt mount [letter] - mount a truecrypt volume assigned to the specified letter 
-* truecrypt umount - unmount all mounted volumes
+>>>* truecrypt umount - unmount all mounted volumes
 
 >>**dd_wrt.py** <font color="red">warning: does not work out of the box, hacking required</font>
 
@@ -114,7 +114,7 @@ The source code of the original community Enso application could be found here:
 
 #### Known Issues
 
-* The trigger key will not show the command line if Windows Taskbar is under the focus.
+* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus.
 
 #### Change Log
 
