@@ -4,7 +4,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher fo
 
 (C) 2011-2012 g/christensen (gchristnsn@gmail.com)
 
-v0.1.6
+v0.1.7
 
 ---
 
@@ -15,7 +15,7 @@ triggered by pressing the CAPSLOCK key. It's possible to create your own command
 
 #### Download a portable binary distribution (no installation is required)
 
-v0.1.6 (Python 2.7)
+v0.1.7 (Python 2.7)
 
 * [ZIP archive (28 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.zip)
 * [7-ZIP archive (18 MB)](https://github.com/GChristensen/enso-portable/releases/download/0.1.6/enso-portable-0.1.6.7z)
@@ -37,14 +37,9 @@ v0.1.5 (Python 2.5)
 
 #### Background
 
-I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](http://humanized.com/enso/launcher) (the original application is orphaned now).
+I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page) (the original application is orphaned now).
 The source code of the original community Enso application could be found here:
-[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned).
-
-#### Dependencies
-
-* Abbyy Lingvo dictionary software (optional)
-
+[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned, you can download the full original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
 #### Additional functionality not found in the original Enso
 
@@ -53,15 +48,21 @@ The source code of the original community Enso application could be found here:
 
 #### Additional Commands 
 
+>>**enso.py**
+
+>>>Toggle CAPSLOCK state:
+
+>>>* capslock toggle
+
 >>**session.py**
 
 >>>Session/Power management commands (self explanatory):
       
 >>>* log off
-* shut down
-* reboot
-* suspend
-* hibernate
+>>>* shut down
+>>>* reboot
+>>>* suspend
+>>>* hibernate
 
 >>**system.py**
 
@@ -112,6 +113,11 @@ The source code of the original community Enso application could be found here:
 
 >>>* wan reconnect - reconnect the ppoe daemon (may be useful to get a new IP from a dynamic pool)
 
+#### Dependencies
+
+* Abbyy Lingvo dictionary software (optional)
+
+
 #### Known Issues
 
 * The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus.
@@ -131,6 +137,12 @@ The source code of the original community Enso application could be found here:
 ##### 28.05.2015
 
 * Added Python 2.7 support
+
+##### 15.07.2017
+
+* Added platform code into the repository
+* Added `capslock toggle' command (always dreamed of)
+* Fixed `enso quit' command
 
 #### Contributors
 

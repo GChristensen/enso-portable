@@ -1,0 +1,154 @@
+# Copyright (c) 2008, Humanized, Inc.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#
+#    3. Neither the name of Enso nor the names of its contributors may
+#       be used to endorse or promote products derived from this
+#       software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY Humanized, Inc. ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Humanized, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# ----------------------------------------------------------------------------
+# Imports
+# ----------------------------------------------------------------------------
+
+Import("env")
+
+
+# ----------------------------------------------------------------------------
+# The Keyhook DLL
+# ----------------------------------------------------------------------------
+
+inputEnv = env.Copy()
+
+inputEnv.Append(
+    # Enable run-type type information (RTTI), needed by the SWIG
+    # directors that allow Python to subclass C++ classes.
+    CCFLAGS = "/GR",
+    )
+
+dllFile, keyhookLibFile, expFile = \
+         inputEnv.SharedLibrary( target="Keyhook.dll",
+                                 source=["KeyhookDll.c"],
+                                 LIBS=["User32"],
+                                )
+
+inputEnv.Install( "${BASE_INSTALL_DIR}",
+                  dllFile )
+
+# ----------------------------------------------------------------------------
+# The EnsoThread Static Library
+# ----------------------------------------------------------------------------
+
+# This is compiled into a static library so that multiple modules can
+# use it.
+
+sources = [
+    "EnsoThread.cxx",
+    ]
+
+ensoThreadLib = env.StaticLibrary(
+    source = sources
+    )
+
+inputEnv.Install( "${LIB_INSTALL_DIR}",
+                  ensoThreadLib );
+
+
+# ----------------------------------------------------------------------------
+# The AsyncEventProcessorRegistry DLL
+# ----------------------------------------------------------------------------
+
+cppDefines = {
+    "ASYNC_EVENT_USE_DL_EXPORT" : "1",
+    }
+dllFile, asyncLibFile, expFile = \
+         inputEnv.SharedLibrary( target = "AsyncEventProcessorRegistry",
+                                 source = ["AsyncEventProcessorRegistry.cxx"],
+                                 LIBS = ["User32", "CLogging"],
+                                 CPPDEFINES = cppDefines)
+inputEnv.Install( "${LIB_INSTALL_DIR}",
+                  asyncLibFile );
+inputEnv.Install( "${BASE_INSTALL_DIR}",
+                  dllFile );
+
+# ----------------------------------------------------------------------------
+# The AsyncEventThread Static Library
+# ----------------------------------------------------------------------------
+
+# This is compiled into a static library mainly so that multiple
+# testing suites can use it.
+
+sources = [
+    "AsyncEventThread.cxx",
+    ]
+
+asyncEventThreadLib = env.StaticLibrary(
+    source = sources,
+    )
+
+inputEnv.Install( "${LIB_INSTALL_DIR}",
+                  asyncEventThreadLib );
+
+# ----------------------------------------------------------------------------
+# The AsyncEventThread Python C Extension Module
+# ----------------------------------------------------------------------------
+
+pydFile, pyFile = inputEnv.buildSwigExtension(
+    swigInterfaceFile = "AsyncEventThread.i",
+    LIBS = [ "User32",
+             "CLogging",
+             "asyncEventProcessorRegistry",
+             "EnsoThread",
+             asyncEventThreadLib]
+    )
+
+
+inputEnv.Install( "${INPUT_INSTALL_DIR}", pyFile )
+inputEnv.Install( "${INPUT_INSTALL_DIR}", pydFile )
+
+
+# ----------------------------------------------------------------------------
+# The InputManager DLL + SWIG Python Wrapper
+# ----------------------------------------------------------------------------
+
+sources = [
+    "InputManager.cxx",
+    "HookHandlers.c",
+    "ExitHandler.c"
+    ]
+
+libs = [
+    "User32",
+    "Shell32",
+    "CLogging",
+    "AsyncEventProcessorRegistry",
+    keyhookLibFile,
+    ]
+
+pydFile, pyFile = inputEnv.buildSwigExtension(
+    swigInterfaceFile = "InputManager.i",
+    source = sources,
+    LIBS = libs
+    )
+
+inputEnv.Install( "${INPUT_INSTALL_DIR}", pyFile )
+inputEnv.Install( "${INPUT_INSTALL_DIR}", pydFile )
