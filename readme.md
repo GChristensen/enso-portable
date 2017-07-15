@@ -8,7 +8,7 @@ v0.1.7
 
 ---
 
-[DOWNLOAD]((https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
+[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
 
 <img src="https://raw.github.com/GChristensen/enso-portable/python-2.7/screen.jpg" />
 
