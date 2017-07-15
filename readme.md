@@ -2,13 +2,13 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
-(C) 2011-2012 g/christensen (gchristnsn@gmail.com)
+(C) 2011-2017 g/christensen (gchristnsn@gmail.com)
 
 v0.1.7
 
 ---
 
-[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
+[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 <img src="https://raw.github.com/GChristensen/enso-portable/python-2.7/screen.jpg" />
 
@@ -21,6 +21,13 @@ v0.1.7
 
 * [Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
 * [Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py25.zip)
+
+#### History
+
+At first there was a propietary closed-source Enso Launcher from Humanized [[web archive](https://web.archive.org/web/20140701081042/http://humanized.com/)]
+(the guys who also created [Ubiquity](https://www.youtube.com/watch?v=O5xnw_984ZM)). This version colud be extended in many programming languages, but someday it went open-source 
+and became extensible only on python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
+By some reasons it also has ceased.
 
 #### Notes
 
