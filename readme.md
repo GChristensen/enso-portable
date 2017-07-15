@@ -2,7 +2,7 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
-(C) 2011-2017 g/christensen (gchristnsn@gmail.com)
+(C) 2011-2017 [g/christensen](https://gchristensen.github.io/) &#x1F4C3; (gchristnsn@gmail.com)
 
 v0.1.7
 
@@ -10,7 +10,7 @@ v0.1.7
 
 [DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
-<img src="https://raw.github.com/GChristensen/enso-portable/python-2.7/screen.jpg" />
+![screen](screen.jpg?raw=true)
 
 Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
@@ -19,15 +19,15 @@ triggered by pressing the CAPSLOCK key. It's possible to create your own command
 
 v0.1.7
 
-* [Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
-* [Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py25.zip)
+* [Includes Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
+* [Includes Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py25.zip)
 
 #### History
 
 At first there was a propietary closed-source Enso Launcher from Humanized [[web archive](https://web.archive.org/web/20140701081042/http://humanized.com/)]
-(the guys who also created [Ubiquity](https://www.youtube.com/watch?v=O5xnw_984ZM)). This version colud be extended in many programming languages, but someday it went open-source 
-and became extensible only on python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
-By some reasons it also has ceased.
+(the guys who also created [Ubiquity](https://www.youtube.com/watch?v=O5xnw_984ZM)). This version was extensible by many programming languages, but someday it went open-source 
+and became extensible only by python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
+By some reasons it has also ceased.
 
 #### Notes
 
