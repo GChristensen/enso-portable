@@ -1,0 +1,72 @@
+Enso Windows Readme
+===================
+
+In addition to the prerequisites outlined in the README, you need to
+have the following set up to compile win32 specific libraries:
+
+  * Python 2.5 needs to be installed at C:\Python25. 
+    Compilation might also work with 2.4 and 2.6 version, but it is untested.
+
+  * Python for Windows extensions (pywin32) module
+    http://sourceforge.net/projects/pywin32/
+
+  * SWIG, the Simple Wrapper Interface Generator, must be installed at
+    C:\Swig.
+
+  * SCons-win32 (Software Construction tool)
+    http://sourceforge.net/project/showfiles.php?group_id=30337&package_id=22359&release_id=632161
+
+  * "MS Windows SDK for Windows Server 2008 and .NET Framework 3.5"
+    This is freeware download of command-line tools and needed libraries
+    for C++ code compilation.
+    http://www.microsoft.com/downloads/details.aspx?FamilyId=E6E1C3DF-A74F-4207-8586-711EBE331CDC&displaylang=en
+
+
+
+Build process
+=============
+
+Let's suppose that you:
+
+    * have Enso source code in c:\develope\enso-open-source. 
+      [EDIT: the following source code is assumed: https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145 
+      you need to perform additional configurations to compile this one
+        [gchristnsn]]
+      There must be SConstruct and SConstruct.win32 files present.
+    * installed "MS Windows SDK for Windows Server 2008 and .NET Framework 3.5" to default location, 
+      so its bin directory is in C:\Program Files\Microsoft Visual Studio 9.0\VC\bin.
+    * installed SCons into default location, i.e. there is %PYTHONPATH%\Scripts\scons.bat file
+    * installed SWIG into root directory, i.e. there is C:\SWIG\swig.exe file
+
+Then:
+
+   1. Execute "Visual Studio 2008 Command Prompt". You can find shortcut in your Start menu,
+      otherwise you can find it in bin directory (see above)
+   2. Being in the VS command prompt, change directory to your Enso source code root directory: 
+      cd c:\develope\enso-open-source.
+   3. You can start build process by invoking: 
+      %PYTHONPATH%\Scripts\scons.bat
+
+Now compilation should start. You will get a long list with occasional warnings (should be OK).
+If there is no error, and compilation ends with OK, you can do some checks:
+
+    * enso\platform\win32 must contain following files:
+
+	Keyhook.dll
+	EnsoThread.lib
+	libcairo-2.dll
+	freetype2.dll
+	AsyncEventThread.lib
+	AsyncEventProcessorRegistry.dll
+	AsyncEventProcessorRegistry.lib
+	CLogging.dll
+	CLogging.lib
+
+    * also check that inside enso\platform\win32\cairo there is
+
+	_cairo.pyd
+
+
+
+TODO: This README is far from complete, and the above prerequisites
+may not be all that's required; we need to expand on this.

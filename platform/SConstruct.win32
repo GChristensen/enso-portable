@@ -1,0 +1,240 @@
+# Copyright (c) 2008, Humanized, Inc.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#
+#    3. Neither the name of Enso nor the names of its contributors may
+#       be used to endorse or promote products derived from this
+#       software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY Humanized, Inc. ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Humanized, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#   Python Version - 2.4
+#
+#   This is the main SConstruct file for Enso on Windows.  Here we define all
+#   command-line options, as well as the default environment and
+#   builders that are used by the rest of the Enso project.
+#
+#   See README.txt for how to set up your build environment before running
+#   SCons.
+
+
+# ----------------------------------------------------------------------------
+# Imports
+# ----------------------------------------------------------------------------
+
+import os
+import sys
+import re
+
+# ----------------------------------------------------------------------------
+# C/C++ Defines
+# ----------------------------------------------------------------------------
+
+# Here we turn on ENSO_DEBUG even if DEBUG is off, so that Enso debug log
+# messages will still be logged.
+cppBaseDefines = {
+    "ENSO_DEBUG" : "1",
+    "WIN32" : "1",
+    "_WINDOWS" : "1",
+    "_CRT_SECURE_NO_WARNINGS" : "1",
+    }
+
+cppDebugDefines = {
+    }
+
+cppNoDebugDefines = {
+    "NDEBUG" : "1",
+    }
+
+
+# ----------------------------------------------------------------------------
+# C/C++ Compiler Options
+# ----------------------------------------------------------------------------
+
+# Documentation on Visual C++ Compiler Options can be found here:
+# http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vccore/html/_core_compiler_reference.asp
+
+ccBaseFlags = [
+    "/EHsc",    # Synchronous exception handling, assume extern C functions
+                # never throw exceptions.
+    "/W3",      # Set warning level (max is 4, min is 0)
+    "/WX",      # Treat all warnings as errors
+    "/nologo",  # Suppress display of sign-on banner
+    "/Zi",      # Produce a program database (PDB) that contains type
+                # information and symbolic debugging information for use
+                # with the debugger.
+    ]
+
+ccDebugFlags = [
+    "/MT",      # Use dynamically-linked msvcrt for C runtime
+    #"/LD",      # Use dynamically-linked msvcrt for C runtime
+    #"/MD",      # Use dynamically-linked msvcrt for C runtime
+                # We're not using the debug version of the msvcrt because
+                # it raises complications with linking to Python and because
+                # we don't really need the debugging support provided by
+                # the CRT.
+    "/Od",      # Disable optimization
+    ]
+
+ccNoDebugFlags = [
+    "/O2",      # Enable optimizations
+    "/MT",      # Use dynamically-linked msvcrt for C runtime
+    #"/LD",      # Use dynamically-linked msvcrt for C runtime
+    #"/MD",      # Use dynamically-linked msvcrt for C runtime
+    "/Ob1",     # Inline expansion only for functions marked as inline
+    "/GF",      # Pool strings as read-only
+    "/Gy",      # Enable function-level linking
+    ]
+
+
+# ----------------------------------------------------------------------------
+# C/C++ Linker Options
+# ----------------------------------------------------------------------------
+
+linkBaseFlags = [
+    "/nologo",
+    "/DEBUG",   # Create .pdb file containing debugging information
+    ]
+
+linkDebugFlags = [
+    ]
+
+linkNoDebugFlags = [
+    ]
+
+
+# ----------------------------------------------------------------------------
+# Base Environment Definition
+# ----------------------------------------------------------------------------
+
+baseEnv = Environment(
+    # Standard environment variables used by SCons.
+    CPPDEFINES = cppBaseDefines,
+    CPPPATH = [],
+    LIBPATH = [],
+    CCFLAGS = ccBaseFlags,
+    LINKFLAGS = linkBaseFlags,
+    ENV = {'PATH': os.environ['PATH']},
+
+    # Our custom environment variables used by our
+    # SConstruct/SConscript files.
+    BASE_INSTALL_DIR = "#enso/platform/win32",
+    INPUT_INSTALL_DIR = "#enso/platform/win32/input",
+    GRAPHICS_INSTALL_DIR = "#enso/platform/win32/graphics",
+    CAIRO_INSTALL_DIR = "#enso/platform/win32/cairo",
+    CLIPBOARD_INSTALL_DIR = "#enso/platform/win32/selection",
+    LIB_INSTALL_DIR = "#enso/platform/win32",
+    BASE_INCLUDE_DIR = "#win32",
+    SWIG = "C:\\swig\\swig.exe",
+    DEBUG = 0
+    )
+
+
+# ----------------------------------------------------------------------------
+# Extra environment variables
+# ----------------------------------------------------------------------------
+
+
+outsideEnvVars = ['TMP', 'LIB', 'LIBPATH', 'INCLUDE']
+
+for k in outsideEnvVars:
+    if k in os.environ:
+        baseEnv['ENV'][k] = os.environ[k]
+
+
+# ----------------------------------------------------------------------------
+# Tools
+# ----------------------------------------------------------------------------
+
+baseEnv.Tool( "SwigTool", toolpath = ["win32/SConsTools"] )
+baseEnv.Tool( "HumanizedUtilsTool", toolpath = ["win32/SConsTools"] )
+
+# ----------------------------------------------------------------------------
+# Library Definitions
+# ----------------------------------------------------------------------------
+
+# Windows SDK
+#baseEnv.addLib(
+#       libPath = "C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Lib",
+#       includePath = "C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A\\Include"
+#       )
+#baseEnv.addLib(
+#       libPath = "C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\lib",
+#       includePath = "C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include"
+#       )
+
+
+# Python
+baseEnv.addLib(
+    # sys.prefix contains the path to the base of the Python installation.
+    basePath = sys.prefix,
+    libPath = "libs",
+    includePath = "include",
+    )
+
+# Our own built libraries
+baseEnv.addLib(
+    libPath = baseEnv["LIB_INSTALL_DIR"],
+    includePath = "#win32/Include"
+    )
+
+
+# ----------------------------------------------------------------------------
+# Debug/Non-Debug Environments
+# ----------------------------------------------------------------------------
+
+# Take the base environment and create specialized debug and non-debug
+# environments out of them.
+
+debugEnv = baseEnv.Copy()
+noDebugEnv = baseEnv.Copy()
+
+debugEnv.Append(
+    CPPDEFINES = cppDebugDefines,
+    CCFLAGS = ccDebugFlags,
+    LINKFLAGS = linkDebugFlags
+    )
+
+noDebugEnv.Append(
+    CPPDEFINES = cppNoDebugDefines,
+    CCFLAGS = ccNoDebugFlags,
+    LINKFLAGS = linkNoDebugFlags
+    )
+
+# Depending on whether we're building for debugging or release, set
+# the active environment to the debug or non-debug environment.
+
+if baseEnv["DEBUG"] == 1:
+    env = debugEnv
+else:
+    env = noDebugEnv
+
+
+# ----------------------------------------------------------------------------
+# Build Actions
+# ----------------------------------------------------------------------------
+
+SConscript( "win32/Logging/SConscript", exports="env" )
+SConscript( "win32/InputManager/SConscript", exports="env" )
+SConscript( "win32/Graphics/SConscript", exports="env" )
+SConscript( "win32/ClipboardBackend/SConscript", exports="env" )
+
+# vi:set tabstop=4 shiftwidth=4 expandtab
