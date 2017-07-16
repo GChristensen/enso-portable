@@ -1,4 +1,4 @@
-## Creating Enso Commands
+# Creating Enso Commands
 
 To create a command for the portable distribution of Enso, put the code of your command 
 into a python file under ``commands`` directory at the root of the distribution.
