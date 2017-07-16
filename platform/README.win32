@@ -3,8 +3,9 @@
   2. Make sure that Python 2.7 is the default Python version accessible from command line
   3. Install pywin32 for Python 2.7 (https://sourceforge.net/projects/pywin32/files/pywin32/)
   4. Install SCons for Python 2.7 (https://bitbucket.org/scons/scons/downloads/)
-  5. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere 
-     and change path to its executable at the line 147 in `SConstruct' file
+  5. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere and change 
+     path to its executable at the line 147 in `SConstruct' file (or follow the original build 
+     instructions if you want to make pull requests to this repository)
   6. If you haven't MS Visual Studio installed, install C++ Build Tools 
      (http://landinghub.visualstudio.com/visual-cpp-build-tools)
   7. Open C++ Build Tools console, change directory to this `platform' folder and 
