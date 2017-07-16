@@ -1,12 +1,13 @@
 [EDIT: Modern build instructions
   1. Install Python 2.7 anywhere
-  2. Install pywin32 for Python 2.7 (https://sourceforge.net/projects/pywin32/files/pywin32/)
-  3. Install SCons for Python 2.7 (https://bitbucket.org/scons/scons/downloads/)
-  4. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere 
+  2. Make sure that Python 2.7 is the default Python version accessible from command line
+  3. Install pywin32 for Python 2.7 (https://sourceforge.net/projects/pywin32/files/pywin32/)
+  4. Install SCons for Python 2.7 (https://bitbucket.org/scons/scons/downloads/)
+  5. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere 
      and change path to its executable at the line 147 in `SConstruct' file
-  5. If you haven't MS Visual Studio installed, install C++ Build Tools 
+  6. If you haven't MS Visual Studio installed, install C++ Build Tools 
      (http://landinghub.visualstudio.com/visual-cpp-build-tools)
-  6. Open C++ Build Tools console, change directory to this `platform' folder and 
+  7. Open C++ Build Tools console, change directory to this `platform' folder and 
      run `scons' command]
 
 [The original build instructions:]
