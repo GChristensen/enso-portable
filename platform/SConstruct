@@ -81,6 +81,7 @@ ccBaseFlags = [
     "/Zi",      # Produce a program database (PDB) that contains type
                 # information and symbolic debugging information for use
                 # with the debugger.
+    "/WX-"
     ]
 
 ccDebugFlags = [

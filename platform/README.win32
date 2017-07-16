@@ -1,3 +1,16 @@
+[EDIT: Modern build instructions
+  1. Install Python 2.7 anywhere
+  2. Install SCons for Python 2.7 (https://bitbucket.org/scons/scons/downloads/)
+  3. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere 
+     and change path to its executable at the line 147 in `SConstruct' file
+  4. If you haven't MS Visual Studio installed, install C++ Build Tools 
+     (http://landinghub.visualstudio.com/visual-cpp-build-tools)
+  5. Open C++ Build Tools console, change directory to this `platform' folder and 
+     run `scons' command]
+
+[The original build instructions:]
+
+
 Enso Windows Readme
 ===================
 
@@ -29,9 +42,8 @@ Build process
 Let's suppose that you:
 
     * have Enso source code in c:\develope\enso-open-source. 
-      [EDIT: the following source code is assumed: https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145 
-      you need to perform additional configurations to compile this one
-        [gchristnsn]]
+      [EDIT: the following source code is assumed: https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145
+         [gchristnsn]]
       There must be SConstruct and SConstruct.win32 files present.
     * installed "MS Windows SDK for Windows Server 2008 and .NET Framework 3.5" to default location, 
       so its bin directory is in C:\Program Files\Microsoft Visual Studio 9.0\VC\bin.
