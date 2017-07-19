@@ -25,7 +25,7 @@ v0.1.7
 #### History
 
 At first there was a propietary closed-source Enso Launcher from Humanized [[web archive](https://web.archive.org/web/20140701081042/http://humanized.com/)]
-(the guys who also created [Ubiquity](https://www.youtube.com/watch?v=O5xnw_984ZM)). This version was extensible by many programming languages, but someday it went open-source 
+(the guys who also created [Ubiquity](https://youtu.be/9hXU1GAm_Qg)). This version was extensible by many programming languages, but someday it went open-source 
 and became extensible only by python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
 By some reasons it has also ceased.
 
