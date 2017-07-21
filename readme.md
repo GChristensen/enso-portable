@@ -4,7 +4,7 @@ A portable distribution of the *community* version of Humanized Enso Launcher fo
 
 (C) 2011-2017 [g/christensen](https://gchristensen.github.io/) &#x1F4C3; (gchristnsn@gmail.com)
 
-v0.1.7
+v0.1.8
 
 ---
 
@@ -17,10 +17,10 @@ triggered by pressing the CAPSLOCK key. It's possible to create your own command
 
 #### Download a portable binary distribution (no installation is required)
 
-v0.1.7
+v0.1.8
 
-* [Includes Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip)
-* [Includes Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py25.zip)
+* [Includes Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py27.zip)
+* [Includes Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py25.zip)
 
 #### History
 
@@ -38,6 +38,8 @@ By some reasons it has also ceased.
 * The GIT repository contains only the Enso source code without a Python interpreter, it's more convenient to use the binary package above (which includes a trimmed down Python interpreter) to develop your own commands, so you need only the Notepad to do this.
 
 * To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](commands.md) on command authoring).
+
+* It's possible to put any custom python code needed to initialize Enso into the file named `.ensorc' under the Enso root folder.
 
 #### Background
 
@@ -123,6 +125,7 @@ The source code of the original community Enso application could be found here:
 #### Known Issues
 
 * The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong).
+* Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
 
 #### Change Log
 
@@ -145,6 +148,12 @@ The source code of the original community Enso application could be found here:
 * Added platform code into the repository
 * Added `capslock toggle' command (always dreamed of)
 * Fixed `enso quit' command
+
+##### 21.07.2017
+
+* Added .ensorc support
+* Added systay icon graceful removal after exit or testart
+* Rebuilt the launcher with VC++2017 to address some AV false-positive alerts
 
 #### Contributors
 

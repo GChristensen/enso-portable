@@ -11,20 +11,15 @@ from win32com.shell import shell, shellcon
 import enso
 from enso.messages import displayMessage
 from enso.platform.win32.taskbar import SysTrayIcon
+from enso.platform.win32 import gracefully_exit_enso
 from optparse import OptionParser
 
 options = None
+enso_root_dir = os.path.dirname(enso.enso_executable)
 
 def tray_on_enso_quit(systray):
-    enso.config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
-    global options
-    if not options.quiet:
-        displayMessage(u"<p>Closing Enso...</p><caption>Enso</caption>")
-    #import win32gui
-    #win32gui.PostQuitMessage(0)
-    time.sleep(1)
-    sys.exit(0)
-
+    gracefully_exit_enso()
+    
 def tray_on_enso_about(systray):
     displayMessage(
         enso.config.ABOUT_BOX_XML +
@@ -58,7 +53,7 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
             )
 
             shortcut.SetPath(enso.enso_executable)
-            enso_root_dir = os.path.dirname(enso.enso_executable)
+            global enso_root_dir
             shortcut.SetWorkingDirectory(enso_root_dir)
             shortcut.SetIconLocation(os.path.join(enso_root_dir, "Enso.ico"), 0)
 
@@ -118,11 +113,10 @@ def process_options(argv):
 
 def main(argv = None):
     global options
-
-
-
     opts, args = process_options(argv)
     options = opts
+
+    enso.config.ENSO_IS_QUIET = options.quiet
 
     loglevel = {
         'CRITICAL' : logging.CRITICAL,
@@ -148,7 +142,8 @@ def main(argv = None):
         print opts
         print args
 
-    ensorcPath = os.path.expanduser("~/.ensorc")
+    global enso_root_dir
+    ensorcPath = os.path.expanduser(enso_root_dir + "/.ensorc")
     if os.path.exists( ensorcPath ):
         logging.info( "Loading '%s'." % ensorcPath )
         contents = open( ensorcPath, "r" ).read()

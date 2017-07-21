@@ -29,9 +29,12 @@
 
 import os
 import sys
+import time
 import atexit
 import win32event
 import enso.platform
+import enso.config
+from enso.messages import displayMessage
 
 if not sys.platform.startswith("win"):
     raise enso.platform.PlatformUnsupportedError()
@@ -82,3 +85,12 @@ def provideInterface( name ):
     else:
         return None
 
+def gracefully_exit_enso():
+    enso.config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
+    if not enso.config.ENSO_IS_QUIET:
+        displayMessage(u"<p>Closing Enso...</p><caption>Enso</caption>")
+    #import win32gui
+    #win32gui.PostQuitMessage(0)
+    enso.config.SYSTRAY_ICON._on_destroy(0, 0, 0, 0)
+    time.sleep(1)
+    os._exit(0)
