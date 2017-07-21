@@ -8,7 +8,7 @@ v0.1.8
 
 ---
 
-[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.7/enso-portable-0.1.7-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
+[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 ![screen](screen.jpg?raw=true)
 
