@@ -152,7 +152,7 @@ The source code of the original community Enso application could be found here:
 ##### 21.07.2017
 
 * Added .ensorc support
-* Added systay icon graceful removal after exit or testart
+* Added systay icon graceful removal after exit or restart
 * Rebuilt the launcher with VC++2017 to address some AV false-positive alerts
 
 #### Contributors
