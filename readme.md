@@ -94,6 +94,13 @@ The source code of the original community Enso application could be found here:
 
 >>>* random [from num to num]
 
+>>**retreat.py**
+
+>>>Delay or skip [Angelic Retreat](http://retreat.sourceforge.net) breaks:
+
+>>>* delay break
+>>>* skip break
+
 >>**lingvo.py**
 
 >>>Control Abbyy Lingvo dictionary software with Enso Launcher. It's possible to specify translation direction attributes, see command help for the details.
@@ -153,6 +160,7 @@ The source code of the original community Enso application could be found here:
 
 * Added .ensorc support
 * Added systay icon graceful removal after exit or restart
+* Added Angelic Retreat integration
 * Rebuilt the launcher with VC++2017 to address some AV false-positive alerts
 
 #### Contributors
