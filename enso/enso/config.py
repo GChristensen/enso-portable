@@ -2,6 +2,8 @@
 # localization into account too (or we can make a separate module for
 # such strings).
 
+COLOR_THEME = "default"
+
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
 # in the os-specific input module in use.

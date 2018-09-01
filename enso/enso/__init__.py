@@ -34,6 +34,12 @@
 
 import os
 import sys
+import config
+from enso.quasimode import layout
+
+# Set color theme before quasimode is loaded to capture font styles
+layout.setColorTheme(config.COLOR_THEME)
+
 
 enso_dir = os.path.dirname(os.path.realpath(__file__))
 enso_dir = os.path.dirname(enso_dir)

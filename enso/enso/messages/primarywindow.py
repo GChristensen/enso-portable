@@ -48,7 +48,7 @@ from enso.graphics.measurement import inchesToPoints
 from enso.graphics import rounded_rect
 from enso.utils.xml_tools import escape_xml
 from enso.messages.windows import MessageWindow, computeWidth
-
+from enso.quasimode import layout
 
 # ----------------------------------------------------------------------------
 # Constants
@@ -439,21 +439,21 @@ _styles.add(
 
 _styles.add(
     "p",
-    color = "#ffffff",
+    color = layout.WHITE,
     margin_top = "0pt",
     margin_bottom = "0pt",
     )
 
 _styles.add(
     "caption",
-    color = "#669900",
+    color = layout.DESIGNER_GREEN,
     margin_top = "%spt" % CAPTION_OFFSET,
     margin_bottom = "0pt",
     )
 
 _styles.add(
     "command",
-    color = "#669900",
+    color = layout.DESIGNER_GREEN,
     )
 
 # The tag aliases for primary message XML.
