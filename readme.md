@@ -2,7 +2,7 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
-[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
+[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/v1.0.9/enso-portable-0.1.9-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 ![screen](screen.jpg?raw=true)
 
@@ -10,13 +10,6 @@ Description: the Enso Launcher application allows to launch programs found in th
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
 
 SEE ALSO: [Ubiquity WebExtension](https://github.com/GChristensen/ubichr#readme)
-
-#### Download a portable binary distribution (no installation is required)
-
-v0.1.8
-
-* [Includes Python 2.7](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py27.zip)
-* [Includes Python 2.5](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py25.zip)
 
 #### History
 
@@ -36,6 +29,8 @@ By some reasons it has also ceased.
 * To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](commands.md) on command authoring).
 
 * It's possible to put any custom python code needed to initialize Enso into the file named `.ensorc' under the Enso root folder.
+
+* A color theme may be specified in config.py (e.g. COLOR_THEME="amethyst") 
 
 #### Background
 
@@ -158,6 +153,12 @@ Enso also may spontaneously stuck if some system event that grabs focus is trigg
 * Added systay icon graceful removal after exit or restart
 * Added Angelic Retreat integration
 * Rebuilt the launcher with VC++2017 to address some AV false-positive alerts
+
+##### 01.09.2018
+
+* Added new color theme (amethyst)
+* A color theme may be specified in config.py (e.g. COLOR_THEME="amethyst"), 
+see `enso theme' command suggested arguments for the list of available themes
 
 #### Contributors
 

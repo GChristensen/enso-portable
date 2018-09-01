@@ -83,7 +83,8 @@ COLOR_THEMES = {
     'orange' : ("#ffffff", "#be9f57", "#987f45", "#000000"),
     'magenta' : ("#ffffff", "#be579f", "#98457f", "#000000"),
     'cyan' : ("#ffffff", "#99cccc", "#99aaaa", "#000000"),
-    'red' : ("#ffffff", "#cc0033", "#ff0066", "#000000")
+    'red' : ("#ffffff", "#cc0033", "#ff0066", "#000000"),
+    'amethyst' : ("#ffffff", "#af69ee", "#9966cb", "#000000")
 }
 
 # Add alpha values to get transparent backgrounds.
