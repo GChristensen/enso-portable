@@ -2,18 +2,14 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
-(C) 2011-2017 [g/christensen](https://gchristensen.github.io/) &#x1F4C3; (gchristnsn@gmail.com)
-
-v0.1.8
-
----
-
 [DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/0.1.8/enso-portable-0.1.8-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 ![screen](screen.jpg?raw=true)
 
 Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
 triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
+
+SEE ALSO: [Ubiquity WebExtension](https://github.com/GChristensen/ubichr#readme)
 
 #### Download a portable binary distribution (no installation is required)
 
@@ -43,7 +39,6 @@ By some reasons it has also ceased.
 
 #### Background
 
-I haven't found any Enso command package suitable for my needs, so I decided to make my own one. If you like Enso, you can use the source code freely as you wish, see more at the [Enso Launcher page](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page) (the original application is orphaned now).
 The source code of the original community Enso application could be found here:
 [https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned, you can download the full original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
@@ -73,7 +68,7 @@ The source code of the original community Enso application could be found here:
 
 >>>System commands:
 
->>>* kill [process name or id] - kill a process using its executable name
+>>>* kill [process name or id] - kills a process using its executable name
                                    (without extension) or id
 
 >>**dial.py**
@@ -131,7 +126,8 @@ The source code of the original community Enso application could be found here:
 
 #### Known Issues
 
-* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong).
+* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong). 
+Enso also may spontaneously stuck if some system event that grabs focus is triggered.
 * Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
 
 #### Change Log
