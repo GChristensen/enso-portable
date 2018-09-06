@@ -157,13 +157,17 @@ class GoCommand(CommandObject):
 
                     ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 1)
 
-                    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                    if win32gui.IsIconic(hwnd):
+                        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+
                     win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
                     win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
                     win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                    win32gui.SetActiveWindow(hwnd);
                     ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 0)
 
                     ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 1)
+                    win32gui.SetCapture(hwnd);
                     win32api.SetFocus(hwnd)
                     ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 0)
                 except Exception, e:
