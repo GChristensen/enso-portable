@@ -78,6 +78,8 @@ class ScriptTracker:
         commandManager.registerCommand( TracebackCommand.NAME,
                                         TracebackCommand() )
 
+        self._updateScripts()
+
     @classmethod
     def install( cls, eventManager, commandManager ):
         cls( eventManager, commandManager )
