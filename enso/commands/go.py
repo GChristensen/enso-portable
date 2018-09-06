@@ -11,7 +11,6 @@ import unicodedata
 from enso.commands import CommandManager, CommandObject
 import logging
 
-
 import ctypes
 from ctypes import *
 from ctypes.wintypes import HWND #, RECT, POINT
@@ -151,17 +150,22 @@ class GoCommand(CommandObject):
             title = xml.sax.saxutils.escape(title).lower()
             if title == window:
                 try:
-                    #windowPlacement = win32gui.GetWindowPlacement(hwnd)
-                    #showCmd = windowPlacement[1]
-                    #print showCmd
-                    #if showCmd == SW_RESTORE:
-                    #    win32gui.ShowWindow(hwnd, SW_RESTORE)
-                    #else:
-                    #    win32gui.BringWindowToTop(hwnd)
-                    
-                    if win32gui.IsIconic(hwnd):
-                        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-                    win32gui.SetForegroundWindow(hwnd)
+                    dwCurrentThread = win32api.GetCurrentThreadId()
+
+                    [dwFGThread, _] = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
+                    [dwTGThread, _] = win32process.GetWindowThreadProcessId(hwnd)
+
+                    ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 1)
+
+                    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                    win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                    win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                    win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                    ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 0)
+
+                    ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 1)
+                    win32api.SetFocus(hwnd)
+                    ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 0)
                 except Exception, e:
                     if e[0] == 0:
                         time.sleep(0.2)
