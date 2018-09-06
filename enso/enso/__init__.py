@@ -34,8 +34,6 @@
 
 import os
 import sys
-import config
-from enso.quasimode import layout
 
 enso_dir = os.path.dirname(os.path.realpath(__file__))
 enso_dir = os.path.dirname(enso_dir)
@@ -49,12 +47,13 @@ def run():
     Initializes and runs Enso.
     """
 
-    # Set color theme before quasimode is loaded to capture font styles
-    layout.setColorTheme(config.COLOR_THEME)
-
     from enso.events import EventManager
     from enso.quasimode import Quasimode
     from enso import events, plugins, config, quasimode, webui
+    from enso.quasimode import layout
+
+    # Set color theme before quasimode is loaded to capture font styles
+    layout.setColorTheme(config.COLOR_THEME)
 
     eventManager = EventManager.get()
     Quasimode.install( eventManager )
