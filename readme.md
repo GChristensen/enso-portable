@@ -2,7 +2,7 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
 
-[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/v1.0.9/enso-portable-0.1.9-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
+[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/v1.0.10/enso-portable-0.1.10-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 ![screen](screen.jpg?raw=true)
 
@@ -126,39 +126,20 @@ Enso also may spontaneously stuck if some system event that grabs focus is trigg
 * Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
 
 #### Change Log
-
-##### 15.10.2012
-
-* Fixed `help' command, internal fixes [Brian Peiris]
-
-##### 05.01.2015
-
-* Additional symbols in calc command (+, -, etc.) [thodan]
-* Fixed `close' command [Caleb John]
-* Fixed `website' command (by adding `simplejson' library)
-
-##### 28.05.2015
-
-* Added Python 2.7 support
-
-##### 15.07.2017
-
-* Added platform code into the repository
-* Added `capslock toggle' command (always dreamed of)
-* Fixed `enso quit' command
-
-##### 21.07.2017
-
-* Added .ensorc support
-* Added systay icon graceful removal after exit or restart
-* Added Angelic Retreat integration
-* Rebuilt the launcher with VC++2017 to address some AV false-positive alerts
+[full changelog](changelog.txt)
 
 ##### 01.09.2018
 
 * Added new color theme (amethyst)
 * A color theme may be specified in config.py (e.g. COLOR_THEME="amethyst"), 
 see `enso theme' command suggested arguments for the list of available themes
+
+##### 06.09.2018
+
+* Fixed `go' command
+* CapsLock key works instantly after start
+* Removed resource-consuming currency conversion from calculate command
+* Removed web-search commands
 
 #### Contributors
 
