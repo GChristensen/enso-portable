@@ -83,11 +83,11 @@ PLUGINS = ["enso.contrib.scriptotron",
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
 ABOUT_BOX_XML = u"<p><command>Enso</command> Community Edition</p>" \
-    "<caption>Enso Portable (Community Enso rev 145)</caption>" \
+    "<caption>Enso Portable (Community Enso rev 145) v0.1.10</caption>" \
     "<caption> </caption>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
-    "<p>Copyright &#169; 2011-2012 <command>g/christensen (gchristnsn@gmail.com)</command></p>" \
+    "<p>Copyright &#169; 2011-2018 <command>g/christensen (gchristnsn@gmail.com)</command></p>" \
 
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:
