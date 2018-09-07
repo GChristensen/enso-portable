@@ -106,7 +106,7 @@ class GoCommand(CommandObject):
             if "WindowsScreensaverClass" == win_class or "tooltips_class32" == win_class:
                 return True
             # Now we probably have application window
-            
+
             # Get title
             # Using own GetWindowText, because win32gui.GetWindowText() doesn't 
             # return unicode string.
@@ -120,8 +120,8 @@ class GoCommand(CommandObject):
             try:
                 # Get process name
                 phandle = win32api.OpenProcess(
-                    win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, 
-                    False, 
+                    win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ,
+                    False,
                     process_id)
                 pexe = win32process.GetModuleFileNameEx(phandle, 0)
                 pexe = os.path.normcase(os.path.normpath(pexe))
@@ -129,7 +129,7 @@ class GoCommand(CommandObject):
                 process, _ = os.path.splitext(os.path.basename(pexe))
             except Exception, e:
                 pass
-            
+
             # Add hwnd and title to the list
             windows.append((found_win, "%s: %s" % (process, win_title)))
             return True
@@ -151,26 +151,24 @@ class GoCommand(CommandObject):
             if title == window:
                 try:
                     dwCurrentThread = win32api.GetCurrentThreadId()
-
-                    [dwFGThread, _] = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
                     [dwTGThread, _] = win32process.GetWindowThreadProcessId(hwnd)
 
-                    ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 1)
-
-                    if win32gui.IsIconic(hwnd):
-                        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-
-                    win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-                    win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-                    win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-                    win32gui.SetActiveWindow(hwnd);
-                    ctypes.windll.user32.AttachThreadInput(dwTGThread, dwFGThread, 0)
-
                     ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 1)
-                    win32gui.SetCapture(hwnd);
-                    win32api.SetFocus(hwnd)
-                    ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 0)
+                    try:
+                        if win32gui.IsIconic(hwnd):
+                            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+
+                        win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                        win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                        win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+
+                        win32gui.SetActiveWindow(hwnd);
+                        win32gui.SetForegroundWindow(hwnd)
+                    finally:
+                        ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwTGThread, 0)
+
                 except Exception, e:
+                    print e
                     if e[0] == 0:
                         time.sleep(0.2)
                         try:
@@ -182,7 +180,7 @@ class GoCommand(CommandObject):
                             except Exception, e:
                                 pass
                     elif e[0] == 2:
-                       pass
+                        pass
                 break
         return hwnd
 
