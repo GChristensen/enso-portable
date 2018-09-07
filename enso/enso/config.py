@@ -79,7 +79,7 @@ PLUGINS = ["enso.contrib.scriptotron",
            "enso.contrib.evaluate"]
 
 # Detect default system locale and use it for google search.
-# If set to False, no locale is forced.
+# If set to False, no locale is forced.dddasdfasdf
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
 ABOUT_BOX_XML = u"<p><command>Enso</command> Community Edition</p>" \
