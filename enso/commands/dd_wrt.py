@@ -1,10 +1,17 @@
-
+import os
+import json
 from telnetlib import Telnet
 
-HOST = "192.168.1.1"
-USER = "root"
-PASSWORD = "" # provide a password
-IFACE = "ra0"
+options = {}
+config = (os.environ["HOME"] if "HOME" in os.environ else "") + "/.enso/dd_wrt.json"
+
+if os.path.exists(config):
+    options = json.load(open(config))
+
+HOST = options["host"].encode('ascii', 'ignore') if "host" in options else "192.168.1.1"
+USER = options["user"].encode('ascii', 'ignore') if "user" in options else "root"
+PASSWORD = options["password"].encode('ascii', 'ignore') if "password" in options else ""
+IFACE = options["iface"].encode('ascii', 'ignore') if "iface" in options else "ra0"
 
 def cmd_switch_wireless(ensoapi):
     """Turn wi-fi on/off"""

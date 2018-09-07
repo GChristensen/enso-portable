@@ -41,6 +41,12 @@ The source code of the original community Enso application could be found here:
 
 * Ability to restart using a tray menu item or the `enso restart' command
 
+#### Known Issues
+
+* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong). 
+Enso also may spontaneously stuck if some system event that grabs focus is triggered.
+* &#x1F534; Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
+
 #### Additional Commands 
 
 >>**enso.py**
@@ -114,16 +120,6 @@ The source code of the original community Enso application could be found here:
 >>>* switch wireless - turn wireless radio on/off
 
 >>>* wan reconnect - reconnect the ppoe daemon (may be useful to get a new IP from a dynamic pool)
-
-#### Dependencies
-
-* Abbyy Lingvo dictionary software (optional)
-
-#### Known Issues
-
-* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong). 
-Enso also may spontaneously stuck if some system event that grabs focus is triggered.
-* Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
 
 #### Change Log
 [full changelog](changelog.txt)
