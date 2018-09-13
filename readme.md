@@ -1,20 +1,21 @@
 ## Enso Portable
 
-A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands
+A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands.
 
 [DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/v1.0.11/enso-portable-0.1.11-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
 
 ![screen](screen.jpg?raw=true)
 
-Description: the Enso Launcher application allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
-triggered by pressing the CAPSLOCK key. It's possible to create your own commands using Python programming language.
-
 SEE ALSO: [Ubiquity WebExtension](https://github.com/GChristensen/ubichr#readme)
+
+Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
+triggered by the CAPSLOCK key. It's possible to create your own commands using Python programming language.
+
 
 #### History
 
 At first there was a propietary closed-source Enso Launcher from Humanized [[web archive](https://web.archive.org/web/20140701081042/http://humanized.com/)]
-(the guys who also created [Ubiquity](https://youtu.be/9hXU1GAm_Qg)). This version was extensible by many programming languages, but someday it went open-source 
+(the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open-source 
 and became extensible only by python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
 By some reasons it has also ceased.
 
