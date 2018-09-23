@@ -1,4 +1,4 @@
-from win32com.shell import shell, shellcon
+from win32comext.shell import shell, shellcon
 from enso.platform.win32.scriptfolder import get_script_folder_name
 import os
 import glob
@@ -15,7 +15,7 @@ import logging
 unlearn_open_undo = []
 
 my_documents_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
-LEARN_AS_DIR = os.path.join(get_script_folder_name(), u"Enso's Learn As Open Commands")
+LEARN_AS_DIR = os.path.join(os.path.expanduser("~"), ".enso", "learned-commands")
 
 # Check if Learn-as dir exist and create it if not
 if (not os.path.isdir(LEARN_AS_DIR)):
@@ -38,10 +38,10 @@ def _cpl_exists(cpl_name):
 
 control_panel_applets = [i[:3] for i in (
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"control panel",
+        "control panel",
         "rundll32.exe shell32.dll,Control_RunDLL"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"accessibility options (control panel)",
+        "accessibility options (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL access.cpl"),
     #accessibility options (Keyboard):
     #    rundll32.exe shell32.dll,Control_RunDLL access.cpl,,1
@@ -54,7 +54,7 @@ control_panel_applets = [i[:3] for i in (
     #accessibility options (General):
     #    rundll32.exe shell32.dll,Control_RunDLL access.cpl,,5
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"add or remove programs (control panel)",
+        "add or remove programs (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl"),
     #add or remove programs (Install/Uninstall):
     #    rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,1
@@ -63,7 +63,7 @@ control_panel_applets = [i[:3] for i in (
     #add or remove programs (Startup Disk):
     #    rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl,,3
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"display properties (control panel)",
+        "display properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL desk.cpl"),
     #Display Properties (Background):
     #    rundll32.exe shell32.dll,Control_RunDLL desk.cpl,,0
@@ -75,7 +75,7 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe shell32.dll,Control_RunDLL desk.cpl,,3
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"regional and language options (control panel)",
+        "regional and language options (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL intl.cpl"),
     #Regional Settings Properties (Regional Settings):
     #    rundll32.exe shell32.dll,Control_RunDLL intl.cpl,,0
@@ -89,13 +89,13 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe shell32.dll,Control_RunDLL intl.cpl,,4
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"game controllers (control panel)",
+        "game controllers (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL joy.cpl"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"mouse properties (control panel)",
+        "mouse properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL main.cpl @0"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"keyboard properties (control panel)",
+        "keyboard properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL main.cpl @1"),
     # DOES NOT WORK
     #Printers:
@@ -106,11 +106,11 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe shell32.dll,Control_RunDLL main.cpl @3
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"microsoft exchange profiles (control panel)",
+        "microsoft exchange profiles (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL mlcfg32.cpl",
         _cpl_exists("mlcfg32")),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"sounds and audio devices (control panel)",
+        "sounds and audio devices (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL mmsys.cpl"),
     #Multimedia Properties (Audio):
     #    rundll32.exe shell32.dll,Control_RunDLL mmsys.cpl,,0
@@ -124,30 +124,30 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe shell32.dll,Control_RunDLL mmsys.cpl,,4
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"modem properties (control panel)",
+        "modem properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL modem.cpl",
         _cpl_exists("modem")),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"network connections (control panel)",
+        "network connections (control panel)",
         "RUNDLL32.exe SHELL32.DLL,Control_RunDLL NCPA.CPL"),
 
     #Password Properties (Change Passwords):
     #    rundll32.exe shell32.dll,Control_RunDLL password.cpl
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"system properties (control panel)",
+        "system properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,0"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"device manager (control panel)",
+        "device manager (control panel)",
         #"rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,1"
         "devmgmt.msc"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"disk management (control panel)",
+        "disk management (control panel)",
         "diskmgmt.msc"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"scanners and cameras (control panel)",
+        "scanners and cameras (control panel)",
         "control.exe sticpl.cpl"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"removable storage (control panel)",
+        "removable storage (control panel)",
         "ntmsmgr.msc"),
 
     #dfrg.msc Disk defrag
@@ -162,17 +162,17 @@ control_panel_applets = [i[:3] for i in (
     #services.msc Various Services
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"hardware profiles (control panel)",
+        "hardware profiles (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,2"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"advanced system properties (control panel)",
+        "advanced system properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,3"),
 
     #Add New Hardware Wizard:
     #    rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl @1
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"date and time (control panel)",
+        "date and time (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL timedate.cpl"),
 
     #Microsoft Workgroup Postoffice Admin:
@@ -189,11 +189,11 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe AppWiz.Cpl,NewLinkHere %1
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"add new hardware wizard (control panel)",
+        "add new hardware wizard (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL hdwwiz.cpl @1"),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"add printer wizard (control panel)",
+        "add printer wizard (control panel)",
         "rundll32.exe shell32.dll,SHHelpShortcuts_RunDLL AddPrinter"),
     #(SHORTCUT_TYPE_CONTROL_PANEL,
     #    u"dialup networking wizard (cp)",
@@ -206,33 +206,33 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe syncui.dll,Briefcase_Create
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"printers and faxes (control panel)",
+        "printers and faxes (control panel)",
         "rundll32.exe shell32.dll,SHHelpShortcuts_RunDLL PrintersFolder"),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"fonts (control panel)",
+        "fonts (control panel)",
         "rundll32.exe shell32.dll,SHHelpShortcuts_RunDLL FontsFolder"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"windows firewall (control panel)",
+        "windows firewall (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL firewall.cpl"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"speech properties (control panel)",
+        "speech properties (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL \"${COMMONPROGRAMFILES}\\Microsoft Shared\\Speech\\sapi.cpl\"",
         os.path.isfile(os.path.expandvars("${COMMONPROGRAMFILES}\\Microsoft Shared\\Speech\\sapi.cpl"))),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"internet options (control panel)",
+        "internet options (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL inetcpl.cpl"),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"odbc data source administrator (control panel)",
+        "odbc data source administrator (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL odbccp32.cpl"),
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"power options (control panel)",
+        "power options (control panel)",
         "rundll32.exe shell32.dll,Control_RunDLL powercfg.cpl"),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
-        u"bluetooth properties (control panel)",
+        "bluetooth properties (control panel)",
         "control.exe bhtprops.cpl",
         _cpl_exists("bhtprops")),
 
@@ -240,7 +240,6 @@ control_panel_applets = [i[:3] for i in (
     #    rundll32.exe shell32.dll,Control_RunDLL timedate.cpl,,/f
 ) if len(i) < 4 or i[3]]
 #print control_panel_applets
-
 
 class _PyShortcut():
     def __init__( self, base ):
@@ -401,21 +400,25 @@ print get_control_panel_applets()
 def get_shortcuts(directory):
     shortcuts = []
     sl = PyShellLink()
-    for dirpath, dirnames, filenames in os.walk(directory):
-        for filename in filenames:
-            if ignored.search(filename):
-                continue
-            name, ext = os.path.splitext(filename)
-            if not ext.lower() in (".lnk", ".url"):
-                continue
-            #print name, ext
-            shortcut_type = SHORTCUT_TYPE_DOCUMENT
-            if ext.lower() == ".lnk":
-                sl.load(os.path.join(dirpath, filename))
-                shortcut_type = sl.get_type()
-            elif ext.lower() == ".url":
-                shortcut_type = SHORTCUT_TYPE_URL
-            shortcuts.append((shortcut_type, name.lower(), os.path.join(dirpath, filename)))
+
+    if os.path.exists(directory):
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for filename in filenames:
+                if ignored.search(filename):
+                    continue
+                name, ext = os.path.splitext(filename)
+                if not ext.lower() in (".lnk", ".url"):
+                    continue
+                #print name, ext
+                shortcut_type = SHORTCUT_TYPE_DOCUMENT
+                if ext.lower() == ".lnk":
+                    shortcut_path = os.path.join(dirpath, filename)
+                    sl.load(shortcut_path)
+                    shortcut_type = sl.get_type()
+                elif ext.lower() == ".url":
+                    shortcut_type = SHORTCUT_TYPE_URL
+
+                shortcuts.append((shortcut_type, name.lower(), shortcut_path))
     return shortcuts
 
 
@@ -436,17 +439,17 @@ def reload_shortcuts_map():
         get_shortcuts(start_menu_dir) + \
         get_shortcuts(common_start_menu_dir) + \
         control_panel_applets
+
     return dict((s[1], s) for s in shortcuts)
 
 shortcuts_map = reload_shortcuts_map()
 
 
 
-
 def cmd_open(ensoapi, target):
     """ Continue typing to open an application or document """
 
-    displayMessage(u"Opening <command>%s</command>..." % target)
+    displayMessage("Opening <command>%s</command>..." % target)
 
     try:
         global shortcuts_map
@@ -469,17 +472,17 @@ def cmd_open(ensoapi, target):
                     params,
                     None,
                     win32con.SW_SHOWDEFAULT)
-            except Exception, e:
+            except Exception as e:
                 logging.error(e)
         else:
             os.startfile(file_path)
 
         return True
-    except Exception, e:
+    except Exception as e:
         logging.error(e)
         return False
 
-cmd_open.valid_args = [s[1] for s in shortcuts_map.values()]
+cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
 
 
 def cmd_open_with(ensoapi, application):
@@ -493,21 +496,21 @@ def cmd_open_with(ensoapi, application):
         file = None
 
     if not (file and (os.path.isfile(file) or os.path.isdir(file))):
-        ensoapi.display_message(u"No file or folder is selected")
+        ensoapi.display_message("No file or folder is selected")
         return
 
-    displayMessage(u"Opening <command>%s</command>..." % application)
+    displayMessage("Opening <command>%s</command>..." % application)
 
     #print file, application
     global shortcuts_map
     try:
-        print shortcuts_map[application][2]
-        print shortcuts_map[application]
+        print(shortcuts_map[application][2])
+        print(shortcuts_map[application])
         executable = expand_path_variables(shortcuts_map[application][2])
     except:
-        print application
-        print shortcuts_map.keys()
-        print shortcuts_map.values()
+        print(application)
+        print(list(shortcuts_map.keys()))
+        print(list(shortcuts_map.values()))
     try:
         rcode = win32api.ShellExecute(
             0,
@@ -516,10 +519,10 @@ def cmd_open_with(ensoapi, application):
             '"%s"' % file,
             os.path.dirname(file),
             win32con.SW_SHOWDEFAULT)
-    except Exception, e:
+    except Exception as e:
         logging.error(e)
 
-cmd_open_with.valid_args = [s[1] for s in shortcuts_map.values() if s[0] == SHORTCUT_TYPE_EXECUTABLE]
+cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
 
 
 
@@ -541,7 +544,7 @@ def is_url(text):
 def cmd_learn_as_open(ensoapi, name):
     """ Learn to open a document or application as {name} """
     if name is None:
-        displayMessage(u"You must provide name")
+        displayMessage("You must provide name")
         return
     seldict = ensoapi.get_selection()
     if seldict.get('files'):
@@ -549,12 +552,12 @@ def cmd_learn_as_open(ensoapi, name):
     elif seldict.get('text'):
         file = seldict['text'].strip()
     else:
-        ensoapi.display_message(u"No file is selected")
+        ensoapi.display_message("No file is selected")
         return
 
     if not os.path.isfile(file) and not os.path.isdir(file) and not is_url(file):
         displayMessage(
-            u"Selection represents no existing file, folder or URL.")
+            "Selection represents no existing file, folder or URL.")
         return
 
     file_name = name.replace(":", "").replace("?", "").replace("\\", "")
@@ -562,7 +565,7 @@ def cmd_learn_as_open(ensoapi, name):
 
     if os.path.isfile(file_path + ".url") or os.path.isfile(file_path + ".lnk"):
         displayMessage(
-            u"<command>open %s</command> already exists. Please choose another name."
+            "<command>open %s</command> already exists. Please choose another name."
             % name)
         return
 
@@ -585,15 +588,15 @@ def cmd_learn_as_open(ensoapi, name):
     #time.sleep(0.5)
     global shortcuts_map
     shortcuts_map = reload_shortcuts_map()
-    cmd_open.valid_args = [s[1] for s in shortcuts_map.values()]
-    cmd_open_with.valid_args = [s[1] for s in shortcuts_map.values() if s[0] == SHORTCUT_TYPE_EXECUTABLE]
-    cmd_unlearn_open.valid_args = [s[1] for s in shortcuts_map.values()]
+    cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
+    cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
 
-    displayMessage(u"<command>open %s</command> is now a command" % name)
+    displayMessage("<command>open %s</command> is now a command" % name)
 
 
 def cmd_unlearn_open(ensoapi, name):
-    u""" Unlearn "open {name}" command """
+    """ Unlearn "open {name}" command """
 
     file_path = os.path.join(LEARN_AS_DIR, name)
     if os.path.isfile(file_path + ".lnk"):
@@ -609,23 +612,23 @@ def cmd_unlearn_open(ensoapi, name):
 
     global shortcuts_map
     shortcuts_map = reload_shortcuts_map()
-    cmd_open.valid_args = [s[1] for s in shortcuts_map.values()]
-    cmd_open_with.valid_args = [s[1] for s in shortcuts_map.values() if s[0] == SHORTCUT_TYPE_EXECUTABLE]
-    cmd_unlearn_open.valid_args = [s[1] for s in shortcuts_map.values()]
-    displayMessage(u"Unlearned <command>open %s</command>" % name)
+    cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
+    cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    displayMessage("Unlearned <command>open %s</command>" % name)
 
 
-cmd_unlearn_open.valid_args = [s[1] for s in shortcuts_map.values()]
+cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
 
 
 def cmd_undo_unlearn(ensoapi):
-    u""" Undoes your last "unlearn open" command """
+    """ Undoes your last "unlearn open" command """
     if len(unlearn_open_undo) > 0:
         name, sl = unlearn_open_undo.pop()
         sl.save()
-        displayMessage(u"Undo successful. <command>open %s</command> is now a command" % name)
+        displayMessage("Undo successful. <command>open %s</command> is now a command" % name)
     else:
-        ensoapi.display_message(u"There is nothing to undo")
+        ensoapi.display_message("There is nothing to undo")
 
 if __name__ == "__main__":
     import doctest

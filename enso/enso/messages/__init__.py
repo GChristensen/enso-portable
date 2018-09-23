@@ -428,7 +428,7 @@ def displayMessage( msgXml ):
         isMini = False,
         fullXml = msgXml,
         )
-    
+
     MessageManager.get().newMessage( msg )
 
 if __name__ == "__main__":

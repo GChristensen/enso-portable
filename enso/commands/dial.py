@@ -18,10 +18,10 @@ class HangupCommand(object):
     """ Disconnect a remote connection """
     def hangup(self, ensoapi, entryName):
         try:
-            conn = (i for i in win32ras.EnumConnections() if i[1] == entryName).next()
+            conn = next((i for i in win32ras.EnumConnections() if i[1] == entryName))
             win32ras.HangUp(conn[0])
         except:
-            print "Couldn't hangup: %s" % entryName
+            print("Couldn't hangup: %s" % entryName)
     def __call__(self, ensoapi, connection):
         self.hangup(ensoapi, connection)
     def on_quasimode_start(self):
@@ -35,7 +35,7 @@ class DialCommand(object):
             info.dwSize = sizeof(info)
             windll.rasdlg.RasDialDlgA(0, entryName, 0, byref(info))
         except:
-            print "Couldn't connect: %s" % entryName
+            print("Couldn't connect: %s" % entryName)
     def __call__(self, ensoapi, connection):
         def thread_proc():
             self.connect(ensoapi, connection)

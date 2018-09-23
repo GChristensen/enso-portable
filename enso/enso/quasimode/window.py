@@ -194,7 +194,7 @@ class TheQuasimodeWindow:
                  (timeElapsed < config.QUASIMODE_SUGGESTION_DELAY) ):
                 return False
             try:
-                suggestionDrawer = self.__suggestionsLeft.next()
+                suggestionDrawer = next(self.__suggestionsLeft)
                 suggestionDrawer.draw()
                 return True
             except StopIteration:

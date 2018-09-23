@@ -58,8 +58,8 @@ def addInstanceMethodToEnv( env, function ):
 
     # Now create the unbound method object and add it to the
     # Environment's class.
-    method = types.MethodType( methodWrapper, None, envClass )
-    setattr( envClass, methodName, method )
+    #method = types.MethodType( methodWrapper, None, envClass )
+    setattr( envClass, methodName, methodWrapper )
 
 def findFileWithExtensionInNodeList( nodeList,
                                      possibleExtensions ):

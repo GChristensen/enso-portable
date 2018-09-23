@@ -88,7 +88,7 @@ def provideInterface( name ):
 def gracefully_exit_enso():
     enso.config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
     if not enso.config.ENSO_IS_QUIET:
-        displayMessage(u"<p>Closing Enso...</p><caption>Enso</caption>")
+        displayMessage("<p>Closing Enso...</p><caption>Enso</caption>")
     #import win32gui
     #win32gui.PostQuitMessage(0)
     enso.config.SYSTRAY_ICON._on_destroy(0, 0, 0, 0)

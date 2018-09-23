@@ -129,6 +129,7 @@ linkNoDebugFlags = [
 baseEnv = Environment(
     # Standard environment variables used by SCons.
     CPPDEFINES = cppBaseDefines,
+    TARGET_ARCH = "x86",
     CPPPATH = [],
     LIBPATH = [],
     CCFLAGS = ccBaseFlags,
@@ -144,7 +145,7 @@ baseEnv = Environment(
     CLIPBOARD_INSTALL_DIR = "#enso/platform/win32/selection",
     LIB_INSTALL_DIR = "#enso/platform/win32",
     BASE_INCLUDE_DIR = "#win32",
-    SWIG = "C:\\swig\\swig.exe",
+    SWIG = "swig",
     DEBUG = 0
     )
 

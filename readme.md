@@ -2,14 +2,16 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands.
 
-[DOWNLOAD](https://github.com/GChristensen/enso-portable/releases/download/v1.0.11/enso-portable-0.1.11-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
+[DOWNLOAD v0.2.0 (Python 3.7)](https://github.com/GChristensen/enso-portable/releases/download/v1.0.11/enso-portable-0.1.11-py27.zip) :: [VIDEO MANUAL](https://youtu.be/QFXBp2vuEEA)
+
+[DOWNLOAD v0.1.11 (Python 2.7, WinXP support)](https://github.com/GChristensen/enso-portable/releases/download/v1.0.11/enso-portable-0.1.11-py27.zip)
 
 ![screen](screen.jpg?raw=true)
 
 SEE ALSO: [Ubiquity WebExtension](https://github.com/GChristensen/ubichr#readme)
 
 Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using the `learn as open' command) and perform many other operations with text command line 
-triggered by the CAPSLOCK key. It's possible to create your own commands using Python programming language.
+triggered by the CAPSLOCK key. It's possible to [create](commands.md) your own commands using Python programming language.
 
 
 #### History
@@ -25,18 +27,24 @@ By some reasons it has also ceased.
 
 * Use the `help' command to get the list of available commands.
 
-* The GIT repository contains only the Enso source code without a Python interpreter, it's more convenient to use the binary package above (which includes a trimmed down Python interpreter) to develop your own commands, so you need only the Notepad to do this.
+* The GIT repository contains only the Enso source code without a Python interpreter, it's more convenient to use the binary package above (which includes a portable Python interpreter) to develop your own commands, so you need only the Notepad to do this.
 
-* To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](commands.md) on command authoring).
+* It's possible to put any custom Python code needed to initialize Enso into the file named '.ensorc' under your HOME folder (issue `enso userhome' command to find what is it).
+Use '--portable' option of run-enso.exe (for example, from a Windows Shortcut) to set Enso distribution directory as Enso home directory.
 
-* It's possible to put any custom python code needed to initialize Enso into the file named `.ensorc' under the Enso root folder.
+* To add a new command you need to put a Python file with its source code into the `commands' folder under the Enso root directory (see the [docs](commands.md) on command authoring). 
+You also can place Python command code at '~/.ensocommands' file.
 
-* A color theme may be specified in config.py (e.g. COLOR_THEME="amethyst") 
+* A color theme may be specified in config.py or .ensorc (e.g. COLOR_THEME="amethyst").
+ 
+* Any variables you declare in .ensorc file are added to the `config' module, so you can access them in your commands later (e.g. config.MY_VARIABLE).
+
+* Install necessary Python packages with the `enso install &lt;package name&gt;' command. 
 
 #### Background
 
 The source code of the original community Enso application could be found here:
-[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (also probably orphaned, you can download the full original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
+[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the full original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
 #### Additional functionality not found in the original Enso
 
@@ -44,9 +52,9 @@ The source code of the original community Enso application could be found here:
 
 #### Known Issues
 
-* The trigger key will not show the command line if Windows Taskbar or Windows Task Manager is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong). 
-Enso also may spontaneously stuck if some system event that grabs focus is triggered.
-* &#x1F534; Some AV tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
+* The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong). 
+Enso also may spontaneously stuck if some system event that grabs input is triggered.
+* &#x1F534; Some security tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.
 
 #### Additional Commands 
 
@@ -70,7 +78,7 @@ Enso also may spontaneously stuck if some system event that grabs focus is trigg
 
 >>>System commands:
 
->>>* kill [process name or id] - kills a process using its executable name
+>>>* terminate [process name or id] - terminates a process using its executable name
                                    (without extension) or id
 
 >>**dial.py**
@@ -103,16 +111,15 @@ Enso also may spontaneously stuck if some system event that grabs focus is trigg
 >>>Control Abbyy Lingvo dictionary software with Enso Launcher. It's possible to specify translation direction attributes, see command help for the details.
      
 >>>* lingvo [word from lang to lang] - translate a word
->>>* quit lingvo - close Lingvo
 
->>**mount.py** <font color="red">warning: does not work out of the box, hacking required</font>
+>>**mount.py** <font color="red">warning: does not work out of the box, see the command file for details</font>
 
 >>>A set of shortcuts to [un]mount TrueCrypt volumes:
 
 >>>* truecrypt mount [letter] - mount a truecrypt volume assigned to the specified letter 
 >>>* truecrypt umount - unmount all mounted volumes
 
->>**dd_wrt.py** <font color="red">warning: does not work out of the box, hacking required</font>
+>>**dd_wrt.py** <font color="red">warning: does not work out of the box, see the command file for details</font>
 
 >>>A set of dd-wrt shortcut commands (requires terminal access to a [dd-wrt](http://www.dd-wrt.com) router):
 
@@ -125,18 +132,13 @@ Enso also may spontaneously stuck if some system event that grabs focus is trigg
 #### Change Log
 [full changelog](changelog.txt)
 
-##### 01.09.2018
+##### 24.09.2018 (v.0.2.0)
 
-* Added new color theme (amethyst)
-* A color theme may be specified in config.py (e.g. COLOR_THEME="amethyst"), 
-see `enso theme' command suggested arguments for the list of available themes
-
-##### 06.09.2018
-
-* Fixed `go' command
-* CapsLock key works instantly after start
-* Removed resource-consuming currency conversion from calculate command
-* Removed web-search commands
+* Migrated to Python 3.7
+* Added `enso userhome' command
+* Added `enso install' command
+* Learn as open commands moved to `~/.enso/learned-commands'
+* `--portable' launcher command line option added
 
 #### Contributors
 

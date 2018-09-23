@@ -41,12 +41,12 @@
 # ----------------------------------------------------------------------------
 
 # Double "smart quotes".
-OPEN_QUOTE = u"\u201C"
-CLOSE_QUOTE = u"\u201D"
+OPEN_QUOTE = "\u201C"
+CLOSE_QUOTE = "\u201D"
 
 # Single "smart quotes".
-OPEN_SINGLE_QUOTE = u"\u2018"
-CLOSE_SINGLE_QUOTE = u"\u2019"
+OPEN_SINGLE_QUOTE = "\u2018"
+CLOSE_SINGLE_QUOTE = "\u2019"
 
 
 # ----------------------------------------------------------------------------
@@ -79,7 +79,7 @@ def _smartSingleQuote( inText ):
     """
     
     # Explicitly copy the text and cast it to unicode.
-    outText = unicode( inText[:] )
+    outText = str( inText[:] )
 
     # There are two usages of single quote marks; for
     # quotations, and for contractions.
@@ -117,7 +117,7 @@ def _smartDoubleQuote( inText ):
     """
     
     # Explicitly copy the text and cast it to unicode.
-    outText = unicode( inText[:] )
+    outText = str( inText[:] )
     while outText.count( "\"" ) > 0:
         outText = outText.replace( "\"", OPEN_QUOTE, 1)
         outText = outText.replace( "\"", CLOSE_QUOTE, 1)

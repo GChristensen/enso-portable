@@ -1,1 +1,1 @@
-from taskbar import *
+from .taskbar import *

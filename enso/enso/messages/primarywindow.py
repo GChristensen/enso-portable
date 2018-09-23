@@ -492,7 +492,7 @@ def layoutMessageXml( xmlMarkup, width, size, height, ellipsify="false",
             _styles,
             _tagAliases
             )
-    except Exception, e:
+    except Exception as e:
         if raiseLayoutExceptions:
             raise
         logging.warn( "Could not layout message text %s; got error %s"

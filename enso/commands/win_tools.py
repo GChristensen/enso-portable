@@ -47,12 +47,12 @@ def _stdcall(dllname, restype, funcname, *argtypes):
 
         def decorated(*args, **kw):
             iterator = func(*args, **kw)
-            nargs = iterator.next()
+            nargs = next(iterator)
             if not isinstance(nargs, tuple):
                 nargs = (nargs,)
             try:
                 res = api(*nargs)
-            except Exception, e:
+            except Exception as e:
                 return iterator.throw(e)
             return iterator.send(res)
         return decorated
@@ -454,7 +454,7 @@ class cDesktop:
                 ('bottom',ctypes.c_ulong)]
         r = RECT()
         ctypes.windll.user32.SystemParametersInfoA(win32con.SPI_GETWORKAREA, 0, ctypes.byref(r), 0)
-        logging.debug(map(int, (r.left, r.top, r.right, r.bottom)))
+        logging.debug(list(map(int, (r.left, r.top, r.right, r.bottom))))
         return cRect(int(r.left), int(r.top), int(r.right), int(r.bottom))
 
 
@@ -531,14 +531,6 @@ class WindowsTaskbar:
 
 
 from enso.commands import CommandManager, CommandObject
-from enso.commands.factories import ArbitraryPostfixFactory
-from enso import selection
-from enso.messages import displayMessage
-from enso.contrib.scriptotron import ensoapi
-from SendKeys import SendKeys as sendkeys
-
-#import win32Wrap
-
 
 # Globals
 # provide desktop object to all classes in this module
@@ -634,7 +626,7 @@ def cmd_fullscreen(ensoapi):
 
         placement = win32gui.GetWindowPlacement(win.GetHwnd())
         maximized = placement[1] == win32con.SW_MAXIMIZE
-        print "maximized: " + repr(maximized)
+        print("maximized: " + repr(maximized))
 
         (original_left,
             original_top,
@@ -647,7 +639,7 @@ def cmd_fullscreen(ensoapi):
         #win32gui.SetWindowLong(win.GetHwnd(), win32con.GWL_EXSTYLE, ex_style)
 
         style = style & ~(win32con.WS_CAPTION | win32con.WS_SIZEBOX)
-        print style
+        print(style)
         win32gui.SetWindowLong(win.GetHwnd(), win32con.GWL_STYLE, style)
 
         menu_height = win32api.GetSystemMetrics(win32con.SM_CYMENU)
@@ -813,9 +805,9 @@ class SnapWindow(CommandObject):
                 self.displayMessage('Invalid snap direction given')
                 return
             win.SetRect(winrect)
-        except Exception, e:
+        except Exception as e:
             msg = 'Exception thrown in the %s class' % self.__class__.__name__
-            print '%s\n%s' % (msg, str(e))
+            print('%s\n%s' % (msg, str(e)))
             self.displayMessage(str(e), msg)
 
 cmd_snap = SnapWindow()

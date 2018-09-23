@@ -31,7 +31,7 @@ def cmd_random(ensoapi, from_num_to_num = ""):
     if not s_from is None:
         from_ = int(s_from)
 
-    to = sys.maxint
+    to = sys.maxsize
     s_to = m.group(2)
     if not s_to is None:
         to = int(s_to)

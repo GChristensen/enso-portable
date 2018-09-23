@@ -3,13 +3,13 @@ import sys
 import zlib
 import pickle
 import base64
-import StringIO
+import io
 import subprocess
 from enso.platform import win32
 from enso.platform.win32.scriptfolder import get_script_folder_name
 
 def dump_table(table, file_path):
-    dst = StringIO.StringIO()
+    dst = io.StringIO()
     p = pickle.Pickler(dst)
     out = open(file_path, 'wb')
     pickle.dump(table, dst)
@@ -20,7 +20,7 @@ def restore_table(file_path):
     inp = open(file_path, 'rb')
     data = inp.read()
     inp.close()
-    src = StringIO.StringIO(zlib.decompress(base64.b64decode(data)))
+    src = io.StringIO(zlib.decompress(base64.b64decode(data)))
     up = pickle.Unpickler(src)
     return up.load()
     

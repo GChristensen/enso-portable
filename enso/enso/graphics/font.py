@@ -170,7 +170,7 @@ class FontGlyph:
         
         # Encode the character to UTF-8 because that's what the cairo
         # API uses.
-        self.charAsUtf8 = char.encode("UTF-8")
+        self.charAsUtf8 = char # char.encode("UTF-8")
         self.char = char
         self.font = font
 

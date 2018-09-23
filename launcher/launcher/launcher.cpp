@@ -39,7 +39,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
-
 	if (_tcsstr(lpCmdLine, _T("--restart")))
 	{
 		TCHAR *stop, *spc = _tcsrchr(lpCmdLine, _T(' '));
@@ -58,6 +57,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			return 0;
 		}
 	}
+
 
 	TCHAR *point = NULL;
 	TCHAR module_name[MAX_PATH];
@@ -85,6 +85,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	point = _tcsrchr(enso_executable_path, _T('\\'));
 	_tcscpy(point + 1, _T("scripts\\run_enso.py"));
+
+	if (_tcsstr(lpCmdLine, _T("--portable")))
+	{
+		SetEnvironmentVariable(_T("HOME"), exec_dir);
+	}
 
     return LaunchTarget(python_path, enso_executable_path, exec_dir);
 }

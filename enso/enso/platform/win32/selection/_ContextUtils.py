@@ -320,7 +320,7 @@ def interpretFormatCode( format ):
 
     if format >= 0xC000:
         return win32clipboard.GetClipboardFormatName( format )
-    elif formatCodeDictionary.has_key( format ):
+    elif format in formatCodeDictionary:
         return formatCodeDictionary[ format ]
     else:
         return "Unknown data format."

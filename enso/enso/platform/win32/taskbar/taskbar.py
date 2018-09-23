@@ -54,7 +54,7 @@ class SysTrayIcon(object):
         # Don't blow up if class already registered to make testing easier
         try:
             self.class_atom = win32gui.RegisterClass(self._window_class)
-        except win32gui.error, err_info:
+        except win32gui.error as err_info:
             if err_info.winerror != winerror.ERROR_CLASS_ALREADY_EXISTS:
                 raise
 
@@ -161,15 +161,15 @@ class SysTrayIcon(object):
                 self.on_quit(self)
             win32gui.DestroyWindow(self.hwnd)
             win32gui.UnregisterClass(self.class_atom, self._window_class.hInstance)
-        elif id in self.custom_menu_items.keys():
+        elif id in list(self.custom_menu_items.keys()):
             if callable(self.custom_menu_items[id]['func']):
                 try:
                     self.custom_menu_items[id]['func'](self)
-                except Exception, e:
+                except Exception as e:
                     logging.error("Error executing menu item func: %s" % self.custom_menu_items[id]['text'])
                     logging.error(e)
         else:
-            print "Unknown command -", id
+            print("Unknown command -", id)
 
 
     def on_quit(self, systray):
@@ -189,12 +189,12 @@ class SysTrayIcon(object):
         menu = win32gui.CreatePopupMenu()
         win32gui.AppendMenu( menu, win32con.MF_STRING, 1023, "About")
         if len(self.custom_menu_items) > 0:
-            for menu_item in self.custom_menu_items.itervalues():
+            for menu_item in self.custom_menu_items.values():
                 if callable(menu_item['func']):
                     try:
                         is_checked = menu_item['func'](self, get_state = True)
-                    except Exception, e:
-                        print e
+                    except Exception as e:
+                        print(e)
                 else:
                     is_checked = False
                 flags = win32con.MF_STRING | (win32con.MF_CHECKED if is_checked else 0)

@@ -107,7 +107,7 @@ class HtmlClipboardFormat:
         """
 
         # Preconditions:
-        assert( type( html ) == unicode )
+        assert( type( html ) == str )
 
         # The internal storage format is platonic unicode.
         self.html = html
@@ -123,14 +123,14 @@ class HtmlClipboardFormat:
         logs a warning message and creates an instance empty of text.
         """
         # Preconditions:
-        assert( type( clipboardHtml ) == str )
+        #assert( type( clipboardHtml ) == str )
 
         try:
             html = clipboardHtml.decode( "utf-8" )
         except UnicodeDecodeError:
             # input can't be decoded from utf-8:
             logging.warn( "Non-Utf-8 string in fromClipboardHtml." )
-            return cls( u"" )
+            return cls( "" )
 
         start = _findFirst( cls.START_RE, clipboardHtml )
         end = _findFirst( cls.END_RE, clipboardHtml )
@@ -142,7 +142,7 @@ class HtmlClipboardFormat:
         else:
             # Start and end not found in input:
             logging.warn( "Missing delimiters in fromClipboardHtml." )
-            return cls( u"" )
+            return cls( "" )
         
     @classmethod
     def fromHtml( cls, html ):
@@ -150,7 +150,7 @@ class HtmlClipboardFormat:
         Instantiates the class given a string containing plain Html.
         """
         # Preconditions:
-        assert( isinstance( html, unicode ) )
+        assert( isinstance( html, str ) )
 
         return cls( html )
 
@@ -185,7 +185,7 @@ class HtmlClipboardFormat:
         """
 
         # Preconditions:
-        assert( type( sourceHtml ) == unicode )
+        assert( type( sourceHtml ) == str )
 
         # LONGTERM TODO: The above contract statement involving
         # .encode().decode() could have damaging performance
@@ -234,7 +234,7 @@ class HtmlClipboardFormat:
         result = header + html
 
         # Postconditions:
-        assert( type( result ) == str )
+        #assert( type( result ) == str )
         assert( result == result.decode( "utf-8" ).encode( "utf-8" ) )
         return result
 

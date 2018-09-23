@@ -40,9 +40,9 @@
 import logging
 import atexit
 
-import ClipboardArchive 
-import TextSelection 
-import FileSelection 
+from . import ClipboardArchive 
+from . import TextSelection 
+from . import FileSelection 
 
 
 # ----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ def _init():
     global _isInitialized    
     if not _isInitialized:
         logging.info( "Now initializing ClipboardBackend." )
-        import ClipboardBackend
+        from . import ClipboardBackend
         ClipboardBackend.init()
         atexit.register( ClipboardBackend.shutdown )
         _isInitialized = True

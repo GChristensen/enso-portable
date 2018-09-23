@@ -49,9 +49,9 @@ import win32clipboard
 import pywintypes
 import logging
 
-import _ContextUtils as ContextUtils
-import ClipboardArchive
-import ClipboardBackend
+from . import _ContextUtils as ContextUtils
+from . import ClipboardArchive
+from . import ClipboardBackend
 
 # Internal aliases for external names
 clipboardPreserving = ClipboardArchive.clipboardPreserving
@@ -144,7 +144,7 @@ class DefaultFileSelectionContext( AbstractFileSelectionContext ):
                 value = win32clipboard.GetClipboardData(
                     win32con.CF_HDROP
                     )
-            except pywintypes.error, e:
+            except pywintypes.error as e:
                 logging.warn( "Error getting CF_HDROP from clipboard: %s" \
                                  % ( str(e) ) )
                 value = None
@@ -169,9 +169,9 @@ def get():
     
     windowClass = ContextUtils.getForegroundClassNameUnicode()
 
-    if windowClass == u"ConsoleWindowClass":
+    if windowClass == "ConsoleWindowClass":
         fsContext = NullFileSelectionContext()
-    elif windowClass == u"Emacs":
+    elif windowClass == "Emacs":
         fsContext = NullFileSelectionContext()
     else:
         fsContext = DefaultFileSelectionContext()

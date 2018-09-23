@@ -58,6 +58,7 @@
 
 import logging
 from enso import input
+from enso import config
 
 
 # ----------------------------------------------------------------------------
@@ -171,6 +172,11 @@ class EventManager( input.InputManager ):
         if eventType in ["dismissal","mousemove"]:
             self.enableMouseEvents( True )
 
+        # def wrapper(*args, **kwargs ):
+        #     print(eventType)
+        #     print(responderFunc)
+        #     return responderFunc(*args, **kwargs )
+
         responderList.append( responderFunc )
 
 
@@ -181,7 +187,7 @@ class EventManager( input.InputManager ):
         NOTE: Removes responderFunc from responding to ALL types of events.
         """
         
-        for eventType in self.__responders.keys():
+        for eventType in list(self.__responders.keys()):
             responderList = self.__responders[ eventType ]
             if responderFunc in responderList:
                 logging.debug( "Removed a responder function!" )
@@ -243,7 +249,7 @@ class EventManager( input.InputManager ):
         number of milliseconds passed since the last onTick() call is
         passed in, although this value may not be 100% accurate.
         """
-        
+
         self.__currIdleTime += msPassed
 
         if self.__currIdleTime >= 1000*IDLE_TIMEOUT:

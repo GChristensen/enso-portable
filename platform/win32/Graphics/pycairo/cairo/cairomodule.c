@@ -34,7 +34,7 @@
 #  include <config.h>
 #endif
 #include "pycairo-private.h"
-
+#include <stdio.h>
 
 /* A module specific exception */
 static PyObject *CairoError = NULL;
@@ -114,13 +114,13 @@ static Pycairo_CAPI_t CAPI = {
 static PyObject *
 pycairo_cairo_version (PyObject *self)
 {
-    return PyInt_FromLong (cairo_version());
+    return PyLong_FromLong (cairo_version());
 }
 
 static PyObject *
 pycairo_cairo_version_string (PyObject *self)
 {
-    return PyString_FromString (cairo_version_string());
+    return PyUnicode_FromString (cairo_version_string());
 }
 
 static PyMethodDef cairo_functions[] = {
@@ -130,78 +130,127 @@ static PyMethodDef cairo_functions[] = {
     {NULL, NULL, 0, NULL},
 };
 
-DL_EXPORT(void)
-init_cairo(void)
+
+///////////////////////////////////////////
+
+
+struct module_state {
+    PyObject *error;
+};
+
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+
+static PyObject *
+error_out(PyObject *m) {
+    struct module_state *st = GETSTATE(m);
+    PyErr_SetString(st->error, "something bad happened");
+    return NULL;
+}
+
+static int cairo_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+
+static int cairo_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "enso.platform.win32._cairo",
+        NULL,
+        sizeof(struct module_state),
+        cairo_functions,
+        NULL,
+        cairo_traverse,
+        cairo_clear,
+        NULL
+};
+
+#define INITERROR return NULL
+
+
+///////////////////////////////////////////
+
+
+PyMODINIT_FUNC
+PyInit__cairo(void)
 {
     PyObject *m;
 
     PycairoContext_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoContext_Type) < 0)
-        return;
+        return NULL;
+
     PycairoFontFace_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoFontFace_Type) < 0)
-        return;
+        return NULL;
     PycairoFontOptions_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoFontOptions_Type) < 0)
-        return;
+        return NULL;
     PycairoMatrix_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoMatrix_Type) < 0)
-        return;
+        return NULL;
     PycairoPath_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoPath_Type) < 0)
-	return;
-
+    	return NULL;
     PycairoPattern_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoPattern_Type) < 0)
-        return;
+        return NULL;
     PycairoSolidPattern_Type.tp_base = &PycairoPattern_Type;
     if (PyType_Ready(&PycairoSolidPattern_Type) < 0)
-        return;
+        return NULL;
     PycairoSurfacePattern_Type.tp_base = &PycairoPattern_Type;
     if (PyType_Ready(&PycairoSurfacePattern_Type) < 0)
-        return;
+        return NULL;
     PycairoGradient_Type.tp_base = &PycairoPattern_Type;
     if (PyType_Ready(&PycairoGradient_Type) < 0)
-        return;
+        return NULL;
     PycairoLinearGradient_Type.tp_base = &PycairoGradient_Type;
     if (PyType_Ready(&PycairoLinearGradient_Type) < 0)
-        return;
+        return NULL;
     PycairoRadialGradient_Type.tp_base = &PycairoGradient_Type;
     if (PyType_Ready(&PycairoRadialGradient_Type) < 0)
-        return;
+        return NULL;
 
     PycairoScaledFont_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoScaledFont_Type) < 0)
-        return;
+        return NULL;
 
     PycairoSurface_Type.tp_base = &PyBaseObject_Type;
     if (PyType_Ready(&PycairoSurface_Type) < 0)
-        return;
+        return NULL;
     PycairoImageSurface_Type.tp_base = &PycairoSurface_Type;
     if (PyType_Ready(&PycairoImageSurface_Type) < 0)
-        return;
+        return NULL;
 #ifdef CAIRO_HAS_PDF_SURFACE
     PycairoPDFSurface_Type.tp_base = &PycairoSurface_Type;
     if (PyType_Ready(&PycairoPDFSurface_Type) < 0)
-        return;
+        return NULL;
 #endif
 #ifdef CAIRO_HAS_PS_SURFACE
     PycairoPSSurface_Type.tp_base = &PycairoSurface_Type;
     if (PyType_Ready(&PycairoPSSurface_Type) < 0)
-        return;
+        return NULL;
 #endif
 #ifdef CAIRO_HAS_WIN32_SURFACE
     PycairoWin32Surface_Type.tp_base = &PycairoSurface_Type;
     if (PyType_Ready(&PycairoWin32Surface_Type) < 0)
-        return;
+        return NULL;
 #endif
 
-    m = Py_InitModule("enso.platform.win32.cairo._cairo", cairo_functions);
+    m = PyModule_Create(&moduledef);
+    
+    if (m == NULL)
+        INITERROR;
 
     Py_INCREF(&PycairoContext_Type);
     PyModule_AddObject(m, "Context", (PyObject *)&PycairoContext_Type);
     Py_INCREF(&PycairoFontFace_Type);
     PyModule_AddObject(m, "FontFace",(PyObject *)&PycairoFontFace_Type);
+
     Py_INCREF(&PycairoFontOptions_Type);
     PyModule_AddObject(m, "FontOptions",(PyObject *)&PycairoFontOptions_Type);
     Py_INCREF(&PycairoMatrix_Type);
@@ -252,17 +301,19 @@ init_cairo(void)
 		       (PyObject *)&PycairoWin32Surface_Type);
 #endif
 
-    PyModule_AddObject(m, "CAPI", PyCObject_FromVoidPtr(&CAPI, NULL));
+
+    PyObject *c_api_object = PyCapsule_New((void *)&CAPI, "enso.platform.win32._cairo.CAPI", NULL);
+    PyModule_AddObject(m, "CAPI", c_api_object);
 
     /* Add 'enso.platform.win32.cairo.Error' to the module */
     if (CairoError == NULL) {
 	CairoError = PyErr_NewException("enso.platform.win32.cairo.Error", NULL, NULL);
 	if (CairoError == NULL)
-	    return;
+	    return NULL;
     }
     Py_INCREF(CairoError);
     if (PyModule_AddObject(m, "Error", CairoError) < 0)
-	return;
+	return NULL;
 
     /* constants */
 #if CAIRO_HAS_ATSUI_FONT
@@ -388,4 +439,6 @@ init_cairo(void)
     CONSTANT(PATH_CURVE_TO);
     CONSTANT(PATH_CLOSE_PATH);
 #undef CONSTANT
+
+    return m;
 }

@@ -141,15 +141,10 @@ def remove_invalid_control_chars( string ):
     in.
     """
 
-    if isinstance( string, str ):
-        string = string.translate(
-            _STRING_IDENTITY_TRANSLATION,
-            _STRING_INVALID_CONTROL_CHARACTERS_DELETECHARS
-            )
-    elif isinstance( string, unicode ):
-        string = string.translate(
-            _UNICODE_INVALID_CONTROL_CHARACTERS_TRANSLATION_TABLE
-            )
+    if isinstance( bytes, str ):
+        string = string.translate(dict.fromkeys(_STRING_INVALID_CONTROL_CHARACTERS_DELETECHARS))
+    elif isinstance( string, str ):
+        string = string.translate(dict.fromkeys(_UNICODE_INVALID_CONTROL_CHARACTERS_TRANSLATION_TABLE))
     else:
         raise AssertionError( "string must be a string or unicode object." )
     return string

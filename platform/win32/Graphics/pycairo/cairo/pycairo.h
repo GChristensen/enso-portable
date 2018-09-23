@@ -186,7 +186,14 @@ typedef struct {
  * 2) Add 'Pycairo_IMPORT;' to the init<module> function
  */
 #define Pycairo_IMPORT \
-        Pycairo_CAPI = (Pycairo_CAPI_t*) PyCObject_Import("enso.platform.win32.cairo", "CAPI")
+        { \
+            PyObject *mo = PyImport_ImportModule("enso.platform.win32.cairo"); \
+            PyObject *dict = PyModule_GetDict(mo); \
+            PyObject *capsule = PyDict_GetItem(dict, PyUnicode_FromString("CAPI")); \
+            Pycairo_CAPI = (Pycairo_CAPI_t *)PyCapsule_GetPointer(capsule, "enso.platform.win32._cairo.CAPI"); \
+        }
+        //Pycairo_CAPI = (Pycairo_CAPI_t *)PyCapsule_Import("enso.platform.win32._cairo.CAPI", 0);
+
 
 #endif /* ifndef _INSIDE_PYCAIRO_ */
 

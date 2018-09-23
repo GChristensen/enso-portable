@@ -42,12 +42,14 @@
 
 import enso.utils.strings
 import enso.utils.xml_tools
+from functools import total_ordering
 
 
 # ----------------------------------------------------------------------------
 # Suggestion Objects
 # ----------------------------------------------------------------------------
 
+@total_ordering
 class Suggestion:
     """
     An object the encapsulates a "suggestion".  A "suggestion" is
@@ -67,8 +69,8 @@ class Suggestion:
         for originalText.
         """
 
-        assert isinstance( originalText, basestring )
-        assert isinstance( suggestedText, basestring )
+        assert isinstance( originalText, str )
+        assert isinstance( suggestedText, str )
 
         # The "source" or "original" text is the text that the user
         # typed.
@@ -180,7 +182,7 @@ class Suggestion:
         # Simply return the inverse of __eq__
         return not self.__eq__( other )
     
-    def __cmp__( self, other ):
+    def __lt__( self, other ):
         """
         Compares two suggestions on the basis of nearness.
         """
@@ -193,7 +195,7 @@ class Suggestion:
 
         # Returning the inverse of the value, because 1 is near and 0
         # is far.
-        return - cmp( self._nearness, other._nearness )
+        return self._nearness < other._nearness
 
     def toXml( self ):
         """

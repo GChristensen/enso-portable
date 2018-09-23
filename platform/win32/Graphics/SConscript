@@ -65,7 +65,7 @@ env.addLib(
     includePath = "",
     libPath = "",
     PYCAIRO_LIB_NAME = "_cairo",
-    #SHLIBSUFFIX = ".pyd",
+   #SHLIBSUFFIX = ".pyd",
     )
 
 

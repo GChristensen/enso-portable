@@ -2,7 +2,7 @@ import enso.providers
 
 _input = enso.providers.getInterface( "input" )
 
-for attrName in _input.__dict__.keys():
+for attrName in list(_input.__dict__.keys()):
     if not attrName.startswith( "_" ) and attrName.upper() == attrName:
         # It's a public, all-uppercase constant; import it into our
         # namespace.

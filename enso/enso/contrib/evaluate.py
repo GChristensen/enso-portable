@@ -75,7 +75,7 @@ class EvalCommand( CommandObject ):
         if seldict is None:
             seldict = self._selection.get()
 
-        text = seldict.get( "text", u"" ).strip()
+        text = seldict.get( "text", "" ).strip()
 
         evalSuccessful = False
         append = False
@@ -91,13 +91,13 @@ class EvalCommand( CommandObject ):
                 code = compile( text, "<selected text>", "eval" )
                 result = eval( code, {"__builtins__":None}, {} )
                 evalSuccessful = True
-            except Exception, e:
+            except Exception as e:
                 self._displayMessage(
                     "<p>Error: %s</p>" % xml_tools.escape_xml(str(e))
                     )
 
         if evalSuccessful:
-            resulttext = unicode( repr(result) )
+            resulttext = str( repr(result) )
             if append:
                 newtext = "%s = %s" % (text, resulttext)
             else:

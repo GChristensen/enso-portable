@@ -53,6 +53,8 @@ import logging
 import traceback
 
 from win32api import GetKeyState
+from enso.events import EventManager
+from win32con import VK_CAPITAL
 
 from enso import messages
 from enso import config
@@ -199,7 +201,6 @@ class Quasimode:
         """
 
         if eventType == input.EVENT_KEY_QUASIMODE:
-
             if keyCode == input.KEYCODE_QUASIMODE_START:
                 assert not self._inQuasimode
                 self.__quasimodeBegin()
@@ -237,7 +238,7 @@ class Quasimode:
             elif keyCode == input.KEYCODE_NUMLOCK:
                 # The user has pressed the Num Lock key.
                 self._numLockNow = not self._numLockNow
-            elif ALLOWED_KEYCODES.has_key( keyCode ):
+            elif keyCode in ALLOWED_KEYCODES:
                 # The user has typed a valid key to add to the userText.y
                 self.__addUserChar( keyCode )
             else:

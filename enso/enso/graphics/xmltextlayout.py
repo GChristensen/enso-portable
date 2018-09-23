@@ -59,7 +59,7 @@ from enso.graphics import font
 
 # Ordinarily, we'd use the unicodedata module for this, but it's a
 # hefty file so we'll just define values here.
-NON_BREAKING_SPACE = u"\u00a0"
+NON_BREAKING_SPACE = "\u00a0"
 
 
 # ----------------------------------------------------------------------------
@@ -204,7 +204,7 @@ class StyleRegistry:
         properties.
         """
 
-        invalidKeys = [ key for key in dict.keys() \
+        invalidKeys = [ key for key in list(dict.keys()) \
                         if key not in STYLE_PROPERTIES ]
         if len( invalidKeys ) > 0:
             raise InvalidPropertyError( str(invalidKeys) )
@@ -235,7 +235,7 @@ class StyleRegistry:
         ValueError: Style 'foo' already exists.
         """
 
-        if self._styleDict.has_key( selector ):
+        if selector in self._styleDict:
             raise ValueError( "Style '%s' already exists." % selector )
         
         self.__validateKeys( properties )
@@ -277,7 +277,7 @@ class StyleRegistry:
         {'width': '1000pt', 'margin_top': '24pt'}
         """
 
-        assert selector in self._styleDict.keys()
+        assert selector in list(self._styleDict.keys())
 
         self.__validateKeys( properties )
         self._styleDict[ selector ].update( properties )
@@ -323,7 +323,7 @@ class CascadingStyleStack:
             # style, removing any uninherited properties first.
 
             currStyle = self.__stack[-1].copy()
-            props = self.uninheritedProps.intersection( currStyle.keys() )
+            props = self.uninheritedProps.intersection( list(currStyle.keys()) )
 
             for key in props:
                 del currStyle[key]
@@ -491,7 +491,7 @@ class XmlMarkupTagAliases:
         ValueError: Tag alias 'foo' already exists.
         """
 
-        if self._aliases.has_key( name ):
+        if name in self._aliases:
             raise ValueError( "Tag alias '%s' already exists." % name )
 
         self._aliases[name] = baseElement
@@ -528,7 +528,7 @@ class XmlMarkupTagAliases:
         False
         """
         
-        return self._aliases.has_key( name )
+        return name in self._aliases
 
 
 # ----------------------------------------------------------------------------
@@ -581,10 +581,10 @@ class _XmlMarkupHandler( xml.sax.handler.ContentHandler ):
             styleDict = self.styleRegistry.findMatch( name )
 
         if styleDict == None:
-            raise ValueError, "No style found for: %s, %s" % (
+            raise ValueError("No style found for: %s, %s" % (
                 name,
                 str( styleAttr )
-                )
+                ))
 
         self.style.push( styleDict )
 
@@ -625,7 +625,7 @@ class _XmlMarkupHandler( xml.sax.handler.ContentHandler ):
             self.style.pop()
             self.document.layout()
         elif name == "block":
-            ellipsisGlyph = self.style.makeNewGlyphs( u"\u2026" )[0]
+            ellipsisGlyph = self.style.makeNewGlyphs( "\u2026" )[0]
             self.block.setEllipsisGlyph( ellipsisGlyph )
             
             self.style.pop()

@@ -10,7 +10,7 @@ from enso import selection
 last_calculation = ""
 
 def cmd_calculate(ensoapi, expression = None):
-    u""" Calculate the given expression
+    """ Calculate the given expression
     Calculate mathematical expression.<br/><br/>
     Supported operators:<br/>
     <code>
@@ -32,8 +32,8 @@ def cmd_calculate(ensoapi, expression = None):
     </code>
     """
     seldict = ensoapi.get_selection()
-    if seldict.get(u"text"):
-        selected_text = seldict[u'text'].strip().strip("\0")
+    if seldict.get("text"):
+        selected_text = seldict['text'].strip().strip("\0")
     else:
         selected_text = None
 
@@ -56,7 +56,7 @@ def cmd_calculate(ensoapi, expression = None):
         # functions of math module (ex. __xxx__)
         + math_funcs)
 
-    print whitelist
+    print(whitelist)
 
     math_funcs_dict = dict([ (mf, eval('math.%s' % mf)) for mf in math_funcs])
     math_funcs_dict['abs'] = abs
@@ -80,13 +80,13 @@ def cmd_calculate(ensoapi, expression = None):
             pasted = False
             if got_selection:
                 if append_result:
-                    pasted = selection.set({ "text" : expression.strip() + " = " + unicode(result) })
+                    pasted = selection.set({ "text" : expression.strip() + " = " + str(result) })
                 else:
-                    pasted = selection.set({ "text" : unicode(result) })
+                    pasted = selection.set({ "text" : str(result) })
             
             if not pasted:
-                displayMessage(u"<p>%s</p><caption>%s</caption>" % (result, expression))
-        except Exception, e:
+                displayMessage("<p>%s</p><caption>%s</caption>" % (result, expression))
+        except Exception as e:
             logging.info(e)
             ensoapi.display_message("Invalid syntax", "Error")
     else:
@@ -96,7 +96,7 @@ def cmd_calculate(ensoapi, expression = None):
 from enso.commands import CommandManager
 paste_command = CommandManager.get().getCommand("paste")
 if paste_command:
-    print dir(paste_command)
+    print(dir(paste_command))
 
 def cmd_calculation_paste(ensoapi):
     """ Paste the results of the last calculation """
@@ -107,6 +107,6 @@ def cmd_calculation_paste(ensoapi):
     #    print dir(paste_command)
     #    paste_command.valid_args
 
-    selection.set({ "text": unicode(last_calculation) })
+    selection.set({ "text": str(last_calculation) })
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

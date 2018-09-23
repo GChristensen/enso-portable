@@ -18,7 +18,7 @@ class GeneratorManager( object ):
     @safetyNetted
     def __callGenerator( self, generator, keepAlives ):
         try:
-            generator.next()
+            next(generator)
             keepAlives.append( generator )
         except StopIteration:
             pass

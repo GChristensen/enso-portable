@@ -45,7 +45,7 @@ import win32con
 import win32clipboard
 
 from enso.utils.decorators import finalizeWrapper
-import _ContextUtils as ContextUtils
+from . import _ContextUtils as ContextUtils
 
 
 # ----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ class ClipboardState:
             if win32clipboard.IsClipboardFormatAvailable( format ):
                 try:
                     dataHandle = win32clipboard.GetClipboardDataHandle( format )
-                except win32clipboard.error, e:
+                except win32clipboard.error as e:
                     # This is a fix for ticket #414.
                     if e.args[0] == 0:
                         logging.info( "GetClipboardData error suppressed." )
@@ -139,7 +139,7 @@ class ClipboardState:
         
         win32clipboard.EmptyClipboard()
 
-        for format in self.__formatData.keys():
+        for format in list(self.__formatData.keys()):
             rawData = self.__formatData[format]
             win32clipboard.SetClipboardData( format, rawData )
 

@@ -58,7 +58,7 @@ PycairoMatrix_FromMatrix (const cairo_matrix_t *matrix)
 static void
 matrix_dealloc (PycairoMatrix *o)
 {
-    o->ob_type->tp_free((PyObject *)o);
+    Py_TYPE(o)->tp_free((PyObject *)o);
 }
 
 static PyObject *
@@ -118,7 +118,7 @@ matrix_repr (PycairoMatrix *o)
 		  o->matrix.xx, o->matrix.yx,
 		  o->matrix.xy, o->matrix.yy,
 		  o->matrix.x0, o->matrix.y0);
-    return PyString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 static PyObject *
@@ -230,36 +230,60 @@ matrix_item (PycairoMatrix *o, int i)
 }
 
 static PyNumberMethods matrix_as_number = {
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)matrix_multiply,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (ternaryfunc)0,
-  (unaryfunc)0,
-  (unaryfunc)0,
-  (unaryfunc)0,
-  (inquiry)0,
-  (unaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (binaryfunc)0,
-  (coercion)0,
-  (unaryfunc)0,
-  (unaryfunc)0,
-  (unaryfunc)0,
-  (unaryfunc)0,
-  (unaryfunc)0
+  (binaryfunc)0,   /*nb_add*/
+  (binaryfunc)0,   /*nb_subtract*/
+  (binaryfunc)matrix_multiply,  /*nb_multiply*/
+#if PY_MAJOR_VERSION < 3
+  (binaryfunc)0,   /*nb_divide*/
+#endif
+  (binaryfunc)0,   /*nb_remainder*/
+  (binaryfunc)0,   /*nb_divmod*/
+  (ternaryfunc)0,  /*nb_power*/
+  (unaryfunc)0,    /*nb_negative*/
+  (unaryfunc)0,    /*nb_positive*/
+  (unaryfunc)0,    /*nb_absolute*/
+  (inquiry)0,      /*py2:nb_nonzero/py3:nb_bool*/
+  (unaryfunc)0,    /*nb_invert*/
+  (binaryfunc)0,   /*nb_lshift*/
+  (binaryfunc)0,   /*nb_rshift*/
+  (binaryfunc)0,   /*nb_and*/
+  (binaryfunc)0,   /*nb_xor*/
+  (binaryfunc)0,   /*nb_or*/
+#if PY_MAJOR_VERSION < 3
+  (coercion)0,     /*nb_coerce*/
+#endif
+  (unaryfunc)0,    /*nb_int*/
+  0,               /*py2:nb_long/py3:nb_reserved*/
+  (unaryfunc)0,    /*nb_float*/
+#if PY_MAJOR_VERSION < 3
+  (unaryfunc)0,    /*nb_oct*/
+  (unaryfunc)0,    /*nb_hex*/
+#endif
+  0,		   /*nb_inplace_add*/
+  0,		   /*nb_inplace_subtract*/
+  0,		   /*nb_inplace_multiply*/
+#if PY_MAJOR_VERSION < 3
+  0,		   /*nb_inplace_divide*/
+#endif
+  0,		   /*nb_inplace_remainder*/
+  0,		   /*nb_inplace_power*/
+  0,		   /*nb_inplace_lshift*/
+  0,		   /*nb_inplace_rshift*/
+  0,		   /*nb_inplace_and*/
+  0,		   /*nb_inplace_xor*/
+  0,		   /*nb_inplace_or*/
+  (binaryfunc)0,   /* nb_floor_divide */
+  0,	           /* nb_true_divide */
+  0,		   /* nb_inplace_floor_divide */
+  0,		   /* nb_inplace_true_divide */
+  (unaryfunc)0,	   /* nb_index */
 };
 
 static PySequenceMethods matrix_as_sequence = {
     0,                  		/* sq_length */
     0,                  		/* sq_concat */
     0,                  		/* sq_repeat */
-    (intargfunc)matrix_item,		/* sq_item */
+    (ssizeargfunc)matrix_item,		/* sq_item */
     0,                     		/* sq_slice */
     0,					/* sq_ass_item */
     0,					/* sq_ass_slice */
@@ -288,8 +312,7 @@ static PyMethodDef matrix_methods[] = {
 };
 
 PyTypeObject PycairoMatrix_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.Matrix",                     /* tp_name */
     sizeof(PycairoMatrix),              /* tp_basicsize */
     0,                                  /* tp_itemsize */

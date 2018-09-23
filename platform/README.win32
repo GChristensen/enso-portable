@@ -1,17 +1,16 @@
-[EDIT: Modern build instructions
-  1. Install Python 2.7 anywhere
-  2. Make sure that Python 2.7 is the default Python version accessible from command line
-  3. Install pywin32 for Python 2.7 (https://sourceforge.net/projects/pywin32/files/pywin32/)
-  4. Install SCons for Python 2.7 (https://bitbucket.org/scons/scons/downloads/)
-  5. Install SWIG (https://sourceforge.net/projects/swig/files/swigwin/) anywhere and change 
-     path to its executable at the line 147 in `SConstruct' file (or follow the original build 
-     instructions for SWIG if you want to make pull requests to this repository)
-  6. If you haven't MS Visual Studio installed, install C++ Build Tools 
-     (http://landinghub.visualstudio.com/visual-cpp-build-tools)
-  7. Open C++ Build Tools console, change directory to this `platform' folder and 
-     run `scons' command]
+Modern build instructions:
 
-[The original build instructions:]
+  1. Install Python 3.7 anywhere
+  2. Make sure that Python 3.7 is the default Python version accessible from command line
+  3. Install pywin32 for Python 3.7 (https://github.com/mhammond/pywin32)
+  4. Install SCons for Python 3.7 (https://scons.org/)
+  5. Install SWIG (http://www.swig.org/) and make it available through the PATH environment variable
+  6. Install MS Visual Studio 2017
+  7. Open VS Build Tools console, change the current working directory to `platform' (this) folder
+     and run `scons' command
+
+
+The original build instructions:
 
 
 Enso Windows Readme
@@ -45,8 +44,7 @@ Build process
 Let's suppose that you:
 
     * have Enso source code in c:\develope\enso-open-source. 
-      [EDIT: the following source code is assumed: https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145
-         [gchristnsn]]
+      [EDIT: the following source code is assumed: https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145]
       There must be SConstruct and SConstruct.win32 files present.
     * installed "MS Windows SDK for Windows Server 2008 and .NET Framework 3.5" to default location, 
       so its bin directory is in C:\Program Files\Microsoft Visual Studio 9.0\VC\bin.

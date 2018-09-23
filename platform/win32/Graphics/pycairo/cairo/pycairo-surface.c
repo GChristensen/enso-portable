@@ -95,7 +95,7 @@ surface_dealloc (PycairoSurface *o)
     }
     Py_CLEAR(o->base);
 
-    o->ob_type->tp_free((PyObject *)o);
+    Py_TYPE(o)->tp_free((PyObject *)o);
 #ifdef DEBUG
     printf("surface_dealloc end\n");
 #endif
@@ -255,8 +255,7 @@ static PyMethodDef surface_methods[] = {
 
 
 PyTypeObject PycairoSurface_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.Surface",                    /* tp_name */
     sizeof(PycairoSurface),             /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -513,8 +512,7 @@ static PyMethodDef image_surface_methods[] = {
 
 
 PyTypeObject PycairoImageSurface_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.ImageSurface",               /* tp_name */
     sizeof(PycairoImageSurface),        /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -605,8 +603,7 @@ static PyMethodDef pdfsurface_methods[] = {
 };
 
 PyTypeObject PycairoPDFSurface_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.PDFSurface",                 /* tp_name */
     sizeof(PycairoPDFSurface),          /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -698,8 +695,7 @@ static PyMethodDef pssurface_methods[] = {
 };
 
 PyTypeObject PycairoPSSurface_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.PSSurface",                  /* tp_name */
     sizeof(PycairoPSSurface),           /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -776,8 +772,7 @@ static PyMethodDef win32surface_methods[] = {
 };
 
 PyTypeObject PycairoWin32Surface_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.Win32Surface",               /* tp_name */
     sizeof(PycairoWin32Surface),        /* tp_basicsize */
     0,                                  /* tp_itemsize */

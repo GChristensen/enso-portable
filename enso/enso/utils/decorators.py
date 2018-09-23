@@ -71,7 +71,7 @@ def finalizeWrapper( origFunc, wrappedFunc, decoratorName ):
     Returns the wrapped function.
     """
 
-    if sys.modules.has_key( "pychecker" ):
+    if "pychecker" in sys.modules:
         # If pychecker is in sys.modules, then we can assume that our
         # code is being checked by pychecker.  If this is the case,
         # then we just want to return the original function, because

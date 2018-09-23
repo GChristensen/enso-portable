@@ -2,7 +2,11 @@ import re
 import win32com.client
 
 from win32com.client import gencache
-gencache.EnsureModule('{6B73A708-B5CD-408D-B20D-4690130C494E}', 0, 14, 0)
+
+try:
+    gencache.EnsureModule('{6B73A708-B5CD-408D-B20D-4690130C494E}', 0, 14, 0)
+except:
+    pass
 
 ERROR_MESSAGE = "Can not communicate with Lingvo"
 
@@ -32,7 +36,7 @@ def translate_word(ensoapi, suffix):
         word = m.group(1)
     if word.strip() == "":
         sel = ensoapi.get_selection()
-        if "text" in sel.keys():
+        if "text" in list(sel.keys()):
             word = sel.get("text")
 
     isLatin = not(latinMatcher.match(word) is None)
@@ -40,11 +44,11 @@ def translate_word(ensoapi, suffix):
     m = directionParser.search(suffix)
     
     from_ = m.group(1)
-    if not from_ in lang2code.keys():
+    if not from_ in list(lang2code.keys()):
         from_ = LINGVO_SECONDARY_LANG if isLatin else LINGVO_PRIMARY_LANG
     
     to = m.group(2)
-    if not to in lang2code.keys():
+    if not to in list(lang2code.keys()):
         to = LINGVO_PRIMARY_LANG if isLatin else LINGVO_SECONDARY_LANG
 
     lingvo = win32com.client.Dispatch("Lingvo.Application")
@@ -74,11 +78,11 @@ def cmd_lingvo(ensoapi, word_from_lang_to_lang = ""):
     
     translate_word(ensoapi, word_from_lang_to_lang)
 
-def cmd_quit_lingvo(ensoapi):
-    """ Quit the Abbyy Lingvo dictionary software """
-    lingvo = win32com.client.Dispatch("Lingvo.Application")
-    try:
-        lingvo.Quit()
-    except:
-        ensoapi.display_message(ERROR_MESSAGE)
-
+# def cmd_quit_lingvo(ensoapi):
+#     """ Quit the Abbyy Lingvo dictionary software """
+#     lingvo = win32com.client.Dispatch("Lingvo.Application")
+#     try:
+#         lingvo.Quit()
+#     except:
+#         ensoapi.display_message(ERROR_MESSAGE)
+#

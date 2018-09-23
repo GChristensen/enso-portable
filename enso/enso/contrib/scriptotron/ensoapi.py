@@ -14,8 +14,8 @@ class EnsoApi(object):
         parameters should be unicode strings.
         """
 
-        if not isinstance(msg, basestring):
-            msg = unicode(msg)
+        if not isinstance(msg, str):
+            msg = str(msg)
 
         msg = xml.sax.saxutils.escape(msg)
         xmltext = "<p>%s</p>" % msg
@@ -42,8 +42,8 @@ class EnsoApi(object):
         contents of the string.
         """
 
-        if isinstance(seldict, basestring):
-            seldict = { "text" : unicode(seldict) }
+        if isinstance(seldict, str):
+            seldict = { "text" : str(seldict) }
         return selection.set(seldict)
 
     def get_enso_commands_folder(self):
@@ -58,9 +58,9 @@ class EnsoApi(object):
         Given a block of Python text, returns all the valid Enso
         commands defined therein.
         """
-        from cmdretriever import getCommandsFromObjects
+        from .cmdretriever import getCommandsFromObjects
         execGlobals = {}
-        exec text in execGlobals
+        exec(text, execGlobals)
         commands = getCommandsFromObjects( execGlobals )
         return commands 
 

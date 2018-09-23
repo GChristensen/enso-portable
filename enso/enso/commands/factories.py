@@ -88,7 +88,7 @@ def _equivalizeChars( userText ):
         }
     
     searchText = re.escape( userText )
-    for char in EQUIVALENT_CHARS.keys():
+    for char in list(EQUIVALENT_CHARS.keys()):
         expr = EQUIVALENT_CHARS[char]
         expr = re.escape( expr )
         expr = "[%s]" % expr

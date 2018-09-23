@@ -329,7 +329,6 @@ InputManager::run( void )
      * or until an exception occurs. */
     try {
         _terminating = false;
-
         while ( !_terminating )
         {
             MSG theMessage;

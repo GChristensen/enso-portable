@@ -87,7 +87,7 @@ class CommandManager:
 
         try:
             cmdExpr = CommandExpression( cmdName )
-        except AssertionError, why:
+        except AssertionError as why:
             logging.error( "Could not register %s : %s "
                            % ( cmdName, why ) )
             raise
@@ -98,7 +98,7 @@ class CommandManager:
             assert isinstance( cmdObj, AbstractCommandFactory ), \
                 "Command object with a parameter must be instance " \
                 "of AbstractCommandFactory"
-            assert not self.__cmdFactoryDict.has_key( cmdExpr ),\
+            assert cmdExpr not in self.__cmdFactoryDict,\
                 "Command is already registered: %s" % cmdExpr
             self.__cmdFactoryDict[ cmdExpr ] = cmdObj
         else:
@@ -110,7 +110,7 @@ class CommandManager:
 
     def unregisterCommand( self, cmdName ):
         cmdFound = False
-        for cmdExpr in self.__cmdFactoryDict.keys():
+        for cmdExpr in list(self.__cmdFactoryDict.keys()):
             if str(cmdExpr) == cmdName:
                 del self.__cmdFactoryDict[cmdExpr]
                 cmdFound = True
@@ -132,7 +132,7 @@ class CommandManager:
 
         commands = []
 
-        for expr in self.__cmdFactoryDict.iterkeys():
+        for expr in self.__cmdFactoryDict.keys():
             if expr.matches( commandName ):
                 # This expression matches commandName; try to fetch a
                 # command object from the corresponding factory.
@@ -150,7 +150,7 @@ class CommandManager:
         else:
             # If there are several matching commands, return only
             # the alphabetically first.
-            commands.sort( lambda a,b : cmp( a[0], b[0] ) )
+            commands.sort( key = lambda a: a[0] )
             return commands[0][1]
 
 
@@ -164,7 +164,7 @@ class CommandManager:
 
         commands = []
 
-        for expr in self.__cmdFactoryDict.iterkeys():
+        for expr in self.__cmdFactoryDict.keys():
             if expr.matches( commandName ):
                 # This expression matches commandName; try to fetch a
                 # command object from the corresponding factory.
@@ -196,10 +196,10 @@ class CommandManager:
                 longest_name = longest_name.rstrip(" ")
             
             cmd = None
-            for _ in xrange(longest_name.count(" ") + 1):
+            for _ in range(longest_name.count(" ") + 1):
                 cmd = prefixes.get(longest_name+' ')
                 if cmd:
-                    print "Returning longest match: %s" % longest_name
+                    print("Returning longest match: %s" % longest_name)
                     logging.debug("Longest match: '%s'", longest_name)
                     break
                 longest_name = longest_name[:longest_name.rfind(" ")]
@@ -215,7 +215,7 @@ class CommandManager:
         completions = []
 
         # Check each of the command factories for a match.
-        for expr in self.__cmdFactoryDict.iterkeys():
+        for expr in self.__cmdFactoryDict.keys():
             if expr.matches( userText ):
                 cmdFact = self.__cmdFactoryDict[expr]
                 completion = cmdFact.autoComplete( userText )
@@ -225,7 +225,7 @@ class CommandManager:
         if len( completions ) == 0:
             return None
         else:
-            completions.sort( lambda a,b : cmp( a.toText(), b.toText() ) )
+            completions.sort( key = lambda a: a.toText() )
             return completions[0]
 
 
@@ -236,7 +236,7 @@ class CommandManager:
 
         suggestions = []
         # Extend the suggestions using each of the command factories
-        for expr in self.__cmdFactoryDict.iterkeys():
+        for expr in self.__cmdFactoryDict.keys():
             if expr.matches( userText ):
                 factory = self.__cmdFactoryDict[expr]
                 suggestions += factory.retrieveSuggestions( userText )
@@ -254,7 +254,7 @@ class CommandManager:
         cmdDict = self.__cmdObjReg.getDict()
 
         # Extend the dictionary to cover the command factories.
-        for expr in self.__cmdFactoryDict.keys():
+        for expr in list(self.__cmdFactoryDict.keys()):
             if expr == self.CMD_KEY:
                 # This is the command object registry; pass.
                 pass
@@ -313,7 +313,7 @@ class CommandObjectRegistry( GenericPrefixFactory ):
         assert not cmdExpr.hasArgument()
 
         cmdName = str(cmdExpr)
-        if self.__cmdObjDict.has_key( cmdName ):
+        if cmdName in self.__cmdObjDict:
             raise CommandAlreadyRegisteredError()
 
         self.__cmdObjDict[ cmdName ] = command
@@ -324,7 +324,7 @@ class CommandObjectRegistry( GenericPrefixFactory ):
 
     def removeCommandObj( self, cmdExpr ):
         cmdFound = False
-        if self.__cmdObjDict.has_key( cmdExpr ):
+        if cmdExpr in self.__cmdObjDict:
             del self.__cmdObjDict[cmdExpr]
             cmdFound = True
         if cmdFound:

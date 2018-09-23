@@ -1,5 +1,5 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import threading, Queue, cgi, urllib, re, os, random, string
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading, queue, cgi, urllib.request, urllib.parse, urllib.error, re, os, random, string
 import enso.messages
 from enso.contrib.scriptotron import cmdretriever
 
@@ -101,7 +101,7 @@ def displayMessage(msg):
 
 def install_command_from_url(command_url):  
   try:
-    fp = urllib.urlopen(command_url)
+    fp = urllib.request.urlopen(command_url)
   except:
     msg = "Couldn't install that command"
     displayMessage(msg)
@@ -135,7 +135,7 @@ def install_command_from_url(command_url):
   # normalise text for crlf
   text = text.replace('\r\n','\n').replace('\r','\n')
   code = compile( text, command_file_path, "exec" )
-  exec code in allGlobals
+  exec(code, allGlobals)
   installed_commands = [x["cmdName"] for x in 
       cmdretriever.getCommandsFromObjects(allGlobals)]
 
@@ -150,12 +150,12 @@ def install_command_from_url(command_url):
   displayMessage(install_message)
 
 
-commandq = Queue.Queue()
+commandq = queue.Queue()
 
 def pollqueue(ms):
   try:
     command_url = commandq.get(False, 0)
-  except Queue.Empty:
+  except queue.Empty:
     return
 
   # FIXME: here we should check to see if it's OK to install this command!

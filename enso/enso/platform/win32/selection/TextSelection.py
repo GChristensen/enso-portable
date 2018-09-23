@@ -46,10 +46,10 @@ import win32clipboard
 import win32con
 import logging
 
-import ClipboardBackend
-import ClipboardArchive
-import _ContextUtils as ContextUtils
-from HtmlClipboardFormat import HtmlClipboardFormat
+from . import ClipboardBackend
+from . import ClipboardArchive
+from . import _ContextUtils as ContextUtils
+from .HtmlClipboardFormat import HtmlClipboardFormat
 
 # Internal aliases for external names
 clipboardDependent = ContextUtils.clipboardDependent
@@ -91,11 +91,11 @@ def _concatenate( currentTextDict, additionalTextDict ):
     """
 
     # The plaintext contents can be combined simply:
-    newPlainText = currentTextDict.get( "text", u"" ) + \
-                   additionalTextDict.get( "text", u"" )
+    newPlainText = currentTextDict.get( "text", "" ) + \
+                   additionalTextDict.get( "text", "" )
 
-    newHtml = currentTextDict.get( "html", u"" ) + \
-              currentTextDict.get( "html", u"" )    
+    newHtml = currentTextDict.get( "html", "" ) + \
+              currentTextDict.get( "html", "" )    
 
     newDict = {}
     
@@ -105,15 +105,15 @@ def _concatenate( currentTextDict, additionalTextDict ):
         newDict[ "html" ] = newHtml
 
 def _textDictToAscii( textDict ):
-    text = textDict.get( "text", u"" )
+    text = textDict.get( "text", "" )
     return text.encode( "ascii", "replace" )
 
 def _textDictToUtf16( textDict ):
-    text = textDict.get( "text", u"" )
+    text = textDict.get( "text", "" )
     return text.encode( "utf-16-le" )
 
 def _textDictToClipboardHtml( textDict ):
-    html = textDict.get( "html", u"" )
+    html = textDict.get( "html", "" )
     clipFormat = HtmlClipboardFormat.fromHtml( html )
     return clipFormat.toClipboardHtml()
 
@@ -194,14 +194,14 @@ class AbstractTextSelection:
         if win32clipboard.IsClipboardFormatAvailable( CF_UNICODETEXT ):
             try:
                 plainText = win32clipboard.GetClipboardData( CF_UNICODETEXT )
-            except win32clipboard.error, e:
+            except win32clipboard.error as e:
                 # This is a fix for ticket #415.
                 if e.args[0] == 0:
                     logging.info( "GetClipboardData() error suppressed." )
                     return {}
                 else:
                     raise
-            assert isinstance( plainText, unicode ), \
+            assert isinstance( plainText, str ), \
                    "GetClipboardData returned not-a-unicode object!!"
         else:
             # If UNICODETEXT is not available, then all other
@@ -270,12 +270,12 @@ class AbstractTextSelection:
 
         if format == CF_TEXT:
             text = _textDictToAscii( textDict )
-            terminator = "\0"
+            terminator = b"\0"
         elif format == CF_UNICODETEXT:
             # For CF_UNICODETEXT we must provide double-null-terminated
             # Utf-16:
             text = _textDictToUtf16( textDict )
-            terminator = "\0\0"
+            terminator = b"\0\0"
         elif format == CF_HTML:
             text = _textDictToClipboardHtml( textDict )
             # No terminator should be used on clipboard html format.
@@ -283,7 +283,7 @@ class AbstractTextSelection:
 
         result = text + terminator
         # Postcondition:
-        assert( type( result ) == str )
+        #assert( type( result ) == str )
         return result
           
 
@@ -524,11 +524,11 @@ def get():
 
     className = ContextUtils.getForegroundClassNameUnicode()
 
-    if className == u"Emacs":
+    if className == "Emacs":
         tsContext = EmacsTextSelection()
-    elif className == u"MoonEdit":
+    elif className == "MoonEdit":
         tsContext = NonReplacingTextSelection()
-    elif className == u"ConsoleWindowClass":
+    elif className == "ConsoleWindowClass":
         tsContext = CommandPromptTextSelection()
     else:
         tsContext = DefaultTextSelection()

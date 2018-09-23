@@ -1,4 +1,4 @@
-from _cairo import *
+from ._cairo import *
 
 # HUMANIZED EDIT: Inserting version information manually.
 

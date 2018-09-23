@@ -1,8 +1,11 @@
+__pycache__
 *.pyc
+.editorconfig
+enso-portable.zip
 /launcher/launcher/*.user
+/enso/commands/custom.py
 /enso/run-enso.exe
 /enso/python
 /enso/*.ilk
-/enso-portable.7z.sfx.exe
 *.iml
 .idea

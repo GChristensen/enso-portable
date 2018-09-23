@@ -42,7 +42,7 @@ class WinampCommand():
                 win32api.SendMessage(hWinamp, WM_COMMAND, self.winampCommands['lowervol'], 0)
                 return
 
-        if self.winampCommands.has_key(command):
+        if command in self.winampCommands:
             return win32api.SendMessage(hWinamp, WM_COMMAND, self.winampCommands[command], 0)
         else:
             raise AssertionError("Unknown Winamp Command, try again")

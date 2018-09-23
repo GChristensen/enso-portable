@@ -23,6 +23,7 @@ class TransparentWindow( object ):
 
     def makeCairoContext( self ):
         context = cairo.Context( self._impl.makeCairoSurface() )
+
         convertUserSpaceToPoints( context )
         return context
 

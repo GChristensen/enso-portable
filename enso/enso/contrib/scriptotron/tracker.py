@@ -2,6 +2,8 @@ import logging
 import os
 import types
 
+import traceback
+
 from enso.commands.manager import CommandAlreadyRegisteredError
 from enso.contrib.scriptotron.tracebacks import TracebackCommand
 from enso.contrib.scriptotron.tracebacks import safetyNetted
@@ -64,7 +66,7 @@ class ScriptTracker:
     def __init__( self, eventManager, commandManager ):
         self._scriptCmdTracker = ScriptCommandTracker( commandManager,
                                                        eventManager )
-        self._scriptFilename = os.path.expanduser(SCRIPTS_FILE_NAME )
+        self._scriptFilename = os.path.expanduser(SCRIPTS_FILE_NAME)
         from enso.providers import getInterface
         self._scriptFolder = getInterface("scripts_folder")()
         self._lastMods = {}
@@ -77,7 +79,6 @@ class ScriptTracker:
 
         commandManager.registerCommand( TracebackCommand.NAME,
                                         TracebackCommand() )
-
         self._updateScripts()
 
     @classmethod
@@ -88,7 +89,12 @@ class ScriptTracker:
     def _getGlobalsFromSourceCode( self, text, filename ):
         allGlobals = {}
         code = compile( text, filename, "exec" )
-        exec code in allGlobals
+        try:
+            exec(code, allGlobals)
+        except Exception as e:
+            print(traceback.format_exc())
+            raise e
+
         return allGlobals
     
     def _getCommandFiles( self ):
@@ -105,7 +111,7 @@ class ScriptTracker:
     def _reloadPyScripts( self ):
         self._scriptCmdTracker.clearCommands()
         commandFiles = [self._scriptFilename] + self._getCommandFiles()
-        print commandFiles
+        print(commandFiles)
         for f in commandFiles:
             try:
                 text = open( f, "r" ).read()
@@ -129,8 +135,8 @@ class ScriptTracker:
             # Find any other files that the script may have executed
             # via execfile().
             extraDeps = [
-                obj.func_code.co_filename
-                for obj in allGlobals.values()
+                obj.__code__.co_filename
+                for obj in list(allGlobals.values())
                 if ( (hasattr(obj, "__module__")) and
                      (obj.__module__ is None) and 
                      (hasattr(obj, "func_code")) )

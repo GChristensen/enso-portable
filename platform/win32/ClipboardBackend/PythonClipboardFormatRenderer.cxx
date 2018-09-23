@@ -135,7 +135,7 @@ PythonClipboardFormatRenderer::renderFormat( int format,
         goto errorOccurred;
     }
 
-    if ( !PyString_Check(returnValue) )
+    if ( !PyBytes_Check(returnValue) )
     {
         /* Return value is not a string. */
         errorMsg( "Pycfr: renderFunc didn't return a string." );
@@ -143,7 +143,7 @@ PythonClipboardFormatRenderer::renderFormat( int format,
     }
     
     /* Set the values of our out-parameters */
-    *outputLength = PyString_Size( returnValue );
+    *outputLength = PyBytes_Size( returnValue );
     *outputString = (char*) malloc( *outputLength );
 
     if ( *outputString == NULL )
@@ -155,7 +155,7 @@ PythonClipboardFormatRenderer::renderFormat( int format,
 
     memcpy(
         *outputString,
-        PyString_AsString( returnValue ),
+        PyBytes_AsString( returnValue ),
         *outputLength
         );
 

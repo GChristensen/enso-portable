@@ -37,3 +37,11 @@ see `enso theme' command suggested arguments for the list of available themes
 * CapsLock key works instantly after start
 * Removed resource-consuming currency conversion from calculate command
 * Removed web-search commands
+
+##### 24.09.2018 (v.0.2.0)
+
+* Migrated to Python 3.7
+* Added `enso userhome' command
+* Added `enso install' command
+* 'kill' command is renamed to 'terminate'
+* Learn as open commands moved to `~/.enso/learned-commands'

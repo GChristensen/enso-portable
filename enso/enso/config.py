@@ -42,8 +42,8 @@ ONE_SUGG_CAPTION = "<caption>Did you mean <command>%s</command>?</caption>"
 
 # The string that is displayed in the quasimode window when the user
 # first enters the quasimode.
-QUASIMODE_DEFAULT_HELP = u"Welcome to Enso! Enter a command, " \
-    u"or type \u201chelp\u201d for assistance."
+QUASIMODE_DEFAULT_HELP = "Welcome to Enso! Enter a command, " \
+    "or type \u201chelp\u201d for assistance."
 
 # The string displayed when the user has typed some characters but there
 # is no matching command.
@@ -61,9 +61,7 @@ MINI_MSG_HELP_XML = "<p>The <command>hide mini messages</command>" \
 # List of default platforms supported by Enso; platforms are specific
 # types of providers that provide a suite of platform-specific
 # functionality.
-DEFAULT_PLATFORMS = ["enso.platform.osx",
-                     "enso.platform.linux",
-                     "enso.platform.win32"]
+DEFAULT_PLATFORMS = ["enso.platform.win32"]
 
 # List of modules/packages that support the provider interface to
 # provide required platform-specific functionality to Enso.
@@ -82,12 +80,14 @@ PLUGINS = ["enso.contrib.scriptotron",
 # If set to False, no locale is forced.dddasdfasdf
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
-ABOUT_BOX_XML = u"<p><command>Enso</command> Community Edition</p>" \
-    "<caption>Enso Portable (Community Enso rev 145) v0.1.11</caption>" \
+PAUSED = False
+
+ABOUT_BOX_XML = "<p><command>Enso</command> Community Edition</p>" \
+    "<caption>Enso Portable v0.2.0, Python 3.7</caption>" \
     "<caption> </caption>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
-    "<p>Copyright &#169; 2011-2018 <command>g/christensen (gchristnsn@gmail.com)</command></p>" \
+    "<p>Copyright &#169; 2011-2018 <command>g/christensen</command></p>" \
 
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

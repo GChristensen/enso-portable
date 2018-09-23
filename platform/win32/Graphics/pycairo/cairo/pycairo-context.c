@@ -84,7 +84,7 @@ pycairo_dealloc(PycairoContext *o)
     }
     Py_CLEAR(o->base);
 
-    o->ob_type->tp_free((PyObject *)o);
+    Py_TYPE(o)->tp_free((PyObject *)o);
 #ifdef DEBUG
     printf("context_dealloc end\n");
 #endif
@@ -293,7 +293,7 @@ pycairo_font_extents (PycairoContext *o)
 static PyObject *
 pycairo_get_antialias (PycairoContext *o)
 {
-    return PyInt_FromLong (cairo_get_antialias (o->ctx));
+    return PyLong_FromLong (cairo_get_antialias (o->ctx));
 }
 
 static PyObject *
@@ -307,7 +307,7 @@ pycairo_get_current_point (PycairoContext *o)
 static PyObject *
 pycairo_get_fill_rule (PycairoContext *o)
 {
-    return PyInt_FromLong(cairo_get_fill_rule (o->ctx));
+    return PyLong_FromLong(cairo_get_fill_rule (o->ctx));
 }
 
 static PyObject *
@@ -339,13 +339,13 @@ pycairo_get_font_options (PycairoContext *o)
 static PyObject *
 pycairo_get_line_cap (PycairoContext *o)
 {
-    return PyInt_FromLong(cairo_get_line_cap (o->ctx));
+    return PyLong_FromLong(cairo_get_line_cap (o->ctx));
 }
 
 static PyObject *
 pycairo_get_line_join (PycairoContext *o)
 {
-    return PyInt_FromLong(cairo_get_line_join (o->ctx));
+    return PyLong_FromLong(cairo_get_line_join (o->ctx));
 }
 
 static PyObject *
@@ -371,7 +371,7 @@ pycairo_get_miter_limit (PycairoContext *o)
 static PyObject *
 pycairo_get_operator (PycairoContext *o)
 {
-    return PyInt_FromLong(cairo_get_operator (o->ctx));
+    return PyLong_FromLong(cairo_get_operator (o->ctx));
 }
 
 static PyObject *
@@ -1193,8 +1193,7 @@ static PyMethodDef pycairo_methods[] = {
 
 
 PyTypeObject PycairoContext_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.Context",                    /* tp_name */
     sizeof(PycairoContext),             /* tp_basicsize */
     0,                                  /* tp_itemsize */

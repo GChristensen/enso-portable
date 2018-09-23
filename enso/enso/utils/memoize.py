@@ -170,9 +170,9 @@ def _generateArgWrapper( function, wrappedFunction ):
     )
 
     localsDict = {}
-    globalsDict = function.func_globals
+    globalsDict = function.__globals__
 
-    exec codeObj in globalsDict, localsDict
+    exec(codeObj, globalsDict, localsDict)
 
     argWrapperGenerator = localsDict["argWrapperGenerator"]
 
@@ -276,7 +276,7 @@ def getMemoizeStats():
 
     info = STAT_STRING % dict(
         numFuncs = len( _memoizedFunctions ),
-        numValues = sum( [ len(i.cache.keys()) \
+        numValues = sum( [ len(list(i.cache.keys())) \
                            for i in _memoizedFunctions ] ),
         )
 

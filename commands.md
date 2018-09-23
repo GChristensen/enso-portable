@@ -1,6 +1,6 @@
 # Creating Enso Commands
 
-To create a command for the portable distribution of Enso, put the code of your command 
+To create a command for the portable distribution of Enso put the code of your command 
 into a python file under the ``commands`` directory at the root of the distribution.
 
 Hello World: Displaying Transparent Messages

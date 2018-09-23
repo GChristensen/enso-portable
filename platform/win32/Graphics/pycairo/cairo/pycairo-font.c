@@ -74,7 +74,7 @@ font_face_dealloc (PycairoFontFace *o)
 	cairo_font_face_destroy (o->font_face);
 	o->font_face = NULL;
     }
-    o->ob_type->tp_free((PyObject *) o);
+    Py_TYPE(o)->tp_free((PyObject *) o);
 #ifdef DEBUG
     printf("font_face_dealloc end\n");
 #endif
@@ -101,8 +101,7 @@ static PyMethodDef font_face_methods[] = {
 */
 
 PyTypeObject PycairoFontFace_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.FontFace",                   /* tp_name */
     sizeof(PycairoFontFace),            /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -184,7 +183,7 @@ scaled_font_dealloc(PycairoScaledFont *o)
 	cairo_scaled_font_destroy (o->scaled_font);
 	o->scaled_font = NULL;
     }
-    o->ob_type->tp_free((PyObject *) o);
+    Py_TYPE(o)->tp_free((PyObject *) o);
 #ifdef DEBUG
     printf("scaled_font_dealloc end\n");
 #endif
@@ -251,8 +250,7 @@ static PyMethodDef scaled_font_methods[] = {
 
 
 PyTypeObject PycairoScaledFont_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.ScaledFont",                 /* tp_name */
     sizeof(PycairoScaledFont),          /* tp_basicsize */
     0,                                  /* tp_itemsize */
@@ -334,7 +332,7 @@ font_options_dealloc(PycairoFontOptions *o)
 	cairo_font_options_destroy (o->font_options);
 	o->font_options = NULL;
     }
-    o->ob_type->tp_free((PyObject *) o);
+    Py_TYPE(o)->tp_free((PyObject *) o);
 #ifdef DEBUG
     printf("font_options_dealloc end\n");
 #endif
@@ -377,8 +375,7 @@ static PyMethodDef font_options_methods[] = {
 
 
 PyTypeObject PycairoFontOptions_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
     "enso.platform.win32.cairo.FontOptions",                /* tp_name */
     sizeof(PycairoFontOptions),         /* tp_basicsize */
     0,                                  /* tp_itemsize */

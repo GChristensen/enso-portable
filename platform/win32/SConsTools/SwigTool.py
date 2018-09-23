@@ -68,7 +68,7 @@ def swigBuilderModifyTargets( target, source, env ):
         # If directors are enabled, then add the "*_wrap.h" file as a
         # target.
         text = i.get_contents()
-        if text.find( "\"director\"" ) != -1:
+        if text.find( b"\"director\"" ) != -1:
             target.append( "%s_wrap.h" % name )
 
         # Add the "*.py" file as a target.

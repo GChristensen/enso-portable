@@ -29,7 +29,7 @@ def _makeExcInfoMsgText( exceptionType, exception, tb ):
 
 class TracebackCommand( CommandObject ):
     NAME = "traceback"
-    DESCRIPTION = "Returns the latest traceback from a command."
+    DESCRIPTION = "Inserts the latest traceback from a command into the current cursor position."
 
     tracebackText = "No last traceback."
 
@@ -39,7 +39,7 @@ class TracebackCommand( CommandObject ):
         self.setDescription( self.DESCRIPTION )
 
     def run( self ):
-        enso.selection.set( {"text" : self.tracebackText} )
+        enso.selection.set( {"text" : self.tracebackText.replace("\n", "\r\n")} )
 
     @classmethod
     def setTracebackInfo( cls ):
