@@ -100,7 +100,8 @@ def systray(enso_config):
     """ Tray-icon handling code. This have to be executed in its own thread
     """
 
-    enso_icon = os.path.realpath(os.path.join(os.path.dirname(sys.argv[0]), "..", "Enso.ico"))
+    enso_icon = os.path.realpath(os.path.join(enso_dir, "media", "images", \
+                                              "Enso_amethyst.ico" if config.COLOR_THEME == "amethyst" else "Enso.ico"))
 
     enso_config.SYSTRAY_ICON = SysTrayIcon(
             enso_icon,

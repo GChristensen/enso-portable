@@ -2,6 +2,7 @@ __pycache__
 *.pyc
 .editorconfig
 enso-portable.zip
+/launcher/.vs
 /launcher/launcher/*.user
 /enso/commands/custom.py
 /enso/run-enso.exe
