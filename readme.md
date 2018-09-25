@@ -2,12 +2,11 @@
 
 A portable distribution of the *community* version of Humanized Enso Launcher for Windows with some additional commands.
 
-Download: ![Windows](https://github.com/GChristensen/gchristensen.github.io/blob/master/windows.png?raw=true)
+![Windows](https://github.com/GChristensen/gchristensen.github.io/blob/master/windows.png?raw=true)
 [v0.2.0 (Python 3.7, Win7+)](https://github.com/GChristensen/enso-portable/releases/download/v0.2.0/enso-portable-0.2.0-py37.zip)
 :: ![Windows](https://github.com/GChristensen/gchristensen.github.io/blob/master/windows.png?raw=true)
 [v0.1.11 (Python 2.7, WinXP+)](https://github.com/GChristensen/enso-portable/releases/download/v0.2.0/enso-portable-0.1.11-py27.zip) 
-:: ![Youtube](https://github.com/GChristensen/gchristensen.github.io/blob/master/youtube.png?raw=true)  
-[Video Manual](https://youtu.be/QFXBp2vuEEA)
+::&nbsp;![Youtube](https://github.com/GChristensen/gchristensen.github.io/blob/master/youtube.png?raw=true)&nbsp;[Video Manual](https://youtu.be/QFXBp2vuEEA)
 
 
 
