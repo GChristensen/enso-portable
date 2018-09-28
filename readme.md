@@ -45,7 +45,9 @@ You also can place Python commands at '~/.ensocommands' file ('.ensocommands' fi
 
 * Install necessary Python packages with the `enso install &lt;package name&gt;' command. 
 
-* Mediaprobes allow to create commands that automatically pass items found in the filesystem (or specified
+#### Mediaprobes
+
+Mediaprobes allow to create commands that automatically pass items found in the filesystem (or specified
 in a dictionary) to a media player, which may be useful, for example, at a media-center. Let's assume that
 you have a directory named 'd:/tv-shows', which contains subdirectories named: 'columbo', 'the octopus', 'inspector gadget'. Let's create a command named 'show' that will have the names of all subdirectories
 under 'd:/tv-shows' as arguments ("name" in the code below) and open selected directory in Media Player Classic. 
