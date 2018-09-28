@@ -1,4 +1,3 @@
-
 import os
 import sys
 import time
@@ -23,7 +22,7 @@ enso_dir = os.path.dirname(os.path.realpath(__file__))
 enso_dir = os.path.dirname(enso_dir)
 sys.path.append(enso_dir)
 
-enso_executable = enso_dir + "\\run-enso"
+config.ENSO_EXECUTABLE = enso_executable = enso_dir + "\\run-enso"
 
 config.ENSO_DIR = enso_dir
 

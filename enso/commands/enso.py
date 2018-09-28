@@ -12,7 +12,7 @@ def cmd_enso(ensoapi, cmd):
     if cmd == 'quit':
         gracefully_exit_enso()
     elif cmd == 'restart':
-        subprocess.Popen([enso.enso_executable, "--restart " + str(os.getpid())])
+        subprocess.Popen([config.ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
         gracefully_exit_enso()
     elif cmd == 'userhome':
         ensoapi.display_message(os.path.expanduser("~"))

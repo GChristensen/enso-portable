@@ -6,7 +6,7 @@ HOST = options["DD_WRT_HOST"].encode('ascii', 'ignore') if "DD_WRT_HOST" in opti
 USER = options["DD_WRT_USER"].encode('ascii', 'ignore') if "DD_WRT_USER" in options else b"root"
 PASSWORD = options["DD_WRT_PASSWORD"].encode('ascii', 'ignore') if "DD_WRT_PASSWORD" in options else b""
 IFACE = options["DD_WRT_WIFI_INTERFACE"].encode('ascii', 'ignore') if "DD_WRT_WIFI_INTERFACE" in options else b"ra0"
-MAC = options["DD_WRT_MAC"].encode('ascii', 'ignore') if "DD_WRT_MAC" in options else b"00:00:00:00:00:00"
+MACHINES = options["DD_WRT_MACHINES"] if "DD_WRT_MACHINES" in options else {} #b"00:00:00:00:00:00"
 
 def cmd_switch_wireless(ensoapi):
     """Turn wi-fi on/off"""
@@ -32,7 +32,7 @@ def cmd_switch_wireless(ensoapi):
     tn.write("exit\n")
     tn.read_all()
 
-def cmd_wake_slave(ensoapi):
+def cmd_wake(ensoapi, machine):
     """Wake a slave server with a magic packet"""
     tn = Telnet(HOST, 23)
     tn.read_until(b"login: ")
@@ -40,9 +40,12 @@ def cmd_wake_slave(ensoapi):
     tn.read_until(b"Password: ")
     tn.write(PASSWORD + b"\n")
 
-    tn.write(b"/usr/sbin/wol -i 192.168.1.255 -p 9 " + MAC + b"\n") # provide a MAC address
+    tn.write(b"/usr/sbin/wol -i 192.168.1.255 -p 9 "
+             + MACHINES[machine].encode('ascii', 'ignore') + b"\n")
     tn.write(b"exit\n")
     tn.read_all()
+
+cmd_wake.valid_args = list(MACHINES.keys())
 
 def cmd_wan_reconnect(ensoapi):
     """Reconnect WAN"""
