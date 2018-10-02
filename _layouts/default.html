@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% seo %}
+    <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div class="wrapper">
+    <header>
+        <h1><a href="{{ "/" | absolute_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
+
+        {% if site.logo %}
+        <img src="{{site.logo | relative_url}}" alt="Logo" />
+        {% endif %}
+
+        <p>{{ site.description | default: site.github.project_tagline }}</p>
+
+        {% if site.github.is_project_page %}
+        <p class="view"><a href="{{ site.github.repository_url }}" target="_blank">View the Project on GitHub <small>{{ site.github.repository_nwo }}</small></a></p>
+        {% endif %}
+
+        <p class="view"><a href="/" target="_blank">Software by g/christensen <small>gchristnsn.ghithub.io</small></a></p>
+
+        {% if site.github.is_user_page %}
+        <p class="view"><a href="{{ site.github.owner_url }}">View My GitHub Profile</a></p>
+        {% endif %}
+
+        {% if site.show_downloads %}
+        <ul class="downloads">
+            <li><a href="{{ site.github.zip_url }}">Download <strong>ZIP File</strong></a></li>
+            <li><a href="{{ site.github.tar_url }}">Download <strong>TAR Ball</strong></a></li>
+            <li><a href="{{ site.github.repository_url }}">View On <strong>GitHub</strong></a></li>
+        </ul>
+        {% endif %}
+    </header>
+    <section>
+
+        <h1 id="add-torrent">Enso open-source</h1>
+
+        <p><img height="16px" width="16px" src="/windows.png" alt="Firefox"/>
+            <a id="app-link" href="#">Windows Application</a>
+            :: <img height="16px" width="16px" src="/youtube.png" alt="Youtube" style="max-width:100%;">
+            <a href="https://youtu.be/QFXBp2vuEEA" rel="nofollow">Video Manual</a>
+        </p>
+
+        <script>
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var release = JSON.parse(this.responseText);
+                    var link = document.getElementById("app-link");
+                    link.href = release.assets[0].browser_download_url;
+                }
+            };
+            xhr.open('GET', 'https://api.github.com/repos/gchristensen/ubiquitywe/releases/latest');
+            xhr.send();
+        </script>
+
+        <p onclick="document.getElementById('videoman').style.display='block'; this.style.display='none'">
+            <img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.png" alt="screen" />
+        </p>
+
+        <p style="display: none" id="videoman">
+            <iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"
+                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <br/>
+        </p>
+
+        <p>SEE ALSO: <a href="https://gchristensen.github.io/ubiquitywe/">UbiquityWE</a>
+        <h4>Description</h4>
+        <p style="text-align: justify;">Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using
+            the <b>learn as open</b> command) and perform many other operations with text command line triggered by the CAPSLOCK key.
+            It's possible to create your own commands using Python programming language.
+        </p>
+        <p style="text-align: justify;">
+            Find more information on command authoring in the tutorial available at Enso settings pages.
+        </p>
+        <h4>History</h4>
+
+        <p style="text-align: justify;">At first there was a propietary closed-source Enso Launcher from Humanized
+            [<a href="https://web.archive.org/web/20140701081042/http://humanized.com/" rel="nofollow">web archive</a>]
+            (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open-source
+            and became extensible only by python [<a href="https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page" rel="nofollow">
+                web archive of community enso</a>].
+            By some reasons it has also ceased.</p>
+
+        <h4>Known Issues</h4>
+        <ul>
+            <li>The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong).
+                Enso also may spontaneously stuck if some system event that grabs input is triggered.</li>
+            <li><g-emoji class="g-emoji" alias="red_circle" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f534.png">🔴</g-emoji> Some security tools may consider `run-enso.exe' as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.</li>
+        </ul>
+    </section>
+    <footer>
+    </footer>
+</div>
+<script src="{{ "/assets/js/scale.fix.js" | relative_url }}"></script>
+</body>
+</html>

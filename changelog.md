@@ -1,3 +1,11 @@
+##### 28.09.2018 (v.0.2.1)
+
+* Added `mpc' command (send commands to Media Player Classic). See the command description for details.
+* Added mediaprobes.
+* DD-WRT configuration has changed.
+* Removed mount.py.
+* Fixed `enso restart' command.
+
 ##### 24.09.2018 (v.0.2.0)
 
 * Migrated to Python 3.7
