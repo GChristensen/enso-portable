@@ -1,3 +1,7 @@
+import platform
+
+ENSO_VERSION = "0.3.0"
+
 # Configuration settings for Enso.  Eventually this will take
 # localization into account too (or we can make a separate module for
 # such strings).
@@ -83,7 +87,7 @@ PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 PAUSED = False
 
 ABOUT_BOX_XML = "<p><command>Enso</command> Community Edition</p>" \
-    "<caption>Enso Portable v0.2.1, Python 3.7</caption>" \
+    "<caption>Enso open-source " + ENSO_VERSION + ", Python " + platform.python_version() + "</caption>" \
     "<caption> </caption>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \

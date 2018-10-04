@@ -1,3 +1,8 @@
+##### 04.09.2018 (v.0.3.0)
+
+* Angelic Retreat is now Enso Retreat (an optional Enso module).
+* Added installer which allows to selectively install only necessary packages of commands.
+
 ##### 28.09.2018 (v.0.2.1)
 
 * Added `mpc' command (send commands to Media Player Classic). See the command description for details.

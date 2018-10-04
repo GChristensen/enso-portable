@@ -201,21 +201,10 @@ Configured by DD_WRT_MACHINES in '~/.ensorc', for example:
 #### Change Log
 [full changelog](changelog.md)
 
-##### 24.09.2018 (v.0.2.0)
+##### 04.09.2018 (v.0.3.0)
 
-* Migrated to Python 3.7
-* Added `enso userhome' command
-* Added `enso install' command
-* Learn as open commands moved to `~/.enso/learned-commands'
-* `--portable' launcher command line option added
-
-##### 28.09.2018 (v.0.2.1)
-
-* Added `mpc' command (send commands to Media Player Classic). See the command description above for details.
-* Added mediaprobes.
-* DD-WRT configuration has changed.
-* Removed mount.py.
-* Fixed `enso restart' command.
+* Angelic Retreat is now Enso Retreat (optional Enso module).
+* Added installer which allows to selectively install only necessary packages of commands. 
 
 #### Contributors
 
