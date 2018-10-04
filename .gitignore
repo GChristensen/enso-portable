@@ -8,5 +8,6 @@ enso-portable.zip
 /enso/run-enso.exe
 /enso/python
 /enso/*.ilk
+retreat.pyd
 *.iml
 .idea

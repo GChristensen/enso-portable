@@ -17,6 +17,8 @@ class SysTrayIcon(object):
     MENU_ITEM_ID_EXIT = 1024
     free_menu_id = 1025
 
+    CMD_FINALIZE = 2000
+
     def __init__(self,
                  icon,
                  hover_text,
@@ -134,8 +136,8 @@ class SysTrayIcon(object):
         self._create_icons()
 
     def _on_destroy(self, hwnd, msg, wparam, lparam):
-        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, self.notify_id)
         win32gui.PostQuitMessage(0) # Terminate the current thread.
+        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, self.notify_id)
 
     def _on_taskbar_notify(self, hwnd, msg, wparam, lparam):
         if lparam == win32con.WM_LBUTTONUP:
@@ -159,6 +161,7 @@ class SysTrayIcon(object):
         elif id == self.MENU_ITEM_ID_EXIT:
             if self.on_quit:
                 self.on_quit(self)
+        elif id == self.CMD_FINALIZE:
             win32gui.DestroyWindow(self.hwnd)
             win32gui.UnregisterClass(self.class_atom, self._window_class.hInstance)
         elif id in list(self.custom_menu_items.keys()):

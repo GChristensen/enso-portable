@@ -88,6 +88,9 @@ ABOUT_BOX_XML = "<p><command>Enso</command> Community Edition</p>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
     "<p>Copyright &#169; 2011-2018 <command>g/christensen</command></p>" \
+    "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
+
+RETREAT_SHOW_ICON = True
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

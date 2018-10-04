@@ -5,16 +5,19 @@ import logging
 import threading
 import pythoncom
 import subprocess
-from win32com.shell import shell, shellcon
+import importlib
+import win32gui
+import win32con
 
 import enso
 from enso import config
 from enso.messages import displayMessage
-#from enso.platform.win32.input import InputManager
-#from enso.events import EventManager
+from enso.events import EventManager
 from enso.platform.win32.taskbar import SysTrayIcon
-from enso.platform.win32 import gracefully_exit_enso
+
 from optparse import OptionParser
+
+from win32com.shell import shell, shellcon
 
 options = None
 
@@ -26,13 +29,31 @@ config.ENSO_EXECUTABLE = enso_executable = enso_dir + "\\run-enso"
 
 config.ENSO_DIR = enso_dir
 
+def retreat_init():
+    retereat_spec = importlib.util.find_spec('enso.retreat')
+    if retereat_spec is not None:
+        from enso import retreat
+        retreat.start()
+
+def retreat_finalize():
+    retereat_spec = importlib.util.find_spec('enso.retreat')
+    if retereat_spec is not None:
+        from enso import retreat
+        retreat.stop()
+
+def retreat_locked():
+    retereat_spec = importlib.util.find_spec('enso.retreat')
+    if retereat_spec is not None:
+        from enso import retreat
+        return retreat.is_locked()
+    return False
+
 def tray_on_enso_quit(systray):
-    gracefully_exit_enso()
-    
+    if not retreat_locked():
+        EventManager.get().stop()
+
 def tray_on_enso_about(systray):
-    displayMessage(
-        config.ABOUT_BOX_XML +
-        "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>" )
+    displayMessage(config.ABOUT_BOX_XML)
 
 def tray_on_enso_help(systray):
     pass
@@ -82,8 +103,10 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
 
 def tray_on_enso_restart(systray, get_state = False):
     if not get_state:
-        subprocess.Popen([enso_executable, "--restart " + str(os.getpid())])
-        tray_on_enso_quit(systray)
+        if not retreat_locked():
+            subprocess.Popen([enso_executable, "--restart " + str(os.getpid())])
+            tray_on_enso_quit(systray)
+
 
 # def tray_on_enso_pause(systray, get_state = False):
 #     if get_state:
@@ -138,7 +161,6 @@ def process_options(argv):
     opts, args = parser.parse_args(argv)
     return opts, args
 
-
 def main(argv = None):
     global options
     opts, args = process_options(argv)
@@ -188,12 +210,24 @@ def main(argv = None):
         # Execute tray-icon code in separate thread
         threading.Thread(target = systray, args = (config,)).start()
 
+    retreat_init()
+
     enso.run()
+
+    config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
+    if not config.ENSO_IS_QUIET:
+        displayMessage("<p>Closing Enso...</p><caption>Enso</caption>")
+
+    win32gui.PostMessage(config.SYSTRAY_ICON.hwnd, win32con.WM_COMMAND, config.SYSTRAY_ICON.CMD_FINALIZE, 0)
+
+    retreat_finalize()
+
+    time.sleep(1)
+    os._exit(0)
 
     return 0
 
-
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    main(sys.argv[1:])
 
 
