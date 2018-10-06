@@ -28,7 +28,7 @@ class HangupCommand(object):
         self.valid_args = win32ras.EnumEntries()
 
 class DialCommand(object):
-    """ Connect to a remote connection """
+    """ Initiate remote connection """
     def connect(self, ensoapi, entryName):
         try:
             info = RASDIALDLG()

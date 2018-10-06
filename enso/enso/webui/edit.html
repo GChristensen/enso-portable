@@ -1,0 +1,117 @@
+<html xmlns="http://www.w3.org/1999/xhtml" style="cursor: auto ! important;" hasBrowserHandlers="true">
+<head>
+    <title>Enso Command Editor</title>
+    <meta charset="utf-8">
+    <link href="images/enso-16.png" rel="icon" type="image/x-png" />
+    <link rel="stylesheet" type="text/css" media="all" href="options.css"/>
+
+    <style>
+        body {
+            height: 100%;
+            display: flex;
+            flex-flow: column;
+            overflow: hidden;
+        }
+        #panel {
+            width: 870px;
+        }
+
+        .head, #nav-container {
+            flex: 0 1 auto;
+        }
+
+        #panel {
+            flex: 1 1 auto;
+        }
+
+        #code {
+            width: 100%;
+            height: 100%;
+
+            /*position: absolute; top: 40px; padding: 5px; left:0; bottom:0; right: 0;*/
+        }
+
+        #toolbar {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding-right: 30px;
+        }
+
+        #file-picker {
+            display: none;
+        }
+
+        #script-namespaces, #create-namespace, #delete-namespace, #ns-label, #expand-editor {
+            float: right; display: inline-block;
+        }
+
+        #footer {
+            margin-top: 5px;
+            padding-right: 30px;
+            margin-bottom: 5px;
+            flex: 0 1 auto;
+        }
+
+        #buttons {
+            width: 50%;
+            float:right;
+            display: inline-block;
+            text-align: right;
+        }
+
+        #info {
+            width: 40%;
+            display: inline-block;
+        }
+
+    </style>
+
+    <script src="/lib/ace/ace.js"></script>
+    <script src="/lib/jquery.min.js"></script>
+    <script src="edit.js"></script>
+
+</head>
+<body dir="ltr">
+<div id="header">
+<div class="head"><span class="large">Enso: </span>Command Editor</div>
+<div id="nav-container">
+    <ul id="nav">
+        <li><a href="options.html">Settings</a></li>
+        <li><a href="commands.html">Your Commands</a></li>
+        <li><a href="scheduler.html">Scheduler</a></li>
+        <li class="selected"><a href="edit.html">Command Editor</a></li>
+        <li><a href="API.html">API Reference</a></li>
+        <li><a href="tutorial.html">Tutorial</a></li>
+    </ul>
+</div>
+
+<br id="head-br" clear="all"/>
+<div id="toolbar">
+    <a href=# id="download"><img src="/images/download.png" title="Download"
+    /></a><a href=# id="upload"><img src="/images/upload.png" title="Upload"/></a>
+
+    <input type="file" id="file-picker"/>
+
+    <a href=# id="expand-editor">&nbsp;<img src="/images/expand.png"/></a>
+    <a href=# id="delete-namespace"><img src="/images/document_delete.png" title="Delete category"
+    /></a><a href=# id="create-namespace">&nbsp;<img src="/images/document_create.png" title="Create category"/></a>
+    <select id="script-namespaces">
+        <option value="user">&lt;user&gt;</option>
+    </select>
+    <span id="ns-label">Category:&nbsp;</span>
+</div>
+</div>
+<div id="panel">
+    <div id="code" name="code"></div>
+</div>
+<div id="footer">
+    <div id="info">Saving is done automatically.</div>
+    <div id="buttons">
+        Insert template commands:
+        <a href=# id="insertsimplecommandstub">NO ARGS</a> |
+        <a href=# id="insertvarargsstub">VAR ARG</a> |
+        <a href=# id="insertboundargsstub">BOUND ARG</a>
+    </div>
+</div>
+</body>
+</html>

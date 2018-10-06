@@ -48,6 +48,7 @@ import urllib.request, urllib.parse, urllib.error
 import atexit
 import logging
 
+from enso import config, webui
 from enso.commands import CommandManager, CommandObject
 from enso.contrib.scriptotron.tracebacks import safetyNetted
 
@@ -128,7 +129,7 @@ class DefaultHtmlHelp( object ):
 
                 helpText = command.getHelp()
                 if not helpText:
-                    helpText = "This command has no help content."
+                    helpText = "" #"This command has no help content."
                 #helpText = helpText.encode( "utf-8", "xmlcharrefreplace" )
 
                 fileobj.write( "<p>%s</p>" %  helpText )
@@ -169,7 +170,10 @@ class HelpCommand( CommandObject ):
 
     @safetyNetted
     def run( self ):
-        self.__htmlHelp.view()
+        if config.ENABLE_WEB_UI:
+            os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
+        else:
+            self.__htmlHelp.view()
 
 
 # ----------------------------------------------------------------------------

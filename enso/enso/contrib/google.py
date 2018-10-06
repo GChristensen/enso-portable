@@ -143,6 +143,9 @@ class GoogleCommandFactory( ArbitraryPostfixFactory ):
     HELP_TEXT = "search terms"
     PREFIX = "google "
     NAME = "google {search terms}"
+
+    # added to unify command name retrieval
+    cmdName = "google"
     
     def _generateCommandObj( self, postfix ):
         if postfix:

@@ -39,13 +39,20 @@ def get_mpc_commands():
 
 def cmd_mpc(ensoapi, action):
     """Control Media Player Classic using Enso
-    Web Interface should be enabled in MPC settings."""
+    IMPORTANT: Web Interface should be enabled in MPC settings.
+    <br>NOTE: the command is based on <a href="https://github.com/Grokzen/mpcapi">mpcapi</a>.
+    <br>Due to the vast number of arguments the command is disabled by default.
+    <br>Issue 'mpc enable' to make it available."""
     if action == "enable":
+        config.MPC_ENABLED = True
+        config.store_value("MPC_ENABLED", True)
         cmd_mpc.valid_args = ["disable", "randomize"] + get_mpc_commands()
+    elif action == "disable":
+        config.MPC_ENABLED = False
+        config.store_value("MPC_ENABLED", False)
+        cmd_mpc.valid_args = ["enable"]
     elif action == "randomize":
         mpc_randomize()
-    elif action == "disable":
-        cmd_mpc.valid_args = ["enable"]
     else:
         getattr(mpcapi.MpcAPI(host=MPC_HOST, port=MPC_PORT), action.replace(" ", "_"))()
 

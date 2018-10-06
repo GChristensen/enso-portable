@@ -93,10 +93,10 @@ def cmd_calculate(ensoapi, expression = None):
         ensoapi.display_message("Invalid expression", "Error")
 
 
-from enso.commands import CommandManager
-paste_command = CommandManager.get().getCommand("paste")
-if paste_command:
-    print(dir(paste_command))
+#from enso.commands import CommandManager
+#paste_command = CommandManager.get().getCommand("paste")
+#if paste_command:
+#    print(dir(paste_command))
 
 def cmd_calculation_paste(ensoapi):
     """ Paste the results of the last calculation """
@@ -108,5 +108,8 @@ def cmd_calculation_paste(ensoapi):
     #    paste_command.valid_args
 
     selection.set({ "text": str(last_calculation) })
+
+
+CATEGORY = "calculation"
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

@@ -46,6 +46,10 @@ def _getCommandInfoFromFunc( func, funcName, cmdName,
     if hasattr( func, "help" ):
         help = func.help
 
+    category = "other"
+    if hasattr( func, "category" ):
+        category = func.category
+
     if isinstance( func, types.FunctionType ):
         args, _, _, argDefaults = inspect.getargspec( func )
     else:
@@ -86,6 +90,7 @@ def _getCommandInfoFromFunc( func, funcName, cmdName,
              "cmdType" : cmdType,
              "desc" : desc,
              "help" : help,
+             "category": category,
              "isArgRequired" : isArgRequired }
 
 def getCommandsFromObjects( objects, namePrefix = SCRIPT_PREFIX ):

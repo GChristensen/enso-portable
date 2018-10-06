@@ -10,6 +10,7 @@ import win32gui
 import win32con
 
 import enso
+from enso import webui
 from enso import config
 from enso.messages import displayMessage
 from enso.events import EventManager
@@ -19,41 +20,25 @@ from optparse import OptionParser
 
 from win32com.shell import shell, shellcon
 
-options = None
-
 enso_dir = os.path.dirname(os.path.realpath(__file__))
 enso_dir = os.path.dirname(enso_dir)
+
 sys.path.append(enso_dir)
+sys.path.append(os.path.join(enso_dir, "lib"))
 
 config.ENSO_EXECUTABLE = enso_executable = enso_dir + "\\run-enso"
-
 config.ENSO_DIR = enso_dir
 
-def retreat_init():
-    retereat_spec = importlib.util.find_spec('enso.retreat')
-    if retereat_spec is not None:
-        from enso import retreat
-        retreat.start()
-
-def retreat_finalize():
-    retereat_spec = importlib.util.find_spec('enso.retreat')
-    if retereat_spec is not None:
-        from enso import retreat
-        retreat.stop()
-
-def retreat_locked():
-    retereat_spec = importlib.util.find_spec('enso.retreat')
-    if retereat_spec is not None:
-        from enso import retreat
-        return retreat.is_locked()
-    return False
-
 def tray_on_enso_quit(systray):
-    if not retreat_locked():
+    if not enso.plugin_call("retreat", "is_locked"):
         EventManager.get().stop()
 
 def tray_on_enso_about(systray):
     displayMessage(config.ABOUT_BOX_XML)
+
+def tray_on_enso_settings(systray, get_state = False):
+    if not get_state:
+        os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")
 
 def tray_on_enso_help(systray):
     pass
@@ -103,7 +88,7 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
 
 def tray_on_enso_restart(systray, get_state = False):
     if not get_state:
-        if not retreat_locked():
+        if not enso.plugin_call("retreat", "is_locked"):
             subprocess.Popen([enso_executable, "--restart " + str(os.getpid())])
             tray_on_enso_quit(systray)
 
@@ -134,8 +119,10 @@ def systray(enso_config):
     enso_config.SYSTRAY_ICON.on_about = tray_on_enso_about
     enso_config.SYSTRAY_ICON.on_doubleclick = tray_on_enso_about
     #enso_config.SYSTRAY_ICON.add_menu_item("&Pause", tray_on_enso_pause)
-    enso_config.SYSTRAY_ICON.add_menu_item("&Restart", tray_on_enso_restart) #restart_enso)
-    enso_config.SYSTRAY_ICON.add_menu_item("Execute on &startup", tray_on_enso_exec_at_startup)
+    enso_config.SYSTRAY_ICON.add_menu_item("&Restart", tray_on_enso_restart)
+    if config.ENABLE_WEB_UI:
+        enso_config.SYSTRAY_ICON.add_menu_item("&Settings", tray_on_enso_settings)
+    enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", tray_on_enso_exec_at_startup)
     enso_config.SYSTRAY_ICON.main_thread()
 
 
@@ -161,12 +148,21 @@ def process_options(argv):
     opts, args = parser.parse_args(argv)
     return opts, args
 
-def main(argv = None):
-    global options
-    opts, args = process_options(argv)
-    options = opts
 
-    config.ENSO_IS_QUIET = options.quiet
+def load_rc_config(ensorcPath):
+    if os.path.exists( ensorcPath ):
+        logging.info( "Loading '%s'." % ensorcPath )
+        contents = open( ensorcPath, "r" ).read()
+        compiledContents = compile( contents + "\n", ensorcPath, "exec" )
+        allLocals = {}
+        exec(compiledContents, {}, allLocals)
+        for k, v in allLocals.items():
+            setattr(config, k, v)
+
+
+def main(argv = None):
+    opts, args = process_options(argv)
+    config.ENSO_IS_QUIET = opts.quiet
 
     loglevel = {
         'CRITICAL' : logging.CRITICAL,
@@ -192,25 +188,17 @@ def main(argv = None):
         print(opts)
         print(args)
 
-    global enso_dir
-    ensorcPath = os.path.expanduser("~/.ensorc")
-    if os.path.exists( ensorcPath ):
-        logging.info( "Loading '%s'." % ensorcPath )
-        contents = open( ensorcPath, "r" ).read()
-        compiledContents = compile( contents + "\n", ensorcPath, "exec" )
-        allLocals = {}
-        exec(compiledContents, {}, allLocals)
-        for k, v in allLocals.items():
-            setattr(config, k, v)
-
 #    if not opts.quiet and opts.show_splash:
 #        displayMessage("<p>Starting <command>Enso</command>...</p>")
+
+    load_rc_config(os.path.join(config.ENSO_USER_DIR, "ensorc.py"))
+    load_rc_config(os.path.expanduser("~/.ensorc"))
 
     if opts.show_tray_icon:
         # Execute tray-icon code in separate thread
         threading.Thread(target = systray, args = (config,)).start()
 
-    retreat_init()
+    enso.plugin_call("retreat", "start")
 
     enso.run()
 
@@ -220,12 +208,13 @@ def main(argv = None):
 
     win32gui.PostMessage(config.SYSTRAY_ICON.hwnd, win32con.WM_COMMAND, config.SYSTRAY_ICON.CMD_FINALIZE, 0)
 
-    retreat_finalize()
+    enso.plugin_call("retreat", "stop")
 
     time.sleep(1)
     os._exit(0)
 
     return 0
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

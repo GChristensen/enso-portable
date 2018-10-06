@@ -51,6 +51,8 @@
 
 import re
 
+from enso import config
+
 from enso.commands.suggestions import AutoCompletion, Suggestion
 from enso.commands.interfaces import AbstractCommandFactory, CommandObject
 from enso.messages import displayMessage
@@ -195,10 +197,20 @@ class GenericPrefixFactory( AbstractCommandFactory ):
         """
 
         self.update()
-        
+
+        # sneaky hack to instantly disable commands from Web UI
+        if hasattr(self, "NAME") and str(self.NAME) == "__commandObjectRegistry":
+            if config.COMMAND_STATE_CHANGED:
+                config.COMMAND_STATE_CHANGED = False
+                self.__postfixesChanged = True
+            filtered_postfixes = [p for p in self.__postfixes
+                                  if p not in config.DISABLED_COMMANDS]
+        else:
+            filtered_postfixes = self.__postfixes
+
         if self.__postfixesChanged:
             self.__postfixesChanged = False
-            self.__searchString = "\n".join( self.__postfixes )
+            self.__searchString = "\n".join( filtered_postfixes )
             
 
     # LONGTERM TODO: This is not the greatest design.  Perhaps in
@@ -228,6 +240,10 @@ class GenericPrefixFactory( AbstractCommandFactory ):
 
         This returns a list of Suggestion objects.
         """
+
+        if hasattr(self, "NAME"):
+            if str(self.NAME) in config.DISABLED_COMMANDS:
+                return []
 
         pattern = userText[len(self.PREFIX):]
         pattern = _equivalizeChars( pattern )
@@ -259,6 +275,9 @@ class GenericPrefixFactory( AbstractCommandFactory ):
         postfixes, then returns an Autocompletion object for the
         match.  Otherwise, returns None.
         """
+
+        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+            return None
 
         if self.PREFIX.startswith( userText ):
             # If seed text is all or part of the prefix, then
@@ -361,7 +380,10 @@ class ArbitraryPostfixFactory( GenericPrefixFactory ):
 
         Returns None otherwise.
         """
-        
+
+        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+            return None
+
         if self.PREFIX.startswith( seedText ):
             # If seed text is all or part of the prefix, then
             # autocomplete with help text.
@@ -381,6 +403,9 @@ class ArbitraryPostfixFactory( GenericPrefixFactory ):
         Returns a suggestion if the userText is contained in the
         prefix.
         """
+
+        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+            return []
 
         if userText in self.PREFIX:
             return [ Suggestion( userText,

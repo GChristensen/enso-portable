@@ -287,6 +287,9 @@ class CommandObjectRegistry( GenericPrefixFactory ):
 
     PREFIX = ""
 
+    # added to filter disabled commands
+    NAME = "__commandObjectRegistry"
+
     def __init__( self ):
         """
         Initialize the command registry.
@@ -332,7 +335,7 @@ class CommandObjectRegistry( GenericPrefixFactory ):
             self._removePostfix( cmdExpr )
         else:
             raise RuntimeError( "Command object '%s' not found." % cmdExpr )
-            
+
             
 
     def getCommandObj( self, cmdNameString ):

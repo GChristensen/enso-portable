@@ -151,6 +151,9 @@ class CommandObject( _CommandImpl ):
         return self.__name
 
     def setName( self, name ):
+        # added to unify command name retrieval
+        self.cmdName = name
+
         self.__name = name
 
 

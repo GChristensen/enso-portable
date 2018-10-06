@@ -1,0 +1,6 @@
+
+$(onDocumentLoad);
+
+function onDocumentLoad() {
+
+}

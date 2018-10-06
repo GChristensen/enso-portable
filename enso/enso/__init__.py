@@ -32,6 +32,11 @@
 #
 # ----------------------------------------------------------------------------
 
+
+from enso import config
+import importlib
+
+
 def run():
     """
     Initializes and runs Enso.
@@ -39,7 +44,7 @@ def run():
 
     from enso.events import EventManager
     from enso.quasimode import Quasimode
-    from enso import events, plugins, config, quasimode, webui
+    from enso import plugins, webui
     from enso.quasimode import layout
 
     # Set color theme before quasimode is loaded to capture font styles
@@ -53,7 +58,22 @@ def run():
         if msgXml != None:
             messages.displayMessage( msgXml )
 
-    webui.start(eventManager)
+    if config.ENABLE_WEB_UI:
+        webui.start(eventManager)
 
     eventManager.registerResponder( showWelcomeMessage, "init" )
     eventManager.run()
+
+
+def retreat_installed():
+    retereat_spec = importlib.util.find_spec('enso.retreat')
+    if retereat_spec is not None:
+        return True
+    return False
+
+
+# currently only call to retreat
+def plugin_call(plugin, method):
+    if not config.RETREAT_DISABLE and retreat_installed():
+        import enso.retreat
+        return vars(enso.retreat)[method]()

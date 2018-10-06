@@ -13,6 +13,10 @@ class FuncCommand( CommandObject ):
         CommandObject.__init__( self )
 
         self.name = cmdName
+
+        # added to unify command name retrieval
+        self.cmdName = cmdName
+
         self.func = func
         self.takesArg = takesArg
         self.argValue = argValue

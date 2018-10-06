@@ -15,7 +15,7 @@ import logging
 unlearn_open_undo = []
 
 my_documents_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
-LEARN_AS_DIR = os.path.join(os.path.expanduser("~"), ".enso", "learned-commands")
+LEARN_AS_DIR = os.path.join(os.path.expanduser("~"), ".enso", "commands", "learned")
 
 # Check if Learn-as dir exist and create it if not
 if (not os.path.isdir(LEARN_AS_DIR)):

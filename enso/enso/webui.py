@@ -1,169 +1,182 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import threading, queue, cgi, urllib.request, urllib.parse, urllib.error, re, os, random, string
+import threading, platform, os, random, string, json
 import enso.messages
-from enso.contrib.scriptotron import cmdretriever
 
-class myhandler(BaseHTTPRequestHandler):
-  def __init__(self, request, client_address, server, queue, nonce_dict):
-    self.queue = queue
-    self.nonce_dict = nonce_dict
-    BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+import enso
+from enso import config
+from enso.quasimode import layout
+from enso.commands.manager import CommandManager
 
-  def get_random_nonce(self):
-    return ''.join([random.choice(string.lowercase) for x in range(10)])
-  
-  def get_webui_file(self, fn):
-    path = os.path.join(os.path.split(__file__)[0], "webui", fn)
-    fp = open(path)
-    data = fp.read()
-    fp.close()
-    return data
+from flask import Flask, request, send_from_directory
+from werkzeug.serving import make_server
 
-  def do_GET(self):
-    if self.path == "/install.js":
-      js = self.get_webui_file("install.js")
-      self.send_response(200)
-      self.send_header("Content-Type", "text/javascript")
-      self.end_headers()
-      self.wfile.write(js)
+HOST = "localhost"
+PORT = 31750
+
+webui_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(webui_dir, "webui")
+
+app = Flask(__name__, static_url_path='', static_folder=static_dir)
+
+
+@app.after_request
+def add_header(r):
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
+
+@app.route('/api/python/version')
+def get_python_version():
+    return platform.python_version()
+
+@app.route('/api/enso/version')
+def get_enso_version():
+    return config.ENSO_VERSION
+
+@app.route('/api/retreat/installed')
+def get_retreat_installed():
+    if enso.retreat_installed():
+        return "True"
+    return ""
+
+@app.route('/api/retreat/show_options')
+def get_retreat_show_settings():
+    enso.plugin_call("retreat", "options")
+    return ""
+
+@app.route('/api/enso/color_themes')
+def get_enso_themes():
+    return json.dumps({"current": config.COLOR_THEME, "all": layout.COLOR_THEMES})
+
+@app.route('/api/enso/get/config/<key>')
+def get_enso_get_config(key):
+    config_vars = vars(config)
+    if key in config_vars:
+        return str(config_vars[key])
     else:
-      self.send_response(404)
-      self.end_headers()
-      self.wfile.write("404 Not Found")
-      
+        return ""
 
-  def do_POST(self):
-    form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD':'POST',
-                     'CONTENT_TYPE':self.headers['Content-Type'],
-                     })
-    url = form.getfirst("url", None)
-    ref = form.getfirst("ref", None)
-    if url and ref:
-      nonce = form.getfirst("nonce", None)
-      if nonce:
-        # check it's the right nonce
-        if nonce == self.nonce_dict.get(url, None):
-          install = form.getfirst("install", None)
-          cancel = form.getfirst("cancel", None)
-          if install or not cancel:
-            self.queue.put(url)
-          self.send_response(200)
-          self.end_headers()
-          REDIRECT_TEMPLATE = self.get_webui_file("redirect.html")
-          self.wfile.write(REDIRECT_TEMPLATE % {"ref":ref})
-        else:
-          # wrong nonce: fail
-          self.send_response(401)
-          self.end_headers()
-          self.wfile.write("""Bad Request""")
-      else:
-        # no nonce; display confirmation page
-        nonce = self.get_random_nonce()
-        self.nonce_dict[url] = nonce
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        CONFIRM_TEMPLATE = self.get_webui_file("confirm.html")
-        self.wfile.write(CONFIRM_TEMPLATE % {
-          "url":cgi.escape(url), 
-          "nonce": nonce,
-          "ref": cgi.escape(ref)
-          })
-    else:
-      self.send_response(401)
-      self.end_headers()
-      self.wfile.write("""Bad Request""")
-    
+@app.route('/api/enso/set/config/<key>/<value>')
+def get_enso_set_config(key, value):
+    config.store_value(key.upper(), value)
+    return ""
 
-class myhttpd(HTTPServer):
-  def __init__(self, server_address, RequestHandlerClass, queue):
-    HTTPServer.__init__(self, server_address, RequestHandlerClass)
-    self.queue = queue
-    self.nonce_dict = {}
-  def finish_request(self, request, client_address):
-    # overridden from SocketServer.TCPServer
-    self.RequestHandlerClass(request, client_address, self, self.queue,
-      self.nonce_dict)
+@app.route('/api/enso/get/config_dir')
+def get_enso_get_config_dir():
+    return os.path.expanduser(config.ENSO_USER_DIR)
+
+@app.route('/api/enso/open/config_dir')
+def get_enso_open_config_dir():
+    os.startfile(config.ENSO_USER_DIR, "open")
+    return ""
+
+@app.route('/api/enso/get/ensorc')
+def get_enso_get_ensorc():
+    return send_from_directory(config.ENSO_USER_DIR, "ensorc.py")
+
+@app.route('/api/enso/set/ensorc', methods=["POST"])
+def post_enso_set_ensorc():
+    with open(os.path.join(config.ENSO_USER_DIR, "ensorc.py"), "wb") as ensorc:
+        ensorc.write(request.form["ensorc"].encode("utf-8"))
+    return ""
+
+@app.route('/api/enso/get/commands')
+def get_enso_get_commands():
+    cmdman = CommandManager.get()
+    commands = cmdman.getCommands()
+    output = []
+
+    for name, command in commands.items():
+        desc = command.getDescription()
+        helpText = command.getHelp()
+
+        category = "other"
+        if hasattr(command, "func") and hasattr(command.func, "category"):
+            category = command.func.category
+
+        file = ""
+        if hasattr(command, "func") and hasattr(command.func, "cmdFile"):
+            file = command.func.cmdFile
+
+        cmdJSON = {"name": name, "description": desc, "help": helpText,
+                   "category": category, "file": file}
+
+        if name in config.DISABLED_COMMANDS:
+            cmdJSON["disabled"] = "true"
+
+        output = output + [cmdJSON]
+    return json.dumps(output)
+
+@app.route('/api/enso/get/user_command_categories')
+def get_enso_commands_categories():
+    commands_dir = os.path.join(config.ENSO_USER_DIR, "commands")
+    categories = []
+    for f in os.listdir(commands_dir):
+        if f.endswith(".py"):
+            categories = categories + [os.path.splitext(f)[0]]
+    return json.dumps(categories)
+
+@app.route('/api/enso/commands/delete_category/<value>')
+def get_enso_commands_create_category(value):
+    category_file = os.path.join(config.ENSO_USER_DIR, "commands", value + ".py")
+    if os.path.exists(category_file):
+        os.remove(category_file)
+    return ""
+
+@app.route('/api/enso/commands/write_category/<value>', methods=["POST"])
+def post_enso_commands_write_category(value):
+    category_file = os.path.join(config.ENSO_USER_DIR, "commands", value + ".py")
+
+    with open(category_file, "wb") as ensorc:
+        ensorc.write(request.form["code"].encode("utf-8"))
+    return ""
+
+@app.route('/api/enso/commands/read_category/<value>')
+def get_enso_commands_read_category(value):
+    return send_from_directory(os.path.join(config.ENSO_USER_DIR, "commands"), value + ".py")
+
+@app.route('/api/enso/commands/disable/<command>')
+def get_enso_commands_disable(command):
+    if command not in config.DISABLED_COMMANDS:
+        config.DISABLED_COMMANDS += [command]
+        config.COMMAND_STATE_CHANGED = True
+        config.store_value("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
+    return ""
+
+@app.route('/api/enso/commands/enable/<command>')
+def get_enso_commands_enable(command):
+    if command in config.DISABLED_COMMANDS:
+        config.DISABLED_COMMANDS.remove(command)
+        config.COMMAND_STATE_CHANGED = True
+        config.store_value("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
+    return ""
 
 class Httpd(threading.Thread):
-  def __init__(self, queue):
-    threading.Thread.__init__(self)
-    self.queue = queue
-  def run(self):
-    server = myhttpd(('localhost', 31750), myhandler, self.queue)
-    server.serve_forever()
+
+    def __init__(self, app):
+        threading.Thread.__init__(self)
+        self.srv = make_server(HOST, PORT, app)
+        self.ctx = app.app_context()
+        self.ctx.push()
+
+    def run(self):
+        self.srv.serve_forever()
+
+    def shutdown(self):
+        self.srv.shutdown()
 
 def displayMessage(msg):
-  enso.messages.displayMessage("<p>%s</p>" % msg)
+    enso.messages.displayMessage("<p>%s</p>" % msg)
 
-def install_command_from_url(command_url):  
-  try:
-    fp = urllib.request.urlopen(command_url)
-  except:
-    msg = "Couldn't install that command"
-    displayMessage(msg)
-    return
-    
-  text = fp.read()
-  fp.close()
-  
-  lines = text.split("\n")
-  if len(lines) < 3:
-    msg = "There was no command to install!"
-    displayMessage(msg)
-    return
-  while lines[0].strip() == "": 
-    lines.pop(0)
-  command_file_name = command_url.split("/")[-1]
-  if not command_file_name.endswith(".py"):
-    msg = "Couldn't install this command %s" % command_file_name
-    displayMessage(msg)
-    return
-  from enso.providers import getInterface
-  cmd_folder = getInterface("scripts_folder")()
-  command_file_path = os.path.join(cmd_folder, command_file_name)
-  shortname = os.path.splitext(command_file_name)[0]
-  if os.path.exists(command_file_path):
-    msg = "You already have a command named %s" % shortname
-    displayMessage(msg)
-    return
-
-  allGlobals = {}
-  # normalise text for crlf
-  text = text.replace('\r\n','\n').replace('\r','\n')
-  code = compile( text, command_file_path, "exec" )
-  exec(code, allGlobals)
-  installed_commands = [x["cmdName"] for x in 
-      cmdretriever.getCommandsFromObjects(allGlobals)]
-
-  if len(installed_commands) == 1:
-    install_message = "%s is now a command" % installed_commands[0]
-  else:
-    install_message = "%s are now commands" % ", ".join(installed_commands)
-  # Use binary mode for writing so endlines are not converted to "\r\n" on win32
-  fp = open(command_file_path, "wb")
-  fp.write(text)
-  fp.close()
-  displayMessage(install_message)
-
-
-commandq = queue.Queue()
-
-def pollqueue(ms):
-  try:
-    command_url = commandq.get(False, 0)
-  except queue.Empty:
-    return
-
-  # FIXME: here we should check to see if it's OK to install this command!
-  install_command_from_url(command_url)
+httpd = None
 
 def start(eventManager):
-  httpd = Httpd(commandq)
-  httpd.setDaemon(True)
-  httpd.start()
-  eventManager.registerResponder( pollqueue, "timer" )
+    global httpd
+    httpd = Httpd(app)
+    httpd.setDaemon(True)
+    httpd.start()
 
+def stop():
+    global httpd
+    httpd.shutdown()

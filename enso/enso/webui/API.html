@@ -1,0 +1,345 @@
+<html xmlns="http://www.w3.org/1999/xhtml" style="cursor: auto ! important;" hasBrowserHandlers="true">
+<head>
+  <title>Enso API</title>
+  <meta charset="utf-8">
+  <link href="images/enso-16.png" rel="icon" type="image/x-png" />
+  <link rel="stylesheet" type="text/css" media="all" href="options.css"/>
+
+</head>
+<body dir="ltr">
+<div class="head"><span class="large">Enso: </span>API</div>
+<div id="nav-container">
+  <ul id="nav">
+      <li><a href="options.html">Settings</a></li>
+      <li><a href="commands.html">Your Commands</a></li>
+      <li><a href="scheduler.html">Scheduler</a></li>
+      <li><a href="edit.html">Command Editor</a></li>
+      <li class="selected"><a href="API.html">API Reference</a></li>
+      <li><a href="tutorial.html">Tutorial</a></li>
+  </ul>
+</div>
+
+<br clear="all"/>
+
+<h2><a id="user-content-ubiquitywe-api-reference" class="anchor" aria-hidden="true" href="#ubiquitywe-api-reference"></a>Enso API Reference</h2>
+<h3><a id="user-content-_string-data" class="anchor" aria-hidden="true" href="#_string-data"></a>_(string, data)</h3>
+<blockquote>
+    <p>A shortcut for CmdUtils.renderTemplate.  <br>Note: in the original Ubiquity this shortcut provided internationalization support.
+        There is currently no internationalization in Enso.</p>
+</blockquote>
+<h3><a id="user-content-bin" class="anchor" aria-hidden="true" href="#bin"></a>Bin</h3>
+<blockquote>
+    <p>A persistent data storage interface available through the last additional argument of any command handler function.
+        Calling any method of this interface with an argument will persistently store the supplied value.
+        Calling the same method without arguments will return the stored value.
+    </p>
+    <pre>
+    preview: function(pblock, args, {Bin}) {
+        pblock.innerHTML = Bin.myProperty() || "Nothing stored yet";
+        Bin.myProperty("this value persists between browser restarts");
+    }
+    </pre>
+</blockquote>
+<h3><a id="user-content-cmdutilscreatecommandoptions" class="anchor" aria-hidden="true" href="#cmdutilscreatecommandoptions"></a>CmdUtils.CreateCommand(options)</h3>
+<blockquote>
+    <p>Creates and registers a Ubiquity command.</p>
+    <p><strong>options</strong> is a dictionary object which
+      <strong>must have the following properties:</strong></p>
+    <ul>
+      <li><strong>uuid</strong> - a unique enough string, such as URI, must be supplied.</li>
+      <li><strong>name</strong>/<strong>names</strong> - the string or array of strings which will be the name or
+        names of your command the user will type into the command line,
+        or choose from the context menu, to activate it.</li>
+      <li><strong>execute</strong> - the function which gets run when the user executes your command,
+        or the string which is notified or opened (if URL).
+        If your command takes arguments (see below),
+        your execute method will be passed an dictionary object containing
+        the arguments assigned by the parser.</li>
+    </ul>
+    <p>The following properties are used if you want your command to
+      accept arguments: <strong>arguments</strong>/<strong>argument</strong>.
+      Defines the primary arguments of the command.
+      See <a href="http://bit.ly/Ubiquity05_AuthorTutorial#Commands_with_Arguments" rel="nofollow">http://bit.ly/Ubiquity05_AuthorTutorial#Commands_with_Arguments</a>.</p>
+    <p>The following properties are optional but strongly recommended to
+      make your command easier for users to learn:</p>
+    <ul>
+      <li><strong>description</strong> - an XHTML string containing a short description of your command, to be displayed
+        on the command-list page.</li>
+      <li><strong>help</strong> - an XHTML string containing a longer description of
+        your command, also displayed on the command-list page, which can go
+        into more depth, include examples of usage, etc.</li>
+    </ul>
+    <p>The following properties are optional:</p>
+    <ul>
+      <li><strong>icon</strong> - a URL string pointing to a small image (favicon-sized) to
+        be displayed alongside the name of your command in the interface.</li>
+      <li><strong>author</strong>/<strong>authors</strong>, <strong>contributor</strong>/<strong>contributors</strong> - a plain text
+        or dictionary object (which can have <strong>name</strong>, <strong>email</strong>,
+        and <strong>homepage</strong> properties, all plain text)
+        describing the command's author/contributor.
+        Can be an array of them if multiple.</li>
+      <li><strong>homepage</strong> - a URL string of the command's homepage, if any.</li>
+      <li><strong>license</strong> - a string naming the license under which your
+        command is distributed, for example <strong>"MPL"</strong>.</li>
+      <li><strong>init</strong> - function, called once on Enso load.</li>
+      <li><strong>popup</strong> - function, called each time after Enso popup window is shown.
+        Popup window document is passed as the parameter.</li>
+      <li><strong>preview</strong> - description of what your command will do,
+        to be displayed to the user before the command is executed.  Can be
+        either a string or a function.  If a string, it will simply be
+        displayed as-is. If preview is a function, it will be called and
+        passed a <strong>pblock</strong> argument, which is a reference to the
+        preview display element.  Your function can generate and display
+        arbitrary HTML by setting the value of <strong>pblock.innerHTML</strong>.
+        Use <strong>this.previewDefault(pblock)</strong> to set the default preview.
+        If your command takes arguments (see above), your preview method will
+        be passed the dictionary as the second argument.</li>
+      <li><strong>previewDelay</strong> - pecifies the amount in time, in
+        milliseconds, to wait before calling the preview function defined
+        in <strong>options.preview</strong>. If the user presses a key before this
+        amount of time has passed, then the preview function isn't
+        called. This option is useful, for instance, if displaying the
+        preview involves a round-trip to a server and you only want to
+        display it once the user has stopped typing for a bit. If
+        <strong>options.preview</strong> isn't a function, then this option is
+        ignored.</li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-cmdutilsmakesearchcommandoptions" class="anchor" aria-hidden="true" href="#cmdutilsmakesearchcommandoptions"></a>CmdUtils.makeSearchCommand(options)</h3>
+<blockquote>
+    <p>A specialized version of <strong>CmdUtils.CreateCommand()</strong>. This lets
+      you make commands that interface with search engines, without
+      having to write so much boilerplate code.
+      Also see <a href="https://wiki.mozilla.org/Labs/Ubiquity/Writing_A_Search_Command" rel="nofollow">https://wiki.mozilla.org/Labs/Ubiquity/Writing_A_Search_Command</a> .</p>
+    <p><strong>options</strong> is same as the argument of <strong>CmdUtils.CreateCommand()</strong>,
+      except that instead of <strong>options.arguments</strong>, <strong>options.execute</strong>,
+      and <strong>options.preview</strong>, you only need a single property:</p>
+    <ul>
+      <li><strong>url</strong>
+        The URL of a search results page from the search engine of your choice.
+        Must contain the literal string <strong>{QUERY}</strong> or <strong>%s</strong>, which will be
+        replaced with the user's search term to generate a URL that should point to
+        the correct page of search results. (We're assuming that the user's search
+        term appears in the URL of the search results page, which is true for most
+        search engines.) For example: <a href="http://www.google.com/search?q=%7BQUERY%7D" rel="nofollow">http://www.google.com/search?q={QUERY}</a></li>
+    </ul>
+    <p>If not specified, <strong>options.name</strong>, <strong>options.icon</strong>,
+      <strong>options.description</strong>, <strong>options.execute</strong> will be auto generated.</p>
+    <p>Other optional parameters of <strong>options</strong> are:</p>
+    <ul>
+      <li>
+        <p><strong>postData</strong> - makes the command use POST instead of GET, and the data
+          (key:value pairs or string) are all passed to the <strong>options.url</strong>.
+          Instead of including the search params in the URL, pass it
+          (along with any other params) like so: {"q": "{QUERY}", "hl": "en"} or "q={QUERY}&amp;hl=en".
+          When this is done, the query will be substituted in as usual.</p>
+      </li>
+      <li>
+        <p><strong>defaultUrl</strong> - a URL string that will be opened in the case
+          where the user has not provided a search string.</p>
+      </li>
+      <li>
+        <p><strong>charset</strong> - a string specifying the character set of query (currently not implemented in Enso).</p>
+      </li>
+      <li>
+        <p><strong>parser</strong> - generates keyboard navigatable previews by parsing the search results.
+          It is passed as an object containing following properties.
+          The ones marked as <em>path</em> expect either a jQuery selector string,
+          a JSON path string (like <strong>"granma.mom.me"</strong>). Each of them can also be
+          a filter function that receives a parent context and returns a result
+          of the same type.</p>
+        <ul>
+          <li><strong>parser.type</strong> - a string that's passed to <strong>jQuery.ajax()</strong>'s <strong>dataType</strong> parameter
+            when requesting. If <strong>"json"</strong>, the parser expects JSON paths.</li>
+          <li><strong>parser.title</strong> - the <em>path</em> to the title of each result. <em>Required</em>.</li>
+          <li><strong>parser.container</strong> - a <em>path</em> to each container that groups each of
+            title/body/href/thumbnail result sets. <em>Recommended</em>.</li>
+          <li><strong>parser.body</strong> - a <em>path</em> to the content of each result.</li>
+          <li><strong>parser.href</strong> / <strong>parser.thumbnail</strong> - <em>path</em>s to the link/thumbnail URL of each result.
+            Should point to an <strong>&lt;a&gt;</strong>/<strong>&lt;img&gt;</strong> if jQuery mode.</li>
+          <li><strong>parser.url</strong> / <strong>parser.postData</strong> - specifies another versions of <strong>options.url</strong>/<strong>options.postData</strong>,
+            in the case when a different request set is used for preview.</li>
+          <li><strong>parser.baseUrl</strong> - a URL string that will be the base for relative links, such that they will
+            still work out of context. If not passed, it will be auto-generated from
+            <strong>options.url</strong> (and thus <em>may</em> be incorrect).</li>
+          <li><strong>parser.maxResults</strong> - an integer specifying the max number of results. Defaults to 10.</li>
+          <li><strong>parser.plain</strong> - an array of strings naming <em>path</em>s that should be treated as plain text
+            (and thus be HTML-escaped).</li>
+          <li><strong>parser.log</strong> - a function to which the response data and parsed results are logged.
+            If non-function, <strong>makeSearchCommand.log()</strong> is used.</li>
+        </ul>
+      </li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-cmdutilspreviewajaxpblock-options" class="anchor" aria-hidden="true" href="#cmdutilspreviewajaxpblock-options"></a>CmdUtils.previewAjax(pblock, options)</h3>
+<blockquote>
+    <p>Does an asynchronous request to a remote web service.  It is used
+      just like <strong>jQuery.ajax()</strong>, which is documented at
+      <a href="http://docs.jquery.com/Ajax/jQuery.ajax" rel="nofollow">http://docs.jquery.com/Ajax/jQuery.ajax</a>.<br>
+      The difference is that <strong>CmdUtils.previewAjax()</strong> is designed to handle
+      command previews, which can be canceled by the user between the
+      time that it's requested and the time it displays. If the preview
+      is canceled, no callbacks in the options object will be called.</p>
+  </blockquote>
+<h3><a id="user-content-cmdutilspreviewgetpost" class="anchor" aria-hidden="true" href="#cmdutilspreviewgetpost"></a>CmdUtils.previewGet(pblock, url, data, callback, type)<br>
+    CmdUtils.previewPost(pblock, url, data, callback, type)
+</h3>
+<blockquote>
+    <p>Does an asynchronous request to a remote web service.
+    It is used just like <b>jQuery.get()/jQuery.post()</b>,
+    which is documented at http://docs.jquery.com/Ajax.<br>
+    The difference is that <b>previewGet()/previewPost()</b> is designed to
+    handle command previews, which can be cancelled by the user between the
+    time that it's requested and the time it displays.  If the preview
+    is cancelled, the given callback will not be called.</p>
+
+</blockquote>
+<h3><a id="user-content-cmdutilspreviewlistblock-htmls-callback-css" class="anchor" aria-hidden="true" href="#cmdutilspreviewlistblock-htmls-callback-css"></a>CmdUtils.previewList(block, htmls, [callback], [css])</h3>
+<blockquote>
+    <p>Creates a simple clickable list in the preview block and
+      returns the list element.</p>
+    <ul>
+      <li><strong>block</strong> is the DOM element the list will be placed into.</li>
+      <li><strong>htmls</strong> is the array/dictionary of HTML string to be listed.</li>
+      <li><strong>callback(id, ev)</strong> is the function called
+        when one of the list item clicked or selected.
+        <ul>
+          <li><strong>id</strong> : one of the keys of <strong>htmls</strong></li>
+          <li><strong>ev</strong> : the event object</li>
+        </ul>
+      </li>
+      <li><strong>css</strong> is an optional CSS string inserted along with the list.</li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-cmdutilsrendertemplatetemplate-data" class="anchor" aria-hidden="true" href="#cmdutilsrendertemplatetemplate-data"></a>CmdUtils.renderTemplate(template, data)</h3>
+<blockquote>
+    <p>Renders a <strong>template</strong> by substituting values from a dictionary.
+        The templating language used is trimpath, which is defined at
+        <a href="http://code.google.com/p/trimpath/wiki/JavaScriptTemplates" rel="nofollow">http://code.google.com/p/trimpath/wiki/JavaScriptTemplates</a>.</p>
+    <ul>
+        <li><strong>template</strong> is a template string.</li>
+        <li><strong>data</strong> is a dictionary of values to be substituted.</li>
+    </ul>
+</blockquote>
+<h3><a id="user-content-cmdutilsabsurldata-baseurl" class="anchor" aria-hidden="true" href="#cmdutilsabsurldata-baseurl"></a>CmdUtils.absUrl(data, baseUrl)</h3>
+<blockquote>
+    <p>Fixes relative URLs in <strong>data</strong> (e.g. as returned by Ajax calls).
+      Useful for displaying fetched content in command previews.</p>
+    <ul>
+      <li>
+        <p><strong>data</strong> is the data containing relative URLs, which can be
+          an HTML string or a jQuery/DOM object.</p>
+      </li>
+      <li>
+        <p><strong>baseUrl</strong> is the URL used for base
+          (that is to say; the URL that the relative paths are relative to).</p>
+      </li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-cmdutilscopytoclipboardtext" class="anchor" aria-hidden="true" href="#cmdutilscopytoclipboardtext"></a>CmdUtils.copyToClipboard(text)</h3>
+<blockquote>
+    <p>This function places the passed-in text into the OS's clipboard.
+      If the text is empty, the copy isn't performed.</p>
+    <ul>
+      <li><strong>text</strong> is a plaintext string that will be put into the clipboard.</li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-cmdutilsnotifymessage-title" class="anchor" aria-hidden="true" href="#cmdutilsnotifymessage-title"></a>CmdUtils.notify(message, title)</h3>
+<blockquote>
+    <p>Display a popup notification with the specified <strong>message</strong> and <strong>title</strong>.</p>
+  </blockquote>
+<h3><a id="user-content-cmdutilsgetlocation" class="anchor" aria-hidden="true" href="#cmdutilsgetlocation"></a>CmdUtils.getLocation()</h3>
+<blockquote>
+    <p>Returns the location URL of the active tab, if available.</p>
+  </blockquote>
+<h3><a id="user-content-contextutilsgetselection" class="anchor" aria-hidden="true" href="#contextutilsgetselection"></a>CmdUtils.getSelection()</h3>
+<blockquote>
+    <p>Returns a string containing the text and just the text of the user's
+      current selection, i.e. with HTML tags stripped out.</p>
+  </blockquote>
+<h3><a id="user-content-contextutilsgethtmlselection" class="anchor" aria-hidden="true" href="#contextutilsgethtmlselection"></a>CmdUtils.getHtmlSelection()</h3>
+<blockquote>
+    <p>Returns a string containing the HTML representation of the
+      user's current selection, i.e. text including tags.</p>
+  </blockquote>
+<h3><a id="user-content-contextutilssetselectioncontent" class="anchor" aria-hidden="true" href="#contextutilssetselectioncontent"></a>CmdUtils.setSelection(content)</h3>
+<blockquote>
+    <p>Replaces the current selection with <strong>content</strong>.</p>
+  </blockquote>
+<h3><a id="user-content-utilsopenurlinbrowserurlstring" class="anchor" aria-hidden="true" href="#utilsopenurlinbrowserurlstring"></a>Utils.openUrlInBrowser(urlString)</h3>
+<blockquote>
+    <p><em>also CmdUtils.addTab(urlString)</em><br>
+      Opens the given URL in the user's browser, using
+      their current preferences for how new URLs should be opened (e.g.,
+      in a new window vs. a new tab, etc).
+      Passes the newly opened tab object to the callback function.</p>
+    <ul>
+      <li><strong>urlString</strong> is a string corresponding to the URL to be opened.</li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-utilsparamstostringparams-prefix--" class="anchor" aria-hidden="true" href="#utilsparamstostringparams-prefix--"></a>Utils.paramsToString(params, prefix = "?")</h3>
+<blockquote>
+    <p>Takes the given object containing keys and values into a query string
+      suitable for inclusion in an HTTP GET or POST request.</p>
+    <ul>
+      <li><strong>params</strong> - is the object of key-value pairs.</li>
+      <li><strong>prefix</strong> - is an optional string prepended to the result.</li>
+    </ul>
+  </blockquote>
+<h3><a id="user-content-utilsurltoparamsurlstring" class="anchor" aria-hidden="true" href="#utilsurltoparamsurlstring"></a>Utils.urlToParams(urlString)</h3>
+<blockquote>
+    <p>Given a <strong>urlString</strong>, returns an object containing keys and values
+      retrieved from its query-part.</p>
+  </blockquote>
+<h3><a id="user-content-utilsparsehtmlhtmltext-callback" class="anchor" aria-hidden="true" href="#utilsparsehtmlhtmltext-callback"></a>Utils.parseHtml(htmlText, callback)</h3>
+<blockquote>
+    <p>An alternative to jQuery() which allows access to the entire document content. Returns HTML document object.</p>
+  </blockquote>
+<h3><a id="user-content-utilsescapehtmlstring" class="anchor" aria-hidden="true" href="#utilsescapehtmlstring"></a>Utils.escapeHtml(string)</h3>
+<blockquote>
+    <p>Returns a version of the <strong>string</strong> safe for insertion into HTML.
+      Useful when you just want to concatenate a bunch of strings into
+      an HTML fragment and ensure that everything's escaped properly.</p>
+  </blockquote>
+<h3><a id="user-content-utilsparamstostringparams-prefix-" class="anchor" aria-hidden="true" href="#makebin"></a>Utils.makeBin(uuid, callback)</h3>
+<blockquote>
+    <p>Creates an instance of the Bin interface and passes it to the supplied callback function. This allows to share persistent storage between commands.</p>
+    <ul>
+        <li><strong>uuid</strong> - unique identifier that defines storage space.</li>
+        <li><strong>callback</strong> - callback function that receives Bin object.</li>
+    </ul>
+</blockquote>
+<h3><a id="user-content-utilsisemptyvalue" class="anchor" aria-hidden="true" href="#utilsisemptyvalue"></a>Utils.isEmpty(value)</h3>
+<blockquote>
+    <p>Returns whether or not the <strong>value</strong> has no own properties.</p>
+  </blockquote>
+<h3><a id="user-content-utilstabssearchtext-maxresults-callback" class="anchor" aria-hidden="true" href="#utilstabssearchtext-maxresults-callback"></a>Utils.tabs.search(matcher, maxResults, callback)</h3>
+<blockquote>
+    <p>Searches for tabs by title or URL and returns an array of tab references.
+      The result is passed to the supplied callback funciton.</p>
+    <ul>
+      <li><strong>matcher</strong> is a string to match with.</li>
+      <li><strong>maxResults</strong> is an optinal integer specifying
+        the maximum number of results to return.</li>
+    </ul>
+  </blockquote>
+<h2><a id="user-content-built-in-noun-types" class="anchor" aria-hidden="true" href="#built-in-noun-types"></a>Built-in Noun Types</h2>
+<p>NounType system of the original Ubiquity parser is a powerful tool which allows to
+  add dynamic things (such as the set of current tabs) to parser suggestion list and command
+  arguments. See the command authoring tutorial for an example.</p>
+<p>Currently, the following noun types are built-in into Enso:</p>
+<ul>
+  <li><strong>noun_arb_text</strong> - an arbitrary text, suggests the input as is.</li>
+  <li><strong>noun_type_number</strong> - a numeric value.</li>
+  <li><strong>noun_type_percentage</strong> - a percentage value.</li>
+  <li><strong>noun_type_date</strong>, <strong>noun_type_time</strong>, <strong>noun_type_date_time</strong> - date and time, parseable by
+    JavaScript's Date constructor.</li>
+  <li><strong>noun_type_email</strong> - email address.</li>
+    <li><strong>noun_type_contact</strong> - will suggest email addresses used with the <b>email</b> and <b>compose</b> commands.</li>
+  <li><strong>noun_type_tab</strong> - will suggest active tabs matched by title or url.</li>
+  <li><strong>noun_type_lang_google</strong> - language name/code pairs, supported by Google Translator.</li>
+  <li><strong>noun_type_lang_wikipedia</strong> - language name/code pairs, supported by Wikipedia.</li>
+  <li><strong>noun_type_lang_microsoft</strong> - language name/code pairs, supported by Bing Translator.</li>
+</ul>
+</body>
+</html>

@@ -1,12 +1,15 @@
-import platform
-
-ENSO_VERSION = "0.3.0"
-
-# Configuration settings for Enso.  Eventually this will take
+# Configuration settings for Enso. Eventually this will take
 # localization into account too (or we can make a separate module for
 # such strings).
 
-COLOR_THEME = "default"
+# Enso version for use in UI
+ENSO_VERSION = "0.3.0"
+
+# Web UI can be disabled as a security option
+ENABLE_WEB_UI = True
+
+# Enso color theme
+COLOR_THEME = "green"
 
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
@@ -84,10 +87,8 @@ PLUGINS = ["enso.contrib.scriptotron",
 # If set to False, no locale is forced.dddasdfasdf
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
-PAUSED = False
 
-ABOUT_BOX_XML = "<p><command>Enso</command> Community Edition</p>" \
-    "<caption>Enso open-source " + ENSO_VERSION + ", Python " + platform.python_version() + "</caption>" \
+ABOUT_BOX_XML = "<p><command>Enso</command> open-source</p>" \
     "<caption> </caption>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
@@ -95,6 +96,57 @@ ABOUT_BOX_XML = "<p><command>Enso</command> Community Edition</p>" \
     "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
 
+# for the example at the ensorc box, just in case...
+MY_VARIABLE = "my value"
+
+RETREAT_DISABLE = False
+
 RETREAT_SHOW_ICON = True
+
+DISABLED_COMMANDS = []
+COMMAND_STATE_CHANGED = False
+
+
+import os, configparser
+from ast import literal_eval
+
+# set up user modifications of the default config
+ENSO_USER_DIR = os.path.expanduser("~/.enso")
+CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
+CONFIG_SECTION = "General"
+
+
+def store_value(key, value):
+    parser = configparser.ConfigParser()
+    parser.optionxform = str
+
+    if os.path.exists(CONFIG_FILE):
+        parser.read(CONFIG_FILE)
+    else:
+        parser.add_section(CONFIG_SECTION)
+
+    if key == "DISABLED_COMMANDS":
+        parser[CONFIG_SECTION][key] = ",".join(value)
+    else:
+        parser[CONFIG_SECTION][key] = str(value)
+
+    with open(CONFIG_FILE, 'w') as stream:
+        parser.write(stream)
+
+
+if os.path.exists(CONFIG_FILE):
+        parser = configparser.ConfigParser()
+        parser.optionxform = str
+        parser.read(CONFIG_FILE)
+
+        for key in parser[CONFIG_SECTION].keys():
+            if key == "DISABLED_COMMANDS":
+                if parser[CONFIG_SECTION][key]:
+                    globals()[key] = parser[CONFIG_SECTION][key].split(",")
+            else:
+                try:
+                    globals()[key] = literal_eval(parser[CONFIG_SECTION][key])
+                except:
+                    globals()[key] = parser[CONFIG_SECTION][key]
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

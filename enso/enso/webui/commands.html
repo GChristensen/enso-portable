@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml" style="cursor: auto ! important;" hasBrowserHandlers="true">
+
+<head>
+    <title>Enso Commands</title>
+    <meta charset="utf-8">
+    <link href="images/enso-16.png" rel="icon" type="image/x-png" />
+    <link rel="stylesheet" type="text/css" media="all" href="options.css"/>
+
+    <script src="/lib/jquery.min.js"></script>
+    <script src="commands.js"></script>
+
+</head>
+<body dir="ltr">
+
+<div class="head"><span class="large">Enso: </span>Wherein are listed the commands at your disposal.</div>
+<div id="nav-container">
+    <ul id="nav">
+        <li><a href="options.html">Settings</a></li>
+        <li class="selected"><a href="commands.html">Your Commands</a></li>
+        <li><a href="scheduler.html">Scheduler</a></li>
+        <li><a href="edit.html">Command Editor</a></li>
+        <li><a href="API.html">API Reference</a></li>
+        <li><a href="tutorial.html">Tutorial</a></li>
+    </ul>
+</div>
+
+<br clear="all"/>
+
+<div class="page-tip">
+    <p>You can get to this page at any time using the “help” command.</p>
+    <p>You Have <span id="num-commands"></span> commands in <span id="num-cats"></span> categories.
+        | <a id="show-hide-help" onclick="">Show Help</a></p>
+</div>
+
+<div id="cmdlist-help-div" class="ubiq-tutorial" style="display:none;font-size:100%">
+    <ul>
+        <li>All the commands that Enso recognizes are listed in the right column. The black text is the command's
+            name (what you type into Enso to use it). The grey text explains what the command does.
+        </li>
+        <li>The left column shows all the command categories available.
+        </li>
+        <li>If there's a command you don't want, uncheck the box next to it. You can get the command back by re-checking
+            the box.
+        </li>
+    </ul>
+</div>
+
+<table width="100%">
+    <thead>
+    <tr>
+        <th colspan="1" width="30%">Categories</th>
+        <th colspan="2" width="70%">Commands</th>
+    </tr>
+    </thead>
+
+    <tbody id="commands-and-feeds-table">
+    </tbody>
+</table>
+
+<br clear="all"/>
+
+<div id="command-feed-graveyard-div" style="display: none;">
+    <h2 id="graveyard">Unsubscribed Feeds</h2>
+    <p id="command-feed-graveyard-header">You used to be subscribed to these. If you want one back, click the
+        “[resubscribe]” link beneath it.</p>
+
+    <ul id="command-feed-graveyard"></ul>
+</div>
+
+</body>
+</html>

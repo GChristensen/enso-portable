@@ -1,7 +1,7 @@
 import win32api, win32pdhutil, win32con
 
 def cmd_terminate(ensoapi, process_name):
-    """Terminates the processes with the given name."""
+    """Terminates the processes with the given name (without extension)"""
     pids = win32pdhutil.FindPerformanceAttributesByName(process_name)
     for p in pids:
         handle = win32api.OpenProcess(win32con.PROCESS_TERMINATE, 0, p)

@@ -1,0 +1,47 @@
+body {
+    margin: 0px;
+    background-color: gray;
+    font-size: 8pt;
+    font-family: Calibri, Helvetica, Arial;
+}
+
+a {
+	color: black;
+}
+
+#panel {
+    height:100vh;
+    overflow:hidden;
+	display: flex;
+  	flex-direction: column;
+}
+#code {
+    margin: 0.25%;
+    flex: 1;
+    width:99.5%;
+    box-sizing: border-box;         /* For IE and modern versions of Chrome */
+    -moz-box-sizing: border-box;    /* For Firefox                          */
+    -webkit-box-sizing: border-box; /* For Safari                           */
+    min-height: 200px;
+}
+
+#footer {
+	margin: 2px;
+}
+
+#info {
+	display: inline-block;
+}
+
+#buttons {
+	float: right;
+}
+
+.CodeMirror {
+	flex: 1;
+	font-size: 1.5em;
+	box-sizing: border-box;         /* For IE and modern versions of Chrome */
+	-moz-box-sizing: border-box;    /* For Firefox                          */
+	-webkit-box-sizing: border-box; /* For Safari                           */
+	min-height: 200px;
+}

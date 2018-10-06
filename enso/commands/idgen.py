@@ -37,3 +37,6 @@ def cmd_random(ensoapi, from_num_to_num = ""):
         to = int(s_to)
 
     ensoapi.set_selection({"text": str(random.randint(from_, to))})
+
+
+CATEGORY = "random"

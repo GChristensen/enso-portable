@@ -4,6 +4,7 @@ import types
 
 import traceback
 
+from enso import config
 from enso.commands.manager import CommandAlreadyRegisteredError
 from enso.contrib.scriptotron.tracebacks import TracebackCommand
 from enso.contrib.scriptotron.tracebacks import safetyNetted
@@ -98,14 +99,26 @@ class ScriptTracker:
         return allGlobals
     
     def _getCommandFiles( self ):
+        commandFiles = []
         try:
             commandFiles = [
-              os.path.join(self._scriptFolder,x)
+              os.path.join(self._scriptFolder, x)
               for x in os.listdir(self._scriptFolder)
               if x.endswith(".py")
             ]
         except:
-            commandFiles = []
+            pass
+
+        try:
+            userScriptFolder = os.path.join(config.ENSO_USER_DIR, "commands")
+            commandFiles = commandFiles + [
+                os.path.join(userScriptFolder, x)
+                for x in os.listdir(userScriptFolder)
+                if x.endswith(".py")
+            ]
+        except:
+            pass
+
         return commandFiles
 
     def _reloadPyScripts( self ):
@@ -124,6 +137,17 @@ class ScriptTracker:
                 )
 
             if allGlobals is not None:
+                category = os.path.splitext(os.path.basename(f))[0].replace("_", " ")
+
+                if "CATEGORY" in allGlobals:
+                    category = allGlobals["CATEGORY"]
+
+                for fn in allGlobals:
+                    if callable(allGlobals[fn]) \
+                            and fn.startswith(cmdretriever.SCRIPT_PREFIX):
+                        allGlobals[fn].category = category
+                        allGlobals[fn].cmdFile = f
+
                 infos = cmdretriever.getCommandsFromObjects( allGlobals )
                 self._scriptCmdTracker.registerNewCommands( infos )
                 self._registerDependencies( allGlobals )

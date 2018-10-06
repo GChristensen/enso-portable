@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/xhtml" style="cursor: auto ! important;" hasBrowserHandlers="true">
+<head>
+    <title>Enso Settings</title>
+    <meta charset="utf-8">
+    <link href="images/enso-16.png" rel="icon" type="image/x-png" />
+    <link rel="stylesheet" type="text/css" media="all" href="options.css"/>
+
+    <script src="/lib/jquery.min.js"></script>
+    <script src="/lib/ace/ace.js"></script>
+    <script src="options.js"></script>
+
+    <style>
+        #file-picker {
+            display: none;
+        }
+
+        #enso-version, #python-version {
+            font-style: italic;
+        }
+
+        #retreat-settings {
+            display: none;
+        }
+
+        #ensorc-box {
+            width: 100%;
+            height: 410px;
+        }
+    </style>
+</head>
+<body dir="ltr">
+<div class="head"><span class="large">Enso: </span>Settings</div>
+<div id="nav-container">
+    <ul id="nav">
+        <li class="selected"><a href="options.html">Settings</a></li>
+        <li><a href="commands.html">Your Commands</a></li>
+        <li><a href="scheduler.html">Scheduler</a></li>
+        <li><a href="edit.html">Command Editor</a></li>
+        <li><a href="API.html">API Reference</a></li>
+        <li><a href="tutorial.html">Tutorial</a></li>
+    </ul>
+</div>
+
+<br clear="all"/>
+
+<div class="page-tip">
+    <p>You can get to this page at any time using the “enso settings” command. Restart is required to apply changes.</p>
+</div>
+
+<div class="col-five">
+    <h2 class="top">Custom initialization</h2>
+    <div id="ensorc-box"></div>
+</div>
+
+<div class="col-four">
+    <h2 class="top">Version Information</h2>
+    <div class="advanced">
+        <p>You are using: <b>Enso open-source</b> <span id="enso-version"></span>, <b>Python</b> <span id="python-version"></span></p>
+    </div>
+
+    <h2>Color theme</h2>
+    <div class="advanced">
+        <p>
+            Enso color theme:
+            <select id="theme-select">
+            </select>
+        </p>
+    </div>
+
+    <div id="retreat-settings">
+        <h2>Enso Retreat</h2>
+        <div class="advanced"><label><input type="checkbox" id="retreat-enable">Enable Enso Retreat</label></div>
+        <div class="advanced"><label><input type="checkbox" id="retreat-show-icon">Show Enso Retreat icon</label></div>
+        <!--div class="advanced" style="margin-left: 25px; margin-top: 10px;"><a id="retreat-show-options" href="#">Enso Retreat settings</a></div-->
+    </div>
+    <h2>Import/Export</h2>
+    <div class="advanced">
+        Your Enso configuration is stored at:
+        <div class="advanced"><input style="width: 100%" type="text" id="enso-user-config" readonly/></div>
+        <div class="advanced"><a href="#" id="open-in-explorer">Open in explorer</a></div>
+    </div>
+
+</div>
+
+<!--br clear="all"/>
+
+</body>
+</html>

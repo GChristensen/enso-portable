@@ -1,0 +1,450 @@
+/*
+ * CSS inspired by Hemingway: http://warpspire.com/hemingway
+ */
+
+body {
+  background: #FFF;
+  font-size: 13px;
+  font-family: "Helvetica", Verdana, Arial, sans-serif;
+  max-width: 900px;
+  margin: 0px auto 8px auto;
+  padding: 0 4px;
+  color: #000;
+}
+
+#nav-container {
+  margin-left: -40px;
+  float: left;
+}
+
+li {
+  padding: 3px;
+}
+
+#nav ul {}
+
+#nav li {
+  background-color:#aaa;
+  border-left:1px solid #CCCCCC;
+
+  margin:0px;
+  padding:0pt;
+
+  float:left;
+  height:45px;
+  text-align:left;
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  width: 144px;
+}
+
+#nav a {
+  padding: 5px;
+  color: white;
+  display: block;
+  height: 100%;
+  text-decoration: none;
+}
+
+#nav li:hover, #nav li.selected {
+  background-color: #66bb00;
+}
+
+.page-tip {
+  text-align: center;
+}
+
+.col-two {
+  width: 225px;
+  float: left;
+}
+
+.col-three {
+  width: 315px;
+  margin-right: 20px;
+  float: left;
+}
+
+.col-four {
+  width: 370px;
+  float: left;
+}
+
+.col-five {
+  width: 480px;
+  margin-right: 20px;
+  float: left;
+}
+
+.light, .meta {
+  color: #999;
+}
+
+.head {
+  font-weight: bold;
+  background-color: white;
+  text-align: left;
+  color: grey;
+  font-variant: small-caps;
+  font-size: 14pt;
+  padding-top: 10px;
+}
+
+.left {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.large {
+  font-size: 36pt;
+}
+
+h1{
+  color: #E21E26;
+  font-variant: small-caps;
+}
+
+h4{
+  font-variant: small-caps;
+}
+
+h2{
+  border-top: 1px solid black;
+  font-variant: small-caps;
+  color: black;
+  margin-top: 25px;
+  padding: 10px 0;
+}
+
+h2.top {
+  margin: 0px;
+}
+
+/*
+ Removed <em> for the time being since I changed <i>'s to <em> in the html sources
+ which are also included into localizations, and mixing redundant tags is kind of ugly.
+ I suggest just using custom classes for specific highlights from now on. I'll later
+ tackle more more of the html and define new styles later. <em class="highlight"> for
+ green texting now. :)
+ - Lech
+*/
+
+.highlight {
+  color: #66bb00;
+  font-style: normal;
+}
+
+#sort-container {
+  padding: 10px;
+}
+
+.command, #skin-list .command {
+  margin: 15px;
+  margin-bottom: 20px;
+}
+
+.command .name, #skin-list .command .name {
+  font-size: 15pt;
+}
+
+.command.not-loaded .name {
+  color: #bbb;
+  text-decoration: line-through;
+}
+
+.command .homepage, #skin-list .command .homepage {
+}
+
+.command .author, #skin-list .command .author {
+  font-size: 90%;
+}
+
+.command .description, #skin-list .command .description {
+  display: inline;
+  font-size: 12pt;
+  margin-left: 10px;
+  color: #a7a7a7;
+}
+.command .synonyms {
+  color: black;
+}
+
+#skin-list {
+  padding: 0;
+}
+
+#skin-list .name {
+  font-style: normal;
+}
+
+#skin-list .current-skin {
+  color: blue;
+  font-weight: 800;
+}
+
+.command .help {
+  margin-top: 5px;
+  color: #777;
+}
+
+
+
+#preview-image {
+  border: 3px solid #000;
+  padding: 2px;
+}
+
+a, a:visited {
+  color: #CC6600;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a[onclick], .sort-switch {
+  cursor: pointer;
+}
+
+.sort-switch.selected {
+  color: inherit;
+  cursor: inherit;
+  text-decoration: none;
+}
+
+.selected {
+
+}
+
+.error {
+  color:#FF0000;
+}
+
+.alert {
+  color:#FFFFFF;
+  background:#FF0000;
+}
+
+.alert a {
+  color:#FFFFFF;
+  text-decoration: underline;
+}
+
+.action, .action:visited, .action:hover {
+  color: #aaa;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.action:before {
+  content: "[";
+}
+
+.action:after {
+  content: "]";
+}
+
+.command-feed .action {
+  display: block;
+}
+
+.feed-updated {
+  font-size: smaller;
+  color: #009900;
+}
+
+.feed-date {
+  font-size: 80%;
+}
+
+.notification {
+  color: blue;
+  font-variant: small-caps;
+  font-size: 15pt;
+}
+
+div#editor-div iframe {
+  border: 1px black solid !important; clear: both; margin: 1em auto;
+}
+
+/* Using FreakCERS's CSS from
+ * http://users.skumleren.net/cers/examples/ubiquitybutton.html
+ */
+
+ul.button-list {
+  list-style: none;
+}
+
+ul.button-list li {
+  padding: 0px;
+}
+
+ul a.button {
+  border: 1px #aaa solid;
+  border-radius: 12px;
+  background: #ddd url('chrome://ubiquity/skin/buttons/grad.png') 0 0 repeat-x;
+  display: block;
+  float: left;
+  padding: 0 2em;
+  height: 22px;
+  color: black;
+  text-decoration: none;
+  text-align: center;
+  margin-right: 15px;
+  line-height: 22px;
+  outline: none;
+}
+ul a:active.button {
+  background-color: #cdcdcd;
+  background-position: 0 -22px;
+}
+
+td.command-feed {
+  font-size: 18px;
+}
+
+.command-feed .meta {
+  font-size: 76%;
+}
+
+ul#command-feed-graveyard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul#command-feed-graveyard li {
+  padding-bottom: .5em;
+}
+
+ul#command-feed-graveyard ul {
+  list-style: none;
+  padding-left: 20px;
+}
+
+ul#command-feed-graveyard ul:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+ul#command-feed-graveyard ul li {
+  float: left;
+  white-space: nowrap;
+  padding-bottom: 0;
+}
+
+ul#command-feed-graveyard ul li:after {
+  content: ",";
+}
+
+ul#command-feed-graveyard ul li:last-child:after {
+  content: "";
+}
+
+#commands-and-feeds-table td {
+  vertical-align: top;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th {
+  font-variant: small-caps;
+  font-size: 18pt;
+}
+
+td.topcell {
+  border-top: 1px solid black;
+}
+
+.ubiq-tutorial {
+  border-style:solid;
+  border-color:green;
+  padding: 2em;
+  font-size: 120%;
+}
+
+div.ubiq-tutorial h2 {
+  color: black;
+  text-align: center;
+  font-variant: normal;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.badge {
+  border-width: 0;
+  float: right;
+}
+
+.old-api > .badge {
+ color: white; background-color: red;
+ padding: 0 3px; border-radius: 6px; font: bold 10px/16px monospace;
+}
+
+.favicon {
+  width: 16px; height: 16px; margin: 0 2px -1px 0;
+}
+
+#ubiq-debug-mode{
+  display: none;
+}
+
+#ubiq-debug-mode {
+  color: #BF4545;
+  top: 4px;
+  position: relative;
+}
+
+.help {
+    cursor: help;
+}
+
+.setting-table {
+    font-size: 13px;
+}
+
+ul.syntax {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+ul.syntax li {
+    padding: 0;
+}
+
+span.syntax {
+    font-weight: 600;
+}
+
+span.arguments {
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.key-container {
+  display: flex;
+}
+
+.key-value {
+  flex: 1 1 auto;
+}
+
+.key-help {
+  display: inline-block;
+  flex: 0 1 auto;
+}
+
+.advanced {
+  margin: 5px;
+}

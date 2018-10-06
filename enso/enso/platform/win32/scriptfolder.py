@@ -1,5 +1,7 @@
-from win32com.shell import shell, shellcon
 import os
+from enso import config
+from win32com.shell import shell, shellcon
+
 
 SYSTEMFOLDER_APPDATALOCAL = shellcon.CSIDL_LOCAL_APPDATA
 
@@ -13,10 +15,8 @@ def get_script_folder_name():
      folder in some platform-specific logical location."""
 #  SPECIALFOLDER_ENSOLOCAL_COMMANDS = os.path.join(
 #   get_system_folder(SYSTEMFOLDER_APPDATALOCAL), "Enso", "commands")
+  SPECIALFOLDER_ENSOLOCAL_COMMANDS = os.path.join(config.ENSO_DIR, "commands")
 #  if not os.path.isdir(SPECIALFOLDER_ENSOLOCAL_COMMANDS):
 #    os.makedirs(SPECIALFOLDER_ENSOLOCAL_COMMANDS)
-  ensoDir = os.path.dirname(os.path.realpath(__file__))
-  ensoDir = os.path.dirname(ensoDir)
-  ensoDir = os.path.dirname(ensoDir)
-  return os.path.dirname(ensoDir) + "/commands"
+  return SPECIALFOLDER_ENSOLOCAL_COMMANDS
 
