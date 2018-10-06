@@ -54,6 +54,18 @@
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                }
+            };
+            xhr.open('GET', 'https://localhost:31750/api/enso/get/ensorc');
+            xhr.send();
+        </script>
+
+
+        <script>
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
                     var release = JSON.parse(this.responseText);
                     var link = document.getElementById("app-link");
                     link.href = release.assets[0].browser_download_url;
