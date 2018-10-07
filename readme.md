@@ -43,8 +43,10 @@ The original source code of **Enso Community Edition** could be found here:
 * Python 3 support.
 * Settings pages with built-in command editor.
 * Ability to disable commands.
+* It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
 * Mediaprobes.
 * Ability to restart using tray menu or `enso restart' command.
+* [Enso Retreat](https://gchristensen.github.io/) - a work regime control utility. 
 
 #### Known Issues
 
