@@ -27,13 +27,13 @@ def cmd_enso(ensoapi, action):
         if not retreat.is_locked():
             EventManager.get().stop()
         else:
-            displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
+            displayMessage(config.BLOCKED_BY_RETREAT_MSG)
     elif action == 'restart':
         if not retreat.is_locked():
             EventManager.get().stop()
             subprocess.Popen([config.ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
         else:
-            displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
+            displayMessage(config.BLOCKED_BY_RETREAT_MSG)
     elif action == 'settings':
         if config.ENABLE_WEB_UI:
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")
@@ -42,7 +42,7 @@ def cmd_enso(ensoapi, action):
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
     elif action == 'scheduler':
         if config.ENABLE_WEB_UI:
-            os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/scheduler.html")
+            os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/tasks.html")
     elif action == 'editor':
         if config.ENABLE_WEB_UI:
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/edit.html")

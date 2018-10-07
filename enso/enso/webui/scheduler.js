@@ -1,6 +1,0 @@
-
-$(onDocumentLoad);
-
-function onDocumentLoad() {
-
-}

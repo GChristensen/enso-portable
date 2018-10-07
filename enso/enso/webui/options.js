@@ -31,7 +31,7 @@ function onDocumentLoad() {
 
     $.get("/api/retreat/installed", function (data) {
         if (data) {
-            $("#retreat-settings").show();
+            $("#retreat-settings").css("visibility", "visible");
 
             $.get("/api/enso/get/config/RETREAT_DISABLE", function (data) {
                 if (data !== "True")

@@ -29,7 +29,7 @@ def tray_on_enso_quit(systray):
     if not retreat.is_locked():
         EventManager.get().stop()
     else:
-        displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
+        displayMessage(config.BLOCKED_BY_RETREAT_MSG)
 
 def tray_on_enso_about(systray):
     displayMessage(config.ABOUT_BOX_XML)
@@ -89,7 +89,7 @@ def tray_on_enso_restart(systray, get_state = False):
             subprocess.Popen([config.ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
             tray_on_enso_quit(systray)
         else:
-            displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
+            displayMessage(config.BLOCKED_BY_RETREAT_MSG)
 
 def systray(enso_config):
     """ Tray-icon handling code. This have to be executed in its own thread
@@ -181,6 +181,10 @@ def main(argv = None):
 
     if not os.path.isdir(config.ENSO_USER_DIR):
         os.makedirs(config.ENSO_USER_DIR)
+
+    user_lib_dir = os.path.join(config.ENSO_USER_DIR, "lib")
+    if not os.path.isdir(user_lib_dir):
+        os.makedirs(user_lib_dir)
 
     user_commands_dir = os.path.join(config.ENSO_USER_DIR, "commands")
     user_commands = os.path.join(user_commands_dir, "user.py")

@@ -97,6 +97,8 @@ ABOUT_BOX_XML = "<p><command>Enso</command> open-source " + ENSO_VERSION + "</p>
     "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
 
+BLOCKED_BY_RETREAT_MSG = "<p>Enso Retreat denies the operation.</p><caption>Enso</caption>"
+
 # for the example at the ensorc box, just in case...
 MY_VARIABLE = "my value"
 

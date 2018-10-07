@@ -129,8 +129,8 @@ def get_enso_commands_create_category(value):
 def post_enso_commands_write_category(value):
     category_file = os.path.join(config.ENSO_USER_DIR, "commands", value + ".py")
 
-    with open(category_file, "wb") as ensorc:
-        ensorc.write(request.form["code"].encode("utf-8"))
+    with open(category_file, "wb") as cat:
+        cat.write(request.form["code"].encode("utf-8"))
     return ""
 
 @app.route('/api/enso/commands/read_category/<value>')
@@ -152,6 +152,19 @@ def get_enso_commands_enable(command):
         config.COMMAND_STATE_CHANGED = True
         config.store_value("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
     return ""
+
+@app.route('/api/enso/write_tasks', methods=["POST"])
+def post_enso_commands_write_tasks():
+    category_file = os.path.join(config.ENSO_USER_DIR, "tasks.py")
+
+    with open(category_file, "wb") as tasks:
+        tasks.write(request.form["code"].encode("utf-8"))
+    return ""
+
+@app.route('/api/enso/read_tasks')
+def get_enso_commands_read_tasks():
+    return send_from_directory(config.ENSO_USER_DIR, "tasks.py")
+
 
 class Httpd(threading.Thread):
 

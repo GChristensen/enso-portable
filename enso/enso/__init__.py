@@ -32,8 +32,27 @@
 #
 # ----------------------------------------------------------------------------
 
-
+import os, threading, logging
 from enso import config
+
+def run_tasks():
+    class Tasks(threading.Thread):
+        def run(self):
+            tasks_file = os.path.join(config.ENSO_USER_DIR, "tasks.py")
+            if os.path.exists(tasks_file):
+                try:
+                    logging.info( "Executing tasks" )
+                    contents = open( tasks_file, "r" ).read()
+                    compiled = compile( contents + "\n", tasks_file, "exec" )
+                    exec(compiled, {}, {})
+                except Exception as e:
+                    from enso.contrib.scriptotron.tracebacks import TracebackCommand
+                    logging.exception("Error executing tasks file")
+                    TracebackCommand.setTracebackInfo()
+
+    tasks = Tasks()
+    tasks.setDaemon(True)
+    tasks.start()
 
 
 def run():
@@ -52,13 +71,15 @@ def run():
     eventManager = EventManager.get()
     Quasimode.install( eventManager )
     plugins.install( eventManager )
-    def showWelcomeMessage():
+    def initEnso():
         msgXml = config.OPENING_MSG_XML
         if msgXml != None:
             messages.displayMessage( msgXml )
 
+        run_tasks()
+
     if config.ENABLE_WEB_UI:
         webui.start(eventManager)
 
-    eventManager.registerResponder( showWelcomeMessage, "init" )
+    eventManager.registerResponder( initEnso, "init" )
     eventManager.run()

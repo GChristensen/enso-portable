@@ -35,7 +35,7 @@ function saveScripts(callback) {
 
         // download link
         var a = document.getElementById("download");
-        var file = new Blob([customscripts], {type: "application/javascript"});
+        var file = new Blob([customscripts], {type: "application/python"});
         a.href = URL.createObjectURL(file);
         a.download = scriptNamespace + ".py";
     }
