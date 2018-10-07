@@ -1,4 +1,4 @@
-## Enso Portable
+## Enso open-source
 
 A feature-rich descendant of Enso Community Edition (win32). 
 
@@ -22,7 +22,7 @@ Find more information on command authoring in the tutorial available at Enso set
 
 At first there was a propietary closed-source Enso Launcher from Humanized [[web archive](https://web.archive.org/web/20140701081042/http://humanized.com/)]
 (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open
-(Enso Community Edition) and became extensible only by python [[web archive of community enso](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)].
+([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only by python.
 By some reasons it has also ceased.
 
 At the moment <b>Enso open-source</b> is the most feature-rich descendant of <b>Enso Community Edition</b>.

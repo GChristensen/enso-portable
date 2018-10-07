@@ -47,7 +47,7 @@
         <p><img height="16px" width="16px" src="/windows.png" alt="Firefox"/>
             <a id="app-link" href="#">Windows Application</a>
             :: <img height="16px" width="16px" src="/youtube.png" alt="Youtube" style="max-width:100%;">
-            <a href="https://youtu.be/QFXBp2vuEEA" rel="nofollow">Video Manual</a>
+            <a href="https://youtu.be/QFXBp2vuEEA" target="_blank">Video Manual</a>
         </p>
 
         <script>
@@ -63,8 +63,11 @@
             xhr.send();
 
             function watch() {
-                document.getElementById('placeholder').style.display='none';
-                document.getElementById('videoman').style.display='block';
+                //document.getElementById('placeholder').style.display='none';
+                var videoman = document.getElementById('videoman');
+                videoman.style.display='block';
+                videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
+                                   + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
             }
         </script>
 
@@ -77,11 +80,7 @@
             </div>
         </p>
 
-        <p style="display: none" id="videoman">
-            <iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA"
-                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            <br/>
-        </p>
+        <p style="display: none" id="videoman"></p>
 
         <p>SEE ALSO: <a href="https://gchristensen.github.io/ubiquitywe/">UbiquityWE</a>
         <h4>Description</h4>
@@ -97,9 +96,10 @@
 
         <p style="text-align: justify;">At first there was a proprietary closed-source Enso Launcher from Humanized
             [<a href="https://web.archive.org/web/20140701081042/http://humanized.com/" rel="nofollow">web archive</a>]
-            (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open (Enso Community Edition)
-            and became extensible only by python [<a href="https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page" rel="nofollow"
-            >web archive of community enso</a>]. By some reasons it has also ceased.</p>
+            (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open
+            (<a href="https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page" rel="nofollow"
+            >Enso Community Edition</a>)
+            and became extensible only by python. By some reasons it has also ceased.</p>
         <p>At the moment <b>Enso open-source</b> is the most feature-rich descendant of <b>Enso Community Edition</b> you can find out there.</p>
 
         <h4>Known Issues</h4>
