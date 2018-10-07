@@ -1,6 +1,8 @@
 !define APPNAME "Enso open-source"
 !define VERSION "0.4.0"
 
+!include LogicLib.nsh
+
 !define APPNAMEANDVERSION "Enso open-source ${VERSION}"
 
 ; Main Install settings
@@ -33,6 +35,7 @@ SetCompressor LZMA
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE_RUN "$INSTDIR\run-enso.exe"
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -42,14 +45,14 @@ SetCompressor LZMA
 !insertmacro MUI_LANGUAGE "English"
 #!insertmacro MUI_RESERVEFILE_LANGDLL
 
-Section "-Enso open-source" Section_enso
+Section "Enso open-source" Section_enso
 
 	; Set Section properties
 	SetOverwrite on
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-    File /r /x retreat.pyd /x __pycache__ enso\enso
+    File /r /x _retreat.pyd /x __pycache__ enso\enso
     File /r enso\media
     File /r /x __pycache__ enso\python
     File /r enso\scripts
@@ -63,14 +66,9 @@ Section "-Enso open-source" Section_enso
     File enso\commands\open.py
     File enso\commands\text_tools.py
     File enso\commands\win_tools.py
-
-	CreateDirectory "$SMPROGRAMS\${APPNAME}"
-	CreateShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\run-enso.exe"
-	CreateShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
-
 SectionEnd
 
-SectionGroup "Enso open-source"
+SectionGroup "Additional commands" Section_ensoRoot
 
 Section "System" Section_system
     SetOutPath "$INSTDIR\commands"
@@ -94,7 +92,7 @@ Section /o "Media Player Classic" Section_mpc
     File enso\commands\mpc.py
 SectionEnd
 
-Section /o "ID Generator" Section_idgen
+Section /o "Random" Section_idgen
     SetOutPath "$INSTDIR\commands"
     File enso\commands\idgen.py
 SectionEnd
@@ -120,19 +118,32 @@ Section /o "Enso Retreat" Section_retreat
     SetOutPath "$INSTDIR\commands"
     File enso\commands\retreat.py
 
-    SetOutPath "$INSTDIR\enso"
-    File enso\enso\retreat.pyd
+    SetOutPath "$INSTDIR\enso\contrib"
+    File enso\enso\contrib\_retreat.pyd
+SectionEnd
+
+Section /o "Portable installation" Section_portable
+    SetOutPath "$INSTDIR\"
+    File enso\enso-portable.exe
+
+    Delete run-enso.exe
+    Delete uninstall.exe
 SectionEnd
 
 
 Section -FinishSection
+    ${IfNot} ${SectionIsSelected} ${Section_portable}
+        CreateDirectory "$SMPROGRAMS\${APPNAME}"
+        CreateShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\run-enso.exe"
+        CreateShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 
-	WriteRegStr HKLM "Software\${APPNAME}" "" "$INSTDIR"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME}"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\uninstall.exe"
-	#WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run\" "${APPNAME}" "$INSTDIR\retreat.exe"
-	WriteUninstaller "$INSTDIR\uninstall.exe"
 
+        WriteRegStr HKLM "Software\${APPNAME}" "" "$INSTDIR"
+        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME}"
+        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\uninstall.exe"
+        WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run\" "${APPNAME}" "$INSTDIR\run-enso.exe"
+        WriteUninstaller "$INSTDIR\uninstall.exe"
+    ${EndIf}
 SectionEnd
 
 ; Modern install component descriptions
@@ -146,28 +157,40 @@ Section Uninstall
 	;Remove from registry...
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 	DeleteRegKey HKLM "SOFTWARE\${APPNAME}"
-	#DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run\" "${APPNAME}"
+	DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run\" "${APPNAME}"
 
 	; Delete self
 	Delete "$INSTDIR\uninstall.exe"
 
 	; Delete Shortcuts
-	#Delete "$SMPROGRAMS\Enso Retreat\Enso Retreat.lnk"
-	Delete "$SMPROGRAMS\Enso Retreat\Uninstall.lnk"
-
-	#Delete "$INSTDIR\retreat.exe"
-
+	Delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
+	Delete "$SMPROGRAMS\${APPNAME}\Uninstall.lnk"
 
 	; Remove remaining directories
-	RMDir "$INSTDIR\"
+	RMDir /r "$INSTDIR\"
 
 SectionEnd
 
 ; On initialization
 Function .onInit
-
+    !insertmacro SetSectionFlag ${Section_enso} ${SF_RO}
 FunctionEnd
 
 BrandingText "${APPNAME}"
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_enso} "Main application components"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_ensoRoot} "Additional Enso commands"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_system} "'terminate' command that allows to end system processes"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_session} "Windows session management: logout, restart, hibernate..."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_winamp} "Control WinAmp or foobar2000 from Enso"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_mpc} "Send commands to Media Player Classic (requires MPC Web UI to be enabled)"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_idgen} "Generate random numbers or UUIDs"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A module that makes you to take periodic breaks from work during the day"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ; eof

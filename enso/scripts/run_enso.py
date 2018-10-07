@@ -91,17 +91,6 @@ def tray_on_enso_restart(systray, get_state = False):
         else:
             displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
 
-
-# def tray_on_enso_pause(systray, get_state = False):
-#     if get_state:
-#         return enso.config.PAUSED
-#     else:
-#         enso.config.PAUSED = not enso.config.PAUSED
-#         if (enso.config.PAUSED):
-#             EventManager.get().stop()
-#         else:
-#             EventManager.get().run()
-
 def systray(enso_config):
     """ Tray-icon handling code. This have to be executed in its own thread
     """
@@ -117,11 +106,11 @@ def systray(enso_config):
 
     enso_config.SYSTRAY_ICON.on_about = tray_on_enso_about
     enso_config.SYSTRAY_ICON.on_doubleclick = tray_on_enso_about
-    #enso_config.SYSTRAY_ICON.add_menu_item("&Pause", tray_on_enso_pause)
     enso_config.SYSTRAY_ICON.add_menu_item("&Restart", tray_on_enso_restart)
     if config.ENABLE_WEB_UI:
         enso_config.SYSTRAY_ICON.add_menu_item("&Settings", tray_on_enso_settings)
-    enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", tray_on_enso_exec_at_startup)
+    if not config.ENSO_EXECUTABLE.endswith("run-enso.exe"):
+        enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", tray_on_enso_exec_at_startup)
     enso_config.SYSTRAY_ICON.main_thread()
 
 
@@ -180,8 +169,8 @@ def main(argv = None):
         print("Hiding console")
         user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
         print("Logging into '%s'" % user_log)
-        #sys.stdout = open(user_log, "w") #NullDevice()
-        #sys.stderr = open(user_log, "w") #NullDevice()
+        sys.stdout = open(user_log, "w") #NullDevice()
+        sys.stderr = open(user_log, "w") #NullDevice()
         logging.basicConfig(
             filename = user_log,
             level = loglevel )
