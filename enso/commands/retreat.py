@@ -1,4 +1,4 @@
-from enso import retreat
+from enso.contrib import retreat
 
 
 def cmd_delay_break(ensoapi):

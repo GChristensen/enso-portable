@@ -95,6 +95,8 @@ function fillTableRowForCmd(row, cmd, className) {
 }
 
 function insertNamespace(namespace, subtext, commands, table) {
+    commands = commands.sort(compareByName);
+
     aRow = jQuery("<tr></tr>");
     feedElement = jQuery('<td class="topcell command-feed" ' + 'rowspan="' + commands.length + '"></td>');
     fillTableCellForFeed(feedElement, namespace, subtext);
@@ -141,7 +143,7 @@ function buildTable() {
 
         for (let cat of categories)
             insertNamespace(cat, '<a href="edit.html?' + encodeURI(cat)
-                + '" target="_blank">Open in editor</a>', commands.filter(c => c.category === cat).sort(), table);
+                + '" target="_blank">Open in editor</a>', commands.filter(c => c.category === cat), table);
     });
 }
 

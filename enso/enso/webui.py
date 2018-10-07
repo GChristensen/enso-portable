@@ -3,6 +3,7 @@ import enso.messages
 
 import enso
 from enso import config
+from enso.contrib import retreat
 from enso.quasimode import layout
 from enso.commands.manager import CommandManager
 
@@ -36,13 +37,13 @@ def get_enso_version():
 
 @app.route('/api/retreat/installed')
 def get_retreat_installed():
-    if enso.retreat_installed():
+    if retreat.installed():
         return "True"
     return ""
 
 @app.route('/api/retreat/show_options')
 def get_retreat_show_settings():
-    enso.plugin_call("retreat", "options")
+    retreat.options()
     return ""
 
 @app.route('/api/enso/color_themes')

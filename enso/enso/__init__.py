@@ -34,7 +34,6 @@
 
 
 from enso import config
-import importlib
 
 
 def run():
@@ -63,17 +62,3 @@ def run():
 
     eventManager.registerResponder( showWelcomeMessage, "init" )
     eventManager.run()
-
-
-def retreat_installed():
-    retereat_spec = importlib.util.find_spec('enso.retreat')
-    if retereat_spec is not None:
-        return True
-    return False
-
-
-# currently only call to retreat
-def plugin_call(plugin, method):
-    if not config.RETREAT_DISABLE and retreat_installed():
-        import enso.retreat
-        return vars(enso.retreat)[method]()

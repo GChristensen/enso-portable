@@ -14,6 +14,8 @@ from enso import config
 from enso.messages import displayMessage
 from enso.events import EventManager
 from enso.platform.win32.taskbar import SysTrayIcon
+from enso.contrib import retreat
+
 
 from optparse import OptionParser
 
@@ -24,8 +26,10 @@ sys.path.append(os.path.join(config.ENSO_DIR, "lib"))
 sys.path.append(os.path.join(config.ENSO_USER_DIR, "lib"))
 
 def tray_on_enso_quit(systray):
-    if not enso.plugin_call("retreat", "is_locked"):
+    if not retreat.is_locked():
         EventManager.get().stop()
+    else:
+        displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
 
 def tray_on_enso_about(systray):
     displayMessage(config.ABOUT_BOX_XML)
@@ -81,9 +85,11 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
 
 def tray_on_enso_restart(systray, get_state = False):
     if not get_state:
-        if not enso.plugin_call("retreat", "is_locked"):
+        if not retreat.is_locked():
             subprocess.Popen([config.ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
             tray_on_enso_quit(systray)
+        else:
+            displayMessage("<p>The operation is blocked by Enso Retreat.</p><caption>Enso</caption>")
 
 
 # def tray_on_enso_pause(systray, get_state = False):
@@ -184,7 +190,15 @@ def main(argv = None):
         print(opts)
         print(args)
 
-    user_commands = os.path.join(config.ENSO_USER_DIR, "commands", "user.py")
+    if not os.path.isdir(config.ENSO_USER_DIR):
+        os.makedirs(config.ENSO_USER_DIR)
+
+    user_commands_dir = os.path.join(config.ENSO_USER_DIR, "commands")
+    user_commands = os.path.join(user_commands_dir, "user.py")
+
+    if not os.path.isdir(user_commands_dir):
+        os.makedirs(user_commands_dir)
+
     open(user_commands, 'a').close()
 
     load_rc_config(os.path.join(config.ENSO_USER_DIR, "ensorc.py"))
@@ -194,7 +208,7 @@ def main(argv = None):
         # Execute tray-icon code in separate thread
         threading.Thread(target = systray, args = (config,)).start()
 
-    enso.plugin_call("retreat", "start")
+    retreat.start()
 
     enso.run()
 
@@ -204,7 +218,7 @@ def main(argv = None):
 
     win32gui.PostMessage(config.SYSTRAY_ICON.hwnd, win32con.WM_COMMAND, config.SYSTRAY_ICON.CMD_FINALIZE, 0)
 
-    enso.plugin_call("retreat", "stop")
+    retreat.stop()
 
     time.sleep(1)
     os._exit(0)
