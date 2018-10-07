@@ -86,10 +86,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	point = _tcsrchr(enso_executable_path, _T('\\'));
 	_tcscpy(point + 1, _T("scripts\\run_enso.py"));
 
+#ifndef PORTABLE
 	if (_tcsstr(lpCmdLine, _T("--portable")))
 	{
+#endif
 		SetEnvironmentVariable(_T("HOME"), exec_dir);
+#ifndef PORTABLE
 	}
+#endif
 
     return LaunchTarget(python_path, enso_executable_path, exec_dir);
 }

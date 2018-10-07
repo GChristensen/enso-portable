@@ -49,7 +49,6 @@ Section "-Enso open-source" Section_enso
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-	File /r enso\docs
     File /r /x retreat.pyd /x __pycache__ enso\enso
     File /r enso\media
     File /r /x __pycache__ enso\python
@@ -59,7 +58,6 @@ Section "-Enso open-source" Section_enso
 
     SetOutPath "$INSTDIR\commands"
     File enso\commands\calc.py
-    File enso\commands\color_theme.py
     File enso\commands\enso.py
     File enso\commands\go.py
     File enso\commands\open.py
@@ -90,6 +88,8 @@ Section "Winamp" Section_winamp
 SectionEnd
 
 Section /o "Media Player Classic" Section_mpc
+    SetOutPath "$INSTDIR"
+    File /r enso\lib
     SetOutPath "$INSTDIR\commands"
     File enso\commands\mpc.py
 SectionEnd

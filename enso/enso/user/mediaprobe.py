@@ -51,12 +51,13 @@ def open_player(cmd, api, basedir, cat, player, findfirst=False):
         os.startfile(item)
 
 
-def dictionary_probe(category, dictionary, player="", directory="", findfirst=False):
-    """Sends values found in the dictionary (may be directory paths) to player by arguments.
-    if findfirst is true and the value is a directory path the first file found,
-    in the directory is sent into the player.
-    If player is empty string, default shell application is used.
-    The 'all' argument is substituted for the 'directory' parameter.
+def dictionary_probe(category, dictionary, player="", all="", findfirst=False):
+    """Sends values found in the dictionary (may be directory paths) to player by the corresponding arguments.
+    The category parameter specifies the name of command argument.
+    if findfirst is true and the value is a directory path, the first file found
+    in the directory is sent into the player instead of the item.
+    If player is empty string, the default shell application is used.
+    The 'all' command argument value is substituted by the 'all' function parameter.
     """
 
     global probe_registry
@@ -67,7 +68,7 @@ def {0}(ensoapi, {1}):
     open_player('{0}', ensoapi, '{2}', {1}, '{3}', {4})    
 """
 
-    cmd_text = cmd_text.format(cmd_name, category, directory, player, findfirst)
+    cmd_text = cmd_text.format(cmd_name, category, all, player, findfirst)
     allLocals = {}
 
     exec(cmd_text, globals(), allLocals)
@@ -93,7 +94,7 @@ def collect_descendants(directory):
 
 def directory_probe(category, directory, player="", additional=None):
     """Sends directory entries found in the 'directory' to 'player',
-    makes command arguments from emtries."""
+    makes command arguments from the directory entries."""
 
     dictionary = collect_descendants(directory)
 

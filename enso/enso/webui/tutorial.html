@@ -19,6 +19,10 @@
         p {
             font-size: 14px;
         }
+
+        .highlight {
+            color: black;
+        }
     </style>
 
     <script src="/lib/jquery.min.js"></script>
@@ -50,1018 +54,186 @@
 
             </ul>
         </div>
-        <h1 class="section-heading">
-            <span class="mw-headline"
-                  id="The_UbiquityWE_Command_Tutorial">The Enso Command Tutorial</span>
-        </h1>
-        <div class="mf-section-1">
-            <p>The great power of Ubiquity - from a developer standpoint - is how easy it is to create commands. With
-                only a
-                couple of lines of Javascript, Ubiquity enables even casual web developers to drastically enhance the
-                features of the browser. This tutorial walks you through the process of being generative with
-                Ubiquity.
-            </p>
-            <p>The rest of this page documents the command developer API which is implemented in Enso. See the
-                <a href="API.html">Enso API Reference</a>.
-            <p>
-                Note: the original Ubiquity commands were sandboxed from the browser API. There are
-                no such restrictions in Enso: commands have access to the full WebExtension API.
-                But you may still need to add necessary permissions in manifest.json and rebuild the
-                addon if you are using browser's native WebExtension API in your commands.
-            </p>
-            </p>
-            <h2 class="in-block"><span class="mw-headline" id="Real_Time_Development">Real Time Development</span></h2>
-            <p>Ubiquity doesn't require you to restart Firefox as you develop. Restarting is a drastic measure, and we
-                want none of it. Instead, Ubiquity reloads the commands every time it is summoned. When you are using
-                the built-in editor then you don't even need to save!
-            </p>
-            <p>To open the Ubiquity command editor, summon Ubiquity (Control+Space) and use the "edit-ubiquity-commands"
-                command. Throughout this tutorial, when we want you to run a command in Ubiquity, we'll say <b>Ubiq</b>
-                it. For instance, to open the editor, just Ubiq "edit-ubiquity-commands".
-            </p>
-            <h2 class="in-block"><span class="mw-headline" id="Hello_World:_The_First_Command">Hello World: The First Command</span>
-            </h2>
-            <h3 class="in-block"><span class="mw-headline" id="Just_a_Message:_As_Simple_as_it_Gets">Just a Message: As Simple as it Gets</span>
-            </h3>
-            <p>Let's start with the standard programing trope: printing "Hello, World!".
-            </p>
-            <p>In the command editor type the following:
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["say-hello"],
-  uuid: "http://example.com/command-home-page",
-  execute: function hello_execute() {
-    CmdUtils.notify("Hello, World!");
-  }
-});
-</pre>
-            <p>Now try Ubiq-ing "say hello". You'll see that "Hello, World!" is immediately displayed on the screen. If
-                you are on Mac OSX with <a rel="nofollow" class="external text"
-                                           href="http://en.wikipedia.org/wiki/Growl_(software)">Growl</a> installed the
-                message will appear as a Growl notification. If you are on Windows, then it will appears as a standard
-                "toaster" notification in the bottom right-hand corner of the screen.
-            </p>
-            <p><img src="images/say-hello.png">
-            </p>
-            <h3 class="in-block"><span class="mw-headline" id="CmdUtils.CreateCommand">CmdUtils.CreateCommand</span>
-            </h3>
-            <p><code>CmdUtils</code> is a namespace which contains all the functions you need to create commands.
-                Commands are created by making an object and passing it to <code>CmdUtils.CreateCommand</code>. In
-                Javascript, inline curly braces mean "new object", so this code:
-            </p>
-            <pre>
-{
-  names: ["say-hello"],
-  uuid: //...
-  execute: function () { //etc }
-}
-</pre>
-            <p>means "Make an object with three attributes, 'names', 'uuid' and 'execute'." This object is then passed as the
-                argument to <code>CmdUtils.CreateCommand</code>.
-                'names', 'uuid' and 'execute' are the only mandatory attributes for your command object. 'names' specifies
-                what the command is called, 'uuid' - is a globally (presumably) unique identifier of the command, and 'execute'
-                specifies what it does. There are plenty of other attributes that you can specify, but they are all optional.<br>
-            </p>
-            <h3 class="in-block"><span class="mw-headline" id="names">names</span></h3>
-            <p>'names' is always an array (thus the square brackets). In the case of this command we provided only one
-                name, "hello world". But we could have provided as many names as we wanted. For instance, if we had
-                said:
-            </p>
-            <pre> names: ["say-hello", "greet"]
-</pre>
-            <p>then "say-hello" would be the normal name of the command, but Ubiquity would also recognize "greet" as a
-                synonym or alias for the command.
-            </p>
+    <h1><a id="user-content-creating-enso-commands" class="anchor" aria-hidden="true" href="#creating-enso-commands"></a>Creating Enso Commands</h1>
+    <h2><a id="user-content-hello-world-displaying-transparent-messages" class="anchor" aria-hidden="true" href="#hello-world-displaying-transparent-messages"></a>Hello World: Displaying Transparent Messages</h2>
+    <p>A simple command called "hello world" can be created by entering the
+        following into the command editor:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_hello_world</span>(<span class="pl-smi">ensoapi</span>):
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Hello World!<span class="pl-pds">"</span></span>)</pre></div>
+    <p>As soon as the command is typed, the Enso quasimode can
+        be entered and the command used: Enso scans command files whenever the quasimode is entered,
+        and if the contents have changed, Enso reloads them, so there is never a need to restart
+        Enso itself when developing commands (although, restart is required after a new
+        command category has been created).</p>
+    <p>From the source code of the command, a number of things can be
+        observed:</p>
+    <ul>
+        <li>A command is a function that starts with the prefix <code>cmd_</code>.</li>
+        <li>The name of a command is everything following the prefix,
+            with underscores converted to spaces.</li>
+        <li>A command takes an <code>ensoapi</code> object as a parameter, which can
+            be used to access Enso-specific functionality.</li>
+    </ul>
+    <p>You may want to take the time to play around with the "hello world"
+        example; try raising an exception in the function body; try adding a
+        syntax error in the file and see what happens.  It should be apparent
+        that such human errors have been accounted for and are handled in a
+        way that is considerate of one's frailties, allowing the programmer to
+        write and test code with minimal interruptions to their train of
+        thought.</p>
+    <p>One may wonder why the <code>ensoapi</code> object has to be explicitly
+        passed-in rather than being imported.  The reasons for this are
+        manifold: firstly, importing a specific module, e.g. <code>enso.api</code>,
+        would tie the command to a particular implementation of the Enso
+        API.  Yet it should be possible for the command to run in different
+        kinds of contexts - for instance, one where Enso itself is in a
+        separate process or even on a separate computer, and <code>ensoapi</code> is
+        just a proxy object.  Secondly, explicitly passing in the object
+        makes the unit testing of commands easier.</p>
+    <h2><a id="user-content-adding-help-text" class="anchor" aria-hidden="true" href="#adding-help-text"></a>Adding Help Text</h2>
+    <p>When using the "hello world" command, you may notice that the help
+        text displayed above the command entry display isn't very helpful.
+        You can set it to something nicer by adding a docstring to your
+        command function, like so:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_hello_world</span>(<span class="pl-smi">ensoapi</span>):
+    <span class="pl-s"><span class="pl-pds">"</span>Displays a friendly greeting.<span class="pl-pds">"</span></span>
 
-            <h3 class="in-block"><span class="mw-headline" id="uuid">uuid</span></h3>
-            <p> 'uuid' may be an arbitrary unique enough string, for example, homepage URL of the command.
-            Although generally, a command will run without this attribute, it would not be able to store persistent data
-            and it would be not possible to add such a command to the browser context menu. An RFC 4122 v4 complaint UUID is generated
-            automatically for commands added through command editor templates. In the examples below we omit this
-            attribute for brevity.
-            </p>
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Hello World!<span class="pl-pds">"</span></span>)</pre></div>
+    <p>If you add anything past a first line in the docstring, it will be
+        rendered as HTML in the documentation for the command when the user
+        runs the "help" command:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_hello_world</span>(<span class="pl-smi">ensoapi</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span></span>
+<span class="pl-s">    Displays a friendly greeting.</span>
+<span class="pl-s"></span>
+<span class="pl-s">    This command can be used in any application, at any time,</span>
+<span class="pl-s">    providing you with a hearty salutation at a moment's notice.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
 
-            <h3 class="in-block"><span class="mw-headline" id="execute">execute</span></h3>
-            <p>'execute' is always a function. When the user executes your command, this is the function that will be
-                run. It can do pretty much anything you want - or at least, anything you know how to write in
-                JavaScript.
-            </p>
-            <p>In the example above, we simply call <code>CmdUtils.notify()</code>, which displays the given message in
-                whichever way the operating system can.
-            </p>
-            <p><br>
-                There are a number of other useful functions in the <code>CmdUtils</code> namespace. For
-                more detailed information, take a look at the <a href="API.html">Enso API Reference</a>.
-            </p>
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Hello World!<span class="pl-pds">"</span></span>)</pre></div>
+    <h2><a id="user-content-interacting-with-the-current-selection" class="anchor" aria-hidden="true" href="#interacting-with-the-current-selection"></a>Interacting with The Current Selection</h2>
+    <p>To obtain the current selection, use <code>ensoapi.get_selection()</code>.
+        This method returns a <em>selection dictionary</em>, or seldict for short.  A
+        seldict is simply a dictionary that maps a data format identifier to
+        selection data in that format.</p>
+    <p>Some valid data formats in a seldict are:</p>
+    <ul>
+        <li><code>text</code>: Plain unicode text of the current selection.</li>
+        <li><code>files</code>: A list of filenames representing the current selection.</li>
+    </ul>
+    <p>Setting the current selection works similarly: just pass
+        <code>ensoapi.set_selection()</code> a seldict containing the selection data to
+        set.</p>
+    <p>The following is an implementation of an "upper case" command that
+        converts the user's current selection to upper case:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_upper_case</span>(<span class="pl-smi">ensoapi</span>):
+    text <span class="pl-k">=</span> ensoapi.get_selection().get(<span class="pl-s"><span class="pl-pds">"</span>text<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> text:
+      ensoapi.set_selection({<span class="pl-s"><span class="pl-pds">"</span>text<span class="pl-pds">"</span></span> : text.upper()})
+    <span class="pl-k">else</span>:
+      ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>No selection!<span class="pl-pds">"</span></span>)</pre></div>
+    <h2><a id="user-content-command-arguments" class="anchor" aria-hidden="true" href="#command-arguments"></a>Command Arguments</h2>
+    <p>It's possible for a command to take arbitrary arguments; an example of
+        this is the "google" command, which allows you to optionally specify a
+        search term following the command name.  To create a command like
+        this, just add a parameter to the command function:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_boogle</span>(<span class="pl-smi">ensoapi</span>, <span class="pl-smi">query</span>):
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>You said: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span> <span class="pl-k">%</span> query)</pre></div>
+    <p>Unless you specify a default for your argument, however, a friendly
+        error message will be displayed when the user runs the command without
+        specifying one.  If you don't want this to be the case, just add a
+        default argument to the command function:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_boogle</span>(<span class="pl-smi">ensoapi</span>, <span class="pl-smi">query</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>pants<span class="pl-pds">"</span></span>):
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>You said: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span> <span class="pl-k">%</span> query)</pre></div>
+    <p>If you want the argument to be bounded to a particular set of options,
+        you can specify them by attaching a <code>valid_args</code> property to your
+        command function.  For instance:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_vote_for</span>(<span class="pl-smi">ensoapi</span>, <span class="pl-smi">candidate</span>):
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>You voted for: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span> <span class="pl-k">%</span> candidate)
+  cmd_vote_for.valid_args <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">"</span>barack obama<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>john mccain<span class="pl-pds">"</span></span>]</pre></div>
+    <h2><a id="user-content-prolonged-execution" class="anchor" aria-hidden="true" href="#prolonged-execution"></a>Prolonged Execution</h2>
+    <p>It's expected that some commands, such as ones that need to fetch
+        resources from the internet, may take some time to execute.  If this
+        is the case, a command function may use Python's <code>yield</code> statement
+        to return control back to Enso when it needs to wait for something to
+        finish.  For example:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">def</span> <span class="pl-en">cmd_rest_awhile</span>(<span class="pl-smi">ensoapi</span>):
+    <span class="pl-k">import</span> time, threading
 
-            <h3 class="in-block"><span class="mw-headline" id="Making_sure_your_command_is_localizable">Making sure your command is localizable</span>
-            </h3>
-            <p>Ubiquity command parser supports multiple languages. That means that hopefully someday someone will be
-                translating
-                your commands to the other languages that Ubiquity supports. There is currently no command localization
-                support
-                in Enso, although you may take measures in the case it will appear someday.
-                You just have to locate all strings that appear in your
-                <code>preview()</code> and <code>execute()</code> methods, that are intended for display to humans, and
-                wrap them with:
-            </p>
-            <pre>_()
-</pre>
-            <p>This may look odd, but what it does is quite important: it makes your strings appear in the template
-                files that localizers will be using. So let's make our "Hello world!" command localizable:
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["say-hello", "greet"],
-  execute: function hello_execute() {
-    CmdUtils.notify(_("Hello, World!"));
-  }
-});
-</pre>
-            <p>Note that we don't need to wrap the names, or other strings that appear in the command metadata - these
-                are automatically wrapped for us. We only need to wrap strings that appear inside the functions.
-            </p>
-            <h3 class="in-block"><span class="mw-headline" id="Adding_a_Preview">Adding a Preview</span></h3>
-            <p><img src="images/preview.jpg"></p>
-            <p>Let's add a preview to our new command. Previews give the user feedback about what a command does before
-                it's executed. Previews are great for providing rich visual feedback like displaying search results when
-                using the images command as shown above. Previews have
-                the full expressive power of HTML, including animations, so there's a lot you can do with them.
-            </p>
-            <p>One point of design: Preview code should never have side-effects. That is, a preview should never
-                (without user interaction) change the state of the system.
-            </p>
-            <p>For the "say-hello" command, we don't need anything fancy: just some help text that is more descriptive
-                than the default "Executes the say hello command."
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["say-hello", "greet"],
-  preview: "Displays a &lt;i&gt;salutary&lt;/i&gt; greeting to the planet.",
-  execute: function hello_execute() {
-    CmdUtils.notify(_("Hello, World!"));
-  }
-})
-</pre>
-            <p>Here the preview is an HTML-formatted string. The preview can also be a function. We'll get to that in
-                the next section.
-            </p>
-            <h2 class="in-block"><span class="mw-headline" id="The_Date_Command:_The_Second_Command">The Date Command: The Second Command</span>
-            </h2>
-            <h3 class="in-block"><span class="mw-headline" id="Setting_the_Selection">Setting the Selection</span></h3>
-            <p>I often forget what day it is. That may be because I need to go outside more often, but, like any
-                programmer, I generally solve my problem's symptoms with technology rather then addressing the root
-                cause. My solution is to create a command that inserts the date at the location of the cursor.
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["insert-date"],
-  execute: function date_execute() {
-    CmdUtils.setSelection(new Date().toLocaleDateString());
-  }
-})
-</pre>
-            <p>The new function here is <code>setSelection()</code>. This inserts the passed-in text onto the page at
-                the location of the cursor. If the cursor is in an editable text or rich-text fields, the text gets
-                dumped there. If the cursor isn't in an editable area, <code>setSelection()</code> will still be able to
-                insert the date. (Even when it isn't displayed, Firefox always keeps track of a cursor position. To see
-                it, type F7.) Try going to a page, selecting some non-mutable text, and using the command. See, it
-                works! This is particularly useful for commands like "translate", where you want to replace non-editable
-                text with its translation.
-            </p>
-            <p>The <code>toLocaleDateString()</code> function is native to Javascript, so if you're not familiar with it
-                check out the documentation for the Javascript <a rel="nofollow" class="external text"
-                                                                  href="https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Date">Date
-                    object</a>.
-            </p>
-            <h3 class="in-block"><span class="mw-headline" id="A_Better_Preview">A Better Preview</span></h3>
-            <p>It's time to add a better preview to the date command. Let's have the preview show the date, so that the
-                user will know what to expect when they execute the command. (As a side benefit the user doesn't even
-                need to execute the command to do a quick check of the day.)
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["insert-date"],
+    <span class="pl-k">def</span> <span class="pl-en">do_something</span>():
+      time.sleep(<span class="pl-c1">3</span>)
+    t <span class="pl-k">=</span> threading.Thread(<span class="pl-v">target</span> <span class="pl-k">=</span> do_something)
+    t.start()
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Please wait...<span class="pl-pds">"</span></span>)
+    <span class="pl-k">while</span> t.isAlive():
+      <span class="pl-k">yield</span>
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Done!<span class="pl-pds">"</span></span>)</pre></div>
+    <p>Returning control back to Enso is highly encouraged - without it, your
+        command will monopolize Enso's resources and you won't be able to use
+        Enso until your command has finished executing!</p>
+    <h2><a id="user-content-class-based-commands" class="anchor" aria-hidden="true" href="#class-based-commands"></a>Class-based Commands</h2>
+    <p>More complex commands can be encapsulated into classes and
+        instantiated as objects; in fact, all Enso really looks for when
+        importing commands are callables that start with <code>cmd_</code>.  This means
+        that the following works:</p>
+    <div class="highlight highlight-source-python"><pre>  <span class="pl-k">class</span> <span class="pl-en">VoteCommand</span>(<span class="pl-c1">object</span>):
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">candidates</span>):
+      <span class="pl-c1">self</span>.valid_args <span class="pl-k">=</span> candidates
 
-  _date: function date__date() {
-    return new Date().toLocaleDateString();
-  },
+    <span class="pl-k">def</span> <span class="pl-c1">__call__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">ensoapi</span>, <span class="pl-smi">candidate</span>):
+      ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>You voted for: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span> <span class="pl-k">%</span> candidate)
 
-  preview: function date_preview(pblock) {
-    var msg = _('Inserts today\'s date: "&lt;i&gt;${date}&lt;/i&gt;"');
-    pblock.innerHTML = CmdUtils.renderTemplate(msg, {date: this._date()});
-  },
+  cmd_vote_for <span class="pl-k">=</span> VoteCommand([<span class="pl-s"><span class="pl-pds">"</span>barack obama<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>john mccain<span class="pl-pds">"</span></span>])</pre></div>
+    <h2><a id="user-content-command-updating" class="anchor" aria-hidden="true" href="#command-updating"></a>Command Updating</h2>
+    <p>Some commands may need to do processing while not being executed; for
+        instance, an <code>open</code> command that allows the user to open an
+        application installed on their computer may want to update its
+        <code>valid_args</code> property whenever a new application is installed or
+        uninstalled.</p>
+    <p>If a command object has an <code>on_quasimode_start()</code> function attached
+        to it, it will be called whenever the command quasimode is entered.
+        This allows the command to do any processing it may need to do.  As
+        with the command execution call itself, <code>on_quasimode_start()</code> may
+        use <code>yield</code> to relegate control back to Enso when it knows that some
+        operation will take a while to finish.</p>
+    <h2><a id="user-content-including-other-files" class="anchor" aria-hidden="true" href="#including-other-files"></a>Including Other Files</h2>
+    <p>Python's standard <code>import</code> statement can be used from command
+        scripts, of course. But the disadvantage of doing this with evolving
+        code is that imported modules won't be reloaded
+        if their contents change. If you need to import some code that is not installable as a Python module,
+        place it at the 'lib' folder under your Enso configuration directory (available at settings).</p>
 
-  execute: function date_execute() {
-    CmdUtils.setSelection(this._date());
-  }
-})
-</pre>
-            <p>We've done three things here. The first was to factor out the code for getting the date into the <code>_date()</code>
-                function. This way we don't break <a rel="nofollow" class="external text"
-                                                     href="http://en.wikipedia.org/wiki/Don%27t_repeat_yourself">DRY</a>
-                by repeating code across the preview and execute functions. Notice that to access the
-                <code>_date()</code>, we use the <code>this</code> keyword.
-            </p>
-            <p>The second thing we've done is to add a preview function. The first argument is the DOM element that gets
-                displayed as the preview for your command. Modify <code>pblock</code> and you modify the preview. In
-                this case, we set the <code>innerHTML</code> of the preview block to be the message we want.
-            </p>
-            <p>The third thing we've done is to do some string formatting using the <code>renderTemplate()</code>
-                function. This takes a template string and performs the appropriate substitution given the passed-in
-                JSON object. Templates can handle a wide range of functionality, as we are currently using TrimPath's <a
-                        rel="nofollow" class="external text"
-                        href="http://code.google.com/p/trimpath/wiki/JavaScriptTemplates">JavascriptTemplates</a>.
-                Although JavascriptTemplates has some nice features, such as ${for}, in the most cases it is more
-                convenient to use ES6 template strings nowadays, although you would completely
-                lose the ability to localize your command.
-            </p>
-            <h3 class="in-block"><span class="mw-headline" id="A_shortcut_for_localization_and_rendering_templates">A shortcut for localization and rendering templates</span>
-            </h3>
-            <p>Note how in the code above, we used the localization wrapper <code>_()</code> before passing the string
-                to renderTemplate. Because this is such a very common combination when displaying strings, we have a
-                shortcut for it. Calling _() with a JSON object as the second argument will automatically trigger <code>CmdUtils.renderTemplate()</code>
-                on the post-localization string. So the above preview method could be rewritten more simply as:
-            </p>
-            <pre>
-  preview: function date_preview(pblock) {
-    var msg = 'Inserts today's date: "&lt;i&gt;${date}&lt;/i&gt;"';
-    pblock.innerHTML = _(msg, {date: this._date()});
-  },
-</pre>
-            <h3 class="in-block"><span class="mw-headline" id="Networking_calls_and_placeholder_previews">Networking calls and placeholder previews</span>
-            </h3>
-            <p>Previews display something meaningful to the user immediately. If you have a preview that requires an
-                AJAX request - say, to fetch some search results - that call might take a while to return. In the
-                meantime,
-                your command should display a placeholder preview giving the user feedback.
-            </p>
-            <pre>
-  preview: function(pblock) {
-    pblock.innerHTML = _("This will show until the AJAX request returns");
-    CmdUtils.previewAjax(pblock, "http://example.com", function (htm) {
-      pblock.innerHTML = htm;
-    });
-  },
-</pre>
-            <h2 class="in-block"><span class="mw-headline"
-                                       id="Documentation_and_Metadata">Documentation and Metadata</span></h2>
-            <p>Before you share your command with the world, you should consider adding some attributions to the code:
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["insert-date"],
-  homepage: "http://azarask.in/",
-  author: { name: "Aza Raskin", email: "aza@mozilla.com"},
-  contributors: ["Atul Varma"],
-  license: "MPL",
+    <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
+    <p>Mediaprobes allow to create commands that automatically pass items found in the filesystem (or specified
+        in a dictionary) to a media player, which may be useful, for example, at a media-center. Let's assume that
+        you have a directory named 'd:/tv-shows', which contains subdirectories named: 'columbo', 'the octopus' and 'inspector gadget'.
+        Let's create a command named 'show' that has the names of all subdirectories
+        under 'd:/tv-shows' as arguments (the argument will be named "series") and opens the given directory (or file) in Media Player Classic.</p>
+    <div class="highlight highlight-source-python"><pre><span class="pl-c"><span class="pl-c">#</span> place the following into command editor</span>
 
-  /* THE REST OF THE CODE HERE */
-})
-</pre>
-            <p>And you should <em>definitely</em> add some documentation:
-            </p>
-            <pre>
-CmdUtils.CreateCommand({
-  names: ["insert-date"],
-  homepage: "http://azarask.in/",
-  author: { name: "Aza Raskin", email: "aza@mozilla.com"},
-  contributors: ["Atul Varma"],
-  license: "MPL",
-  description: "Inserts today's date.",
-  help: "If you're in an editable text area, inserts today's date, formatted for the current locale.",
+<span class="pl-k">from</span> enso.user <span class="pl-k">import</span> mediaprobe
 
-  /* THE REST OF THE CODE HERE */
-})
-</pre>
-            <p>The <code>.description</code> and <code>.help</code> attributes are both automatically displayed
-                alongside your command's name on the command-list page. (The user can get to this page at any time by
-                issuing the "list ubiquity commands" command.) HTML tags can be used in both of these strings.
-            </p>
-            <p>Description is a one-line summary of what the command does, while Help is a longer description that can
-                include examples, caveats, and so on. If your command is simple enough that all you have to say about it
-                fits in one line, it's OK to use a description alone and leave out the help.
-            </p>
-            <!--
-                        <h2 class="in-block"><span class="mw-headline" id="Map_Me.21_Location.2C_Snapshots.2C_and_Inserting_HTML">Map Me! Location, Snapshots, and Inserting HTML</span>
-                        </h2>
-                        <p>The "map" command that comes with Ubiquity is fairly powerful. It's also fairly complicated—well,
-                            comparatively. It's still only a couple hundred lines of code. The command, though, can get even more
-                            useful. Imagine being able to select some houses on Craigslist, or a list of restaurant names, and Ubiq
-                            "map these" to get just the map you want. The concept of "these" puts the power of mashups into the
-                            users hands. But I digress. Let's make a simple command that inserts a map of your current location.
-                        </p>
-                        <p>In this command, we use the Google <a rel="nofollow" class="external text"
-                                                                 href="http://code.google.com/apis/maps/documentation/staticmaps/">static
-                            map API</a> and the Ubiquity function <code>CmdUtils.getGeoLocation()</code> to insert a map of your
-                            current location. Ubiquity currently uses the <a rel="nofollow" class="external text"
-                                                                             href="http://www.maxmind.com/app/api">MaxMind</a> API
-                            for trying to guess your location from your IP. That will probably change in the future.
-                        </p>
-                        <p>We'll call this command <code>"map me"</code> so that it won't be confused with the standard
-                            <code>"map"</code> command.
-                        </p>
-                        <pre>
-            CmdUtils.CreateCommand({
-              names: ["map me"],
-
-              _getMapUrl: function() {
-                var loc = CmdUtils.getGeoLocation();
-                var mapUrl = "http://maps.google.com/staticmap?";
-
-                var params = {
-                  center: loc.lat + "," + loc.long,
-                  size: "500x400",
-                  zoom: 14,
-                  key: "ABQIAAAAGZ11mh1LzgQ8-8LRW3wEShQeSuJunOpTb3RsLsk00-MAdzxmXhQoiCd940lo0KlfQM5PeNYEPLW-3w"
-                };
-
-                return mapUrl + jQuery.param( params );
-              },
-
-              preview: function( pblock ) {
-                var msg = "Inserts a map of your current location: &lt;br/&gt;" +
-                          "&lt;img src='${url}'/&gt;";
-                pblock.innerHTML = _(msg, {url: this._getMapUrl()});
-              },
-
-              execute: function( ) {
-                CmdUtils.getImageSnapshot( this._getMapUrl(), function(imgData) {
-                  CmdUtils.setSelection( "&lt;img src='" + imgData +"'/&gt;");
-                })
-              }
-            })
-            </pre>
-                        <p>There are three new things here: <code>CmdUtils.setSelection</code> to set HTML (yep, it can do that);
-                            the use of <code>CmdUtils.getGeoLocation()</code>; and using <code>CmdUtils.snapshotImage()</code> to
-                            capture the bits for the image.
-                        </p>
-                        <p>I find getting the location—as imprecise as IP-based location can be—useful for doing sensible defaults
-                            for location-based commands, like Yelp. <code>CmdUtils.getGeoLocation()</code> returns an object which
-                            has the following properties: city, state, country, lat, and long.
-                        </p>
-                        <p>Why do we need to use <code>CmdUtils.snapshotImage()</code>? Because the Google Maps API requires a key
-                            that is tied to a particular URL. If we naively inject the image tag into a random web page, the image
-                            won't load because the key doesn't match that random web page's URL. Thus, we use the <code>snapshotImage()</code>
-                            function to convert the image into a <a rel="nofollow" class="external text"
-                                                                    href="http://en.wikipedia.org/wiki/Data:_URI_scheme">data
-                                url</a>.
-                        </p>
-                        <p>There's also a <code>CmdUtils.snapshotWindow</code> function, which allows you to get the image data for
-                            any tab/window. The function takes a window as the first paramater, and a callback for the second.
-                        </p>
-                    </div>
-            -->
-            <h1 class="section-heading">
-                <div class="mw-ui-icon mw-ui-icon-element indicator"></div>
-                <span class="mw-headline" id="Commands_with_Arguments">Commands with Arguments</span></h1>
-            <div class="mf-section-2">
-                <h2 class="in-block"><span class="mw-headline" id="Echo">Echo</span></h2>
-                <p>We'll be working towards making some fun and useful commands - commands that let you control the
-                    seething
-                    tendrils of the internet with your little pinky. But, let's start by making a simple command to echo
-                    back whatever you type.
-                </p>
-                <pre>
-CmdUtils.CreateCommand({
-  names: ["echo"],
-  arguments: [{role: "object",
-               nountype: noun_arb_text,
-               label: "your shout"}],
-  preview: function previewEcho(pblock, args) {
-    pblock.innerHTML = _("Will echo: ") + args.object.text;
-  },
-  execute: function executeEcho(args) {
-    var msg = args.object.text + "... " + args.object.text + "......";
-    CmdUtils.notify(msg);
-  },
-});
-</pre>
-                <p>This says that the command "echo" takes one argument which is arbitrary text. Whatever text the user
-                    enters will get wrapped in an input object and passed into both the preview and execute function.
-                </p>
-                <p>Try it! Ubiq "echo hellooooo" and watch what happens.
-                </p>
-                <p>Ubiquity takes care of parsing the user's input, so you don't need to worry about handling prounoun
-                    substitution or any of the other natural-language-like features of the Ubiquity parser. Try
-                    selecting
-                    some text on a page, and Ubiq "echo this". Ubiquity should now echo the selected text.
-                </p>
-                <p>Note that we gave three pieces of information when defining our argument: its role, its nountype, and
-                    its
-                    label. The label is the easiest part: It's just whatever text you want to have appear in the
-                    Ubiquity
-                    interface as a prompt for the user. E.g, if you ubiq "echo", you will see the label for the
-                    argument:
-                </p>
-                <pre>
-  echo (your shout)
-</pre>
-                <p>The roles and the nountypes require some more explanation. We'll cover each of them in detail next.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="Argument_Roles">Argument Roles</span></h3>
-                <p>Your command can take multiple arguments. Each one is identified by a "role". To understand roles, it
-                    helps to think of your command name as a verb, and each argument as a noun. Remember that Ubiquity's
-                    command line is a pseudo-natural-language environment, so it attempts to be as close to natural
-                    language
-                    grammar as possible.
-                </p>
-                <p>For example, if you've ever used the <code>email</code> command, you know that it takes up to two
-                    arguments: a message and a person.
-                </p>
-                <pre>
-  email message
-  email to person
-  email message to person
-  email to person message
-</pre>
-                <p>In grammatical terms, the message argument is the "direct object" of the verb "email". The person
-                    argument is an indirect object. We call it the "goal" of the verb. So if we were writing the email
-                    command, we'd define the arguments like this:
-                </p>
-                <pre>
-  arguments: [{role: "object",
-               nountype: noun_arb_text,
-               label: "message"},
-              {role: "goal",
-               nountype: noun_type_contact,
-               label: "recipient"}]
-</pre>
-                <p>Because we give the recipient argument the "goal" role, the Ubiquity parser knows to expect the user
-                    to
-                    type the word "to". When the user enters "email hello to Aza", the parser knows that the word
-                    following
-                    "to" - that is, "Aza" - should be assigned to the recipient argument.
-                </p>
-                <p>In our simple "echo" command, we expect the user to type "echo hellooooo" or something like that. The
-                    "hellooooo" is the direct object of the verb "echo", so we give it the "object" role.
-                </p>
-                <p>"Object" is the most common role. If a command takes only one argument, that argument is usually an
-                    "object".
-                </p>
-                <h4 class="in-block"><span class="mw-headline" id="What_Roles_Can_I_Use.3F">What Roles Can I Use?</span>
-                </h4>
-                <ul>
-                    <li> object (in "echo helloooo", hello is the object.)</li>
-                    <li> goal (in "email this to brandon", brandon is the goal.)</li>
-                    <li> source (in "translate this from spanish", spanish is the source.)</li>
-                    <li> location (in "yelp pizza near boston", boston is the location.)</li>
-                    <li> time (in "book a flight on thursday", thursday is the time.)</li>
-                    <li> instrument (in "search monkeys with google", google is the instrument.)</li>
-                    <li> format (in "check weather in celsius", celsius is the format.)</li>
-                    <li> modifier (in "get email address for chris", chris is the modifier.)</li>
-                    <li> alias (in "twitter this as jono", jono is the alias.)</li>
-                </ul>
-                <p><a rel="nofollow" class="external text"
-                      href="https://wiki.mozilla.org/Labs/Ubiquity/Parser_2/Semantic_Roles">More information about these
-                    roles</a>.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="The_Arguments_Object">The Arguments Object</span>
-                </h3>
-                <p>When your execute method is called, it is passed a single object that encapsulates the values for all
-                    arguments.
-                </p>
-                <p>When your preview method is called, it is passed this object, too.
-                </p>
-                <p>The object has one attribute corresponding to each role. In our example above, the command accepts
-                    only
-                    an object-role argument, so the preview and execute methods get passed an argument with an <code>args.object</code>
-                    attribute.
-                </p>
-                <p>If we made a command, like email, that takes an object-role argument and a goal-role argument, its
-                    preview and execute methods would get passed an argument with <code>args.object</code> and <code>args.goal</code>.
-                </p>
-                <p><code>args.object</code> (or <code>args.goal</code>) has several attributes of its own:
-                </p>
-                <pre>
-  args.object.text    // a string of the input in plain text, without formatting
-  args.object.html    // a string of the input in formatted HTML, including tags
-  args.object.data    // for non-text input types, an arbitrary data object
-  args.object.summary // the HTML string displayed in the suggestion list, abbreviated if long
-</pre>
-                <p>Our example command only cares about the <code>.text</code> attribute of the input, because it simply
-                    wants plain text. Often, when the user invokes your command by typing a few short words into the
-                    input
-                    box, <code>.text</code>, <code>.html</code>, and <code>.summary</code> will all have exactly the
-                    same
-                    value, and <code>.data</code> will be null. Many, if not most, commands that you write will only
-                    care
-                    about the text value. Nevertheless, the other versions of the input data are provided to you in case
-                    they differ from <code>.text</code> and in case your command has a use for them.
-                </p>
-                <h2 class="in-block"><span class="mw-headline"
-                                           id="Introduction_to_Noun_Types">Introduction to Noun Types</span></h2>
-                <p>Noun types specify what <i>kind</i> of input your command can accept for each one of its arguments.
-                </p>
-                <p>For the "echo" command, we wanted the object-role argument to accept any text whatsoever, so for its
-                    nountype we passed in the predefined <code>noun_arb_text</code> object. This object accepts any
-                    arbitrary text as a valid argument and passes it to the command unchanged.<br>
-                    Note: unexpected things may happen if a command contains more than one argument of this type.
-                </p>
-                <p>This is OK for very simple commands, like echoing back the user's input. But for commands that take
-                    structured data, you will want to use more specific nountypes.
-                </p>
-                <p>For example, if a command can take a date (like the "check calendar" command), you would want to use
-                    <code>noun_type_date</code> as the nountype of the argument. <code>noun_type_date</code> provides
-                    several benefits to your command: it does all of the date parsing for you; it suggests dates that
-                    the
-                    user might want to enter (for instance, it defaults to today's date). And, it lets the parser know
-                    that
-                    your command takes a date. This is useful because when the user selects a date on a page and invokes
-                    Ubiquity, your command - along with "check calendar" - will be one of the top suggestions.
-                </p>
-                <p>You can write your own noun types - we'll get into that later. For now, let's take a look at the
-                    built-in nountypes that your command can use. These include:
-                </p>
-                <ul>
-                    <li> noun_arb_text (Arbitrary text)</li>
-                    <li> noun_type_date (A date, in any format, or a word like "tomorrow")</li>
-                    <li> noun_type_time (A time, in any format)</li>
-                    <li> noun_type_percentage (A percentage value)</li>
-                    <li> noun_type_email (A valid email address)</li>
-                    <li> noun_type_tab (One of currently open tabs matched by title or URL)</li>
-                </ul>
-                <p><br>
-                    Once you are familiar with writing commands, you should check out the <a rel="nofollow"
-                                                                                             class="external text"
-                                                                                             href="https://github.com/GChristensen/ubichr/blob/master/parser/nountypes.js">nountypes.js</a>,
-                    which has the implementation for most of the noun-types.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="Regexps_as_Noun_Types">Regexps as Noun Types</span>
-                </h3>
-                <p>If none of the nountypes above is what you're looking for, there are several ways to define your own.
-                    The
-                    simplest is to use a regular expression. Suppose that (for whatever odd reason) you wanted your
-                    command
-                    to accept only arguments that begin with the letter N. The following regexp matches words that start
-                    with N:
-                </p>
-                <pre>
-  /^[nN]/
-</pre>
-                <p>You could use it as a noun type, like so:
-                </p>
-                <pre>
-  arguments: [{role: "object",
-               nountype: /^[nN]/,
-               label: "word that starts with n"}]
-</pre>
-                <p>(Note that you do <i>not</i> put quotes around the regexp.)
-                </p>
-                <p>A regexp nountype will reject input that doesn't match, but it doesn't know how to help the user by
-                    suggesting appropriate input.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="Lists_as_Noun_Types">Lists as Noun Types</span></h3>
-                <p>Suppose you're writing a command that takes a color as an argument (perhaps it outputs a hexadecimal
-                    RGB
-                    representation of that color.) To make a nountype that accepts colors, you can simply pass in an
-                    array
-                    of strings:
-                </p>
-                <pre>
-  names: ["convert-color"],
-  arguments: [{role: "object",
-               nountype: ["red", "orange", "yellow", "green",
-                          "blue", "violet", "black", "white",
-                          "grey", "brown", "beige", "magenta",
-                          "cerulean", "puce"],
-               label: "color to convert"}]
-</pre>
-                <p><br>
-                    One benefit of using a list is that the parser can use it offer the user suggestions. If the user
-                    enters
-                    "get-color bl", for instance, Ubiquity will be able to suggest "black" and "blue" as the two valid
-                    completions based on the input. This makes list-based nountypes very useful for any command that can
-                    accept only a finite set of values.
-                </p>
-                <h3 class="in-block"><span class="mw-headline"
-                                           id="Writing_a_Noun_Type_Object">Writing a Noun Type Object</span></h3>
-                <p>Of course, not every type of noun you'd be interested in can be represented
-                    as a finite list or as a regexp. If you want to be able to accept or reject input based on some
-                    algorithmic test, you can do so by writing a custom JavaScript object that implements a
-                    <code>suggest()</code> method (and, optionally, a <code>default()</code> method.)
-                </p>
-                <p>There is an example of how to do this in the section on the tab commands, below.
-                </p>
-                <h2 class="in-block"><span class="mw-headline" id="Insert_Email:_the_Contact_noun_type">Insert Email: the Contact noun type</span>
-                </h2>
-                <p>Let's take a look at one of the built-in noun-types: <code>noun_type_contact</code>. By using the
-                    noun-type, Ubiquity will also
-                    autocomplete to known people while the user is entering the command. This is what the built-in
-                    Ubiquity
-                    command "email" uses. At the moment, Ubiquity figures out what people you know just by remembering
-                    emails you have ever passed
-                    to the <b>email</b> or <b>compose</b> commands.
-                </p>
-                <p>Enough rambling. It's time for a command. I constantly find that I need to fetch someone's email
-                    address
-                    to paste into a text field because I don't know it off-hand. This command solves that by letting you
-                    insert someone's email address using autocomplete.
-                </p>
-                <pre>
-CmdUtils.CreateCommand({
-  name: "insert-email",
-  arguments: {modifier: noun_type_contact},
-  preview: "Inserts someone's email address by name.",
-  execute: function(args) {
-    CmdUtils.setSelection(args.modifier.html);
-  },
-});
-</pre>
-                <p>To try this out, Ubiq "insert-email of " and then the first few letters of someone you mailed through
-                    the commands mentioned above.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="Shorter_Argument_Declarations">Shorter Argument Declarations</span>
-                </h3>
-                <p>Notice that we used a shortcut for declaring the arguments. In the long form, we would have had to
-                    say:
-                </p>
-                <pre>
-  arguments: [{role: "modifier",
-               nountype: noun_type_contact,
-               label: "contact"}]
-</pre>
-                <p>but if we don't care about specifying extra parameters for the argument, we can get away with using a
-                    single object for "arguments", with the roles as the property names, and the nountypes as the
-                    property
-                    values:
-                </p>
-                <pre>
-  arguments: {modifier: noun_type_contact}
-</pre>
-                <p>or with label using <code>"_"</code> (or <code>" "</code>) as separator:
-                </p>
-                <pre>
-  arguments: {modifier_contact: noun_type_contact}
-</pre>
-                <p>If we had several arguments, we could say:
-                </p>
-                <pre>
-  arguments: {object: noun_arb_text, modifier: noun_type_contact}
-</pre>
-                <p>Finally, if you only have "object" and don't need to specify a label...:
-                </p>
-                <pre>
-  argument: noun_arb_text
-</pre>
-                <p>Aza writes:
-                </p>
-                <blockquote>
-                    <p>This one command sums up what I love about Ubiquity. In 8 lines of code, I can
-                        fundamentally enhance the browser's functionality. Doing the same thing using
-                        a normal Firefox extension methodology takes pages and pages of code - and the interface would
-                        take
-                        more thought still. Doing the same thing using a bookmarklet would require a server-side
-                        component
-                        (to get around cross-site Ajax request ban) as well as forcing the user to give up their email
-                        password.
-                    </p>
-                    <p>Ubiquity increases the surface area of innovation for the browser many-fold, by making anyone who
-                        can
-                        write simple Javascript into an agent for bettering the browser and the open Web.
-                    </p>
-                </blockquote>
-                <h2 class="in-block"><span class="mw-headline"
-                                           id="TinyURL:_Network_Calls_and_jQuery_.28and_the_URL_noun_type.29">TinyURL: Network Calls and jQuery</span>
-                </h2>
-                <p>Often while writing emails, I'll discover that I've pasted in a URL long enough to be used for
-                    unfortunate analogies. I'd like to be able to quickly turn that into a <a rel="nofollow"
-                                                                                              class="external text"
-                                                                                              href="http://en.wikipedia.org/wiki/Tinyurl">TinyURL</a>
-                    - but
-                    the process of making a TinyURL involves lots of fiddly steps. Ubiquity to the rescue.
-                </p>
-                <p>Because we include <a rel="nofollow" class="external text"
-                                         href="http://en.wikipedia.org/wiki/jQuery">jQuery</a>
-                    with Ubiquity, it is simple to perform Ajax calls as well as parse returning data. TinyUrl.com
-                    provides
-                    an easy to use RESTful API where you pass a URL and it returns its shortened form. We use that API
-                    in
-                    this command.
-                </p>
-                <pre>
-CmdUtils.CreateCommand({
-  names: ["tinyurl"],
-  description: "Replaces the selected URL with a TinyUrl.",
-  arguments: [{role: "object",
-               nountype: noun_arb_text,
-               label: "url to shorten"}],
-  execute: function(args) {
-    var baseUrl = "http://tinyurl.com/api-create.php";
-    var params = {url: args.object.text};
-    jQuery.get(baseUrl, params, function(tinyUrl) {
-      CmdUtils.setSelection(tinyUrl);
-    });
-  },
-})
-</pre>
-                <p>jQuery is a powerful tool. With it, you can fairly effortlessly cherry-pick the data you need from
-                    RSS
-                    feeds, XML, and all sorts of other data formats. It also makes doing in-preview animations a breeze.
-                </p>
-            </div>
-
-            <!--
-                    <h1 class="section-heading">
-                        <div class="mw-ui-icon mw-ui-icon-element indicator"></div>
-                        <span class="mw-headline" id="Twitter:_Putting_It_All_Together">Twitter: Putting It All Together</span></h1>
-                    <div class="mf-section-3">
-                        <p>We've now covered everything we need to cover in order to write a command that allows us to <a
-                                rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Twitter">Twitter</a> from
-                            Ubiquity. The code below is the actual source code of the Twitter command as it appears in Ubiquity 0.5.
-                        </p>
-                        <p>Many thanks to <a rel="nofollow" class="external text"
-                                             href="http://theunfocused.net/moz/ubiquity/verbs/">Blair McBride</a> for writing this
-                            command. The source code is a bit more intricate than anything we've seen so far, but it's built using
-                            exactly the same basic pieces - and demonstrates nearly all of those pieces in action.
-                        </p>
-                        <pre>
-            const TWITTER_STATUS_MAXLEN = 140;
-
-            CmdUtils.CreateCommand({
-              names: ["twitter", "tweet", "share using twitter"],
-              arguments: [
-                {role: "object", label: 'status', nountype: noun_arb_text},
-                {role: "alias", nountype: noun_type_twitter_user}
-              ],
-              icon: "http://twitter.com/favicon.ico",
-              description:
-              "Sets your Twitter status to a message of at most 160 characters.",
-              help: ("You'll need a &lt;a href=\"http://twitter.com\"&gt;Twitter account&lt;/a&gt;," +
-                     " obviously.  If you're not already logged in" +
-                     " you'll be asked to log in."),
-              preview: function(previewBlock, args) {
-                var statusText = (args.object ? args.object.text : '');
-                var usernameText = "";
-                if (args.alias) {
-                  usernameText = args.alias.text;
-                } else if (args.as) {
-                  usernameText = args.as.text;
-                }
-                var previewTemplate = (
-                  "&lt;div class='twitter'&gt;"+_("Updates your Twitter status ${username} to:")+"&lt;br/&gt;" +
-                  "&lt;b class='status'&gt;${status}&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;" +
-                  _("Characters remaining: &lt;b&gt;${chars}&lt;/b&gt;") +
-                  "&lt;p&gt;&lt;small&gt;"+_("tip: tweet @mozillaubiquity for help")+"&lt;/small&gt;&lt;/p&gt;&lt;/div&gt;");
-                var truncateTemplate = (
-                  "&lt;strong&gt;"+_("The last &lt;b&gt;${truncate}&lt;/b&gt; characters will be truncated!")+"&lt;/strong&gt;");
-                var previewData = {
-                  status: &lt;&gt;{statusText}&lt;/&gt;.toXMLString(),
-                  username: usernameText &amp;&amp; _("(For user &lt;b&gt;${usernameText}&lt;/b&gt;)"),
-                  chars: TWITTER_STATUS_MAXLEN - statusText.length
-                };
-
-                var previewHTML = CmdUtils.renderTemplate(
-                                    CmdUtils.renderTemplate(previewTemplate, previewData),
-                                    {usernameText:usernameText});
-
-                if (previewData.chars &lt; 0) {
-                  var truncateData = {
-                    truncate: 0 - previewData.chars
-                  };
-
-                  previewHTML += CmdUtils.renderTemplate(truncateTemplate, truncateData);
-                }
-
-                previewBlock.innerHTML = previewHTML;
-              },
-              execute: function(args) {
-                var statusText = args.object.text;
-                if(statusText.length &lt; 1) {
-                  this._show(_("requires a status to be entered"));
-                  return;
-                }
-
-                var updateUrl = "https://twitter.com/statuses/update.json";
-                var updateParams = {
-                  source: "ubiquity",
-                  status: statusText
-                  //dont cut the input since sometimes, the user selects a big url,
-                  //and the total lenght is more than 140, but tinyurl takes care of that
-                };
-                var me = this;
-
-                function sendMessage() {
-                  jQuery.ajax({
-                    type: "POST",
-                    url: updateUrl,
-                    data: updateParams,
-                    dataType: "json",
-                    error: function() {
-                      me._show(_("error - status not updated"));
-                    },
-                    success: function() {
-                      me._show(/^d /.test(statusText)
-                               ? _("direct message sent")
-                               : _("status updated"));
-                    },
-                    username: login.username,
-                    password: login.password
-                  });
-                }
-
-                var login;
-                var alias = args.alias;
-                if (alias &amp;&amp; alias.text &amp;&amp; alias.data) {
-                  login = alias.data;
-                  sendMessage();
-                } else {
-                  login = {username: null,
-                           password: null};
-                  if (alias &amp;&amp; alias.text)
-                    login.username = alias.text;
-                  sendMessage();
-                }
-              },
-              _show: function(txt){
-                CmdUtils.notify({icon: this.icon, title: this.name, text: txt});
-              }
-            });
-            </pre>
-                    </div>
-            -->
-            <h1 class="section-heading">
-                <div class="mw-ui-icon mw-ui-icon-element indicator"></div>
-                <span class="mw-headline" id="Switching_Tabs">Switching Tabs</span></h1>
-            <div class="mf-section-4">
-                <p>The final command in this tutorial is for switching between tabs. The end goal is this: type a few
-                    keys
-                    to that matches the title of an open tab (in any window), hit return, and you've switched to that
-                    tab.
-                </p>
-                <p>We'll write this command in two steps. The first step is creating a tab noun-type. The second step is
-                    using that noun-type to create the tab-switching command.
-                </p>
-                <h3 class="in-block"><span class="mw-headline" id="Switching_Tabs:_Writing_your_own_Noun-Types">Switching Tabs: Writing your own Noun-Types</span>
-                </h3>
-                <p>A noun-type needs to only have two things: A <code>label</code> and a <code>suggest()</code>
-                    function. It
-                    can optionally also have a <code>default()</code> function.
-                </p>
-                <p>The label is what shows up when the command prompts for input. Suggest returns a list of input
-                    objects,
-                    each one containing the name of a matching tab.
-                </p>
-                <pre>
-var noun_type_browser_tab = {
-    label: "tab title or URL",
-    _searchTabs(text, maxResults, callback) {
-        let matcher = new RegExp(text, "i");
-
-        chrome.tabs.query({}, tabs => {
-            let results = [];
-            for (let tab of tabs) {
-                let match = matcher.exec(tab.title) || matcher.exec(tab.url);
-                if (!match) continue;
-                tab.match = match;
-                results.push(tab);
-                if (maxResults && results.length >= maxResults) break;
-            }
-            callback(results);
-        });
-    },
-    suggest: function(text, html, callback, selectedIndices) {
-        this._searchTabs(text, 5, tabs => {
-            callback(tabs.map(tab =>
-                CmdUtils.makeSugg(
-                    tab.title || tab.url,
-                    null, tab, CmdUtils.matchScore(tab.match), selectedIndices)));
-        });
-
-        return []; // normally, we should return suggestions here, but our noun type is asynchronous
-    }
-};
-</pre>
-                <p>The suggest method of a noun type always gets passed both text and html. If the input is coming from
-                    a
-                    part of a web page that the user has selected, these
-                    values can be different: they are both strings, but the html value contains markup tags while the
-                    text
-                    value does not. The Tab noun type only cares about the plain text of the tab name, so we ignore the
-                    value of html.
-                </p>
-                <p>The callback argument is for use by nountypes that need to run asynchronously, i.e. because they need
-                    to
-                    do network calls to generate suggestions. The callback is a function; instead of returning a list of
-                    suggestions right away, an asynchronous noun type can call the callback with each suggestion it
-                    generates.
-                </p>
-                <p>We use the convenience function <code>CmdUtils.makeSugg()</code> to generate an
-                    input object of the type that the Ubiquity parser expects. The full signature of this function is:
-                </p>
-                <pre>
-CmdUtils.makeSugg(text, html, data, score, selectionIndices);
-</pre>
-                <p>It requires at least one of <code>text</code>, <code>html</code>, <code>data</code>. Use
-                    <code>null</code> if you want to skip <code>text</code> and/or <code>html</code>.
-                </p>
-                <p>If the text or html input is very long, <code>makeSugg()</code> generates a summary for us, and puts
-                    it
-                    in the <code>summary</code> attribute of the input object.
-                </p>
-                <p>We could have accomplished mostly the same thing without calling <code>makeSugg()</code> by returning
-                    a
-                    list of anonymous objects like these:
-                </p>
-                <pre>
-{ text: tabName,
-  html: Utils.escapeHtml(tabName),
-  data: tab,
-  summary: Utils.escapeHtml(tabName) };
-</pre>
-                <p>The input objects that our <code>suggest()</code> method generates are the same objects that will
-                    eventually get passed in to the <code>execute()</code> and <code>preview()</code> methods of any
-                    commands that use this noun type.
-                </p>
-                <h3 class="in-block"><span class="mw-headline"
-                                           id="Switching_Tabs:_The_Command">Switching Tabs: The Command</span></h3>
-                <p>Now that we are armed with the tab noun-type, it is easy to make the tab-switching command. Again, we
-                    use
-                    FUEL to focus the selected tab.
-                </p>
-                <pre>
-CmdUtils.CreateCommand({
-  names: ["switch-tab"],
-  arguments: {object: noun_type_browser_tab},
-
-  execute: function tab_execute(args) {
-    let tab = args.object.data;
-    chrome.tabs.update(tab.id, {active: true});
-  },
-
-  preview: function tab_preview(pblock, args) {
-    var tabName = args.object.text;
-    if (tabName)
-      pblock.innerHTML = _("Changes to &lt;strong&gt;${tab}&lt;/strong&gt; tab.", {tab: tabName});
-    else
-      pblock.innerHTML = _("Switch to a tab by name.");
-  }
-});
-</pre>
-            </div>
-            <h1 class="section-heading">
-                <div class="mw-ui-icon mw-ui-icon-element indicator"></div>
-                <span class="mw-headline" id="Development_Hints">Development Hints</span></h1>
-            <div class="mf-section-5">
-                <p>You now know all you need to know to get started developing useful Ubiquity commands of your own.
-                </p>
-                <p>Here are some miscellaneous tips that didn't fit elsewhere on this page, that may make development
-                    easier
-                    for you.
-                </p>
-                <h2 class="in-block"><span class="mw-headline" id="Running_on_page_load.2C_Ubiquity_load_and_startup"
-                >Running on Ubiquity load and when Ubiquity popup is shown</span>
-                </h2>
-                There are two additional command properties may be set in CreateCommand for that purposes:
-                <ul>
-                    <li>init - a function, called once on Ubiquity load.</li>
-                    <li>popup - a function, called each time Ubiquity popup is shown with the popup document
-                        as the parameter. Any document-wide CSS/script injections should be done here.
-                    </li>
-                </ul>
-                <h2 class="in-block"><span class="mw-headline" id="Persistent_Storage">Persistent Storage</span></h2>
-                <p>Some commands may want to store data that persist even after closing Firefox.
-                    Meet <code>Bin</code>:
-                </p>
-                <pre>
-{
-    let gId = 42; // used to avoid needless preview updates when typing
-    CmdUtils.CreateCommand({
-        name: "memo",
-        uuid: "FA6A3460-E825-4CFA-A24F-5908131D29FD",
-        description: "Lets you jot a memo for the page.",
-        author: "satyr",
-        argument: noun_arb_text,
-        execute: function({object: {html}}, {Bin}) {
-            let href = CmdUtils.getLocation();
-            let list = Bin[href]() || [];
-            list.push(html);
-            Bin[href](list);
-            gId = +new Date;
-        },
-        preview: function(pb, _, {Bin}) {
-            let href = CmdUtils.getLocation();
-            let list = Bin[href]();
-            if (!list) {
-                pb.innerHTML =
-                    `No memos taken for: &lt;small&gt;&lt;code&gt;${href}&lt;/code&gt;&lt;/small&gt;`;
-                return;
-            }
-            if ($("ol[data-id='" + gId + "']").length > 0) return;
-            let ol = CmdUtils.previewList(pb, list, function deleteMemo(i, ev) {
-                $(ev.target).closest("li").slideUp();
-                list.splice(i, 1);
-                Bin[href](list.length ? list : null);
-                gId = +new Date;
-            });
-            ol.setAttribute("data-id", gId);
-        },
-    });
-}
-</pre>
-<hr>
-                <div id="content" class="mw-body"><p>Authors: Aza Raskin, Blair McBride, Abimanyu Raja, Jono DiCarlo, Atul
-                    Varma, Gerrard Christensen</p>
+cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-s"><span class="pl-pds">"</span>series<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>d:/tv-shows<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to MPC-HC&gt;<span class="pl-pds">"</span></span>)</pre></div>
+    <p>That is all. The command will have the following additional arguments:</p>
+    <ul>
+        <li>what - lists available arguments.</li>
+        <li>next - open the next show in the player.</li>
+        <li>prev - open the previous show in the player.</li>
+        <li>all - pass 'd:/tv-shows' to the player.</li>
+    </ul>
+    <p>It is possible to create media commands based on a dictionary:</p>
+    <div class="highlight highlight-source-python"><pre>what_to_watch <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>formula 1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula 1 stream&gt;<span class="pl-pds">"</span></span>,
+                 <span class="pl-s"><span class="pl-pds">"</span>formula e<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula e stream&gt;<span class="pl-pds">"</span></span>}
+cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
+    <p>If player does not accept directories (as, for example, ACD See), it is possible to pass a first file in the directory specified at
+        a dictionary:</p>
+    <pre><code>what_to_stare_at = {'nature': 'd:/images/nature',
+                    'cosmos': 'd:/images/cosmos'}
+                    
+# if player is not specified, the command will use the default system application 
+# associated with the encountered file type
+cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
+</code></pre>
+    <p>Remember, that you may construct dictionaries by various ways.</p>
 </body>
 </html>

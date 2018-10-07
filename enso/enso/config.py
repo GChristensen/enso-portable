@@ -88,8 +88,9 @@ PLUGINS = ["enso.contrib.scriptotron",
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
 
-ABOUT_BOX_XML = "<p><command>Enso</command> open-source</p>" \
-    "<caption> </caption>" \
+ABOUT_BOX_XML = "<p><command>Enso</command> open-source " + ENSO_VERSION + "</p>" \
+    "" \
+    "<caption>Based on Enso Community Edition</caption><p> </p>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
     "<p>Copyright &#169; 2011-2018 <command>g/christensen</command></p>" \
@@ -110,8 +111,17 @@ COMMAND_STATE_CHANGED = False
 import os, configparser
 from ast import literal_eval
 
+ENSO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+ENSO_EXECUTABLE = os.path.join(ENSO_DIR, "run-enso")
+ENSO_USER_DIR = os.path.expanduser(os.path.join("~", ".enso"))
+
+
 # set up user modifications of the default config
-ENSO_USER_DIR = os.path.expanduser("~/.enso")
+# currently there are three places that may change variables
+# in the config module:
+# the following code, which sets variables from enso.cfg
+# ~/.ensorc file which is not available from WebUI (more secure option)
+# ~/.enso/ensorc.py (can be got/set from WebUI)
 CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
 CONFIG_SECTION = "General"
 

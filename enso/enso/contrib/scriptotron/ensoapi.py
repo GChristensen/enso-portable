@@ -46,6 +46,13 @@ class EnsoApi(object):
             seldict = { "text" : str(seldict) }
         return selection.set(seldict)
 
+    def get_enso_user_folder(self):
+        """
+        Returns the location of the Enso user configuration folder.
+        """
+        from enso import config
+        return config.ENSO_USER_DIR
+
     def get_enso_commands_folder(self):
         """
         Returns the location of the Enso scripts folder.

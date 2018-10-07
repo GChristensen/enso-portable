@@ -1,20 +1,28 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "launcher", "launcher\launcher.vcxproj", "{54FF06CA-446F-4B4C-9565-51315ED950CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Release (portable)|Win32 = Release (portable)|Win32
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Debug|Win32.ActiveCfg = Debug|Win32
 		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Debug|Win32.Build.0 = Debug|Win32
+		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Release (portable)|Win32.ActiveCfg = Release (portable)|Win32
+		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Release (portable)|Win32.Build.0 = Release (portable)|Win32
 		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Release|Win32.ActiveCfg = Release|Win32
 		{54FF06CA-446F-4B4C-9565-51315ED950CB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B68E79D-DC95-4818-9ABD-231CD117D31A}
 	EndGlobalSection
 EndGlobal

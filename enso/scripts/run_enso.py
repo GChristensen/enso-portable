@@ -5,7 +5,6 @@ import logging
 import threading
 import pythoncom
 import subprocess
-import importlib
 import win32gui
 import win32con
 
@@ -20,14 +19,9 @@ from optparse import OptionParser
 
 from win32com.shell import shell, shellcon
 
-enso_dir = os.path.dirname(os.path.realpath(__file__))
-enso_dir = os.path.dirname(enso_dir)
-
-sys.path.append(enso_dir)
-sys.path.append(os.path.join(enso_dir, "lib"))
-
-config.ENSO_EXECUTABLE = enso_executable = enso_dir + "\\run-enso"
-config.ENSO_DIR = enso_dir
+sys.path.append(config.ENSO_DIR)
+sys.path.append(os.path.join(config.ENSO_DIR, "lib"))
+sys.path.append(os.path.join(config.ENSO_USER_DIR, "lib"))
 
 def tray_on_enso_quit(systray):
     if not enso.plugin_call("retreat", "is_locked"):
@@ -66,10 +60,9 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
                 shell.IID_IShellLink
             )
 
-            shortcut.SetPath(enso_executable)
-            global enso_dir
-            shortcut.SetWorkingDirectory(enso_dir)
-            shortcut.SetIconLocation(os.path.join(enso_dir, "Enso.ico"), 0)
+            shortcut.SetPath(config.ENSO_EXECUTABLE)
+            shortcut.SetWorkingDirectory(config.ENSO_DIR)
+            shortcut.SetIconLocation(os.path.join(config.ENSO_DIR, "Enso.ico"), 0)
 
             shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
                 link_file, 0 )
@@ -89,7 +82,7 @@ def tray_on_enso_exec_at_startup(systray, get_state = False):
 def tray_on_enso_restart(systray, get_state = False):
     if not get_state:
         if not enso.plugin_call("retreat", "is_locked"):
-            subprocess.Popen([enso_executable, "--restart " + str(os.getpid())])
+            subprocess.Popen([config.ENSO_EXECUTABLE, "--restart " + str(os.getpid())])
             tray_on_enso_quit(systray)
 
 
@@ -107,7 +100,7 @@ def systray(enso_config):
     """ Tray-icon handling code. This have to be executed in its own thread
     """
 
-    enso_icon = os.path.realpath(os.path.join(enso_dir, "media", "images", \
+    enso_icon = os.path.realpath(os.path.join(config.ENSO_DIR, "media", "images", \
                                               "Enso_amethyst.ico" if config.COLOR_THEME == "amethyst" else "Enso.ico"))
 
     enso_config.SYSTRAY_ICON = SysTrayIcon(
@@ -135,7 +128,6 @@ def process_options(argv):
     #TODO: Implement more command line args
     parser.add_option("-l", "--log-level", action="store", dest="loglevel",
                       default="ERROR", help="logging level (CRITICAL, ERROR, INFO, WARNING, DEBUG)")
-
     parser.add_option("-n", "--no-splash", action="store_false", dest="show_splash",
                       default=True, help="Do not show splash window")
     parser.add_option("-c", "--no-console", action="store_false", dest="show_console",
@@ -151,13 +143,16 @@ def process_options(argv):
 
 def load_rc_config(ensorcPath):
     if os.path.exists( ensorcPath ):
-        logging.info( "Loading '%s'." % ensorcPath )
-        contents = open( ensorcPath, "r" ).read()
-        compiledContents = compile( contents + "\n", ensorcPath, "exec" )
-        allLocals = {}
-        exec(compiledContents, {}, allLocals)
-        for k, v in allLocals.items():
-            setattr(config, k, v)
+        try:
+            logging.info( "Loading '%s'." % ensorcPath )
+            contents = open( ensorcPath, "r" ).read()
+            compiledContents = compile( contents + "\n", ensorcPath, "exec" )
+            allLocals = {}
+            exec(compiledContents, {}, allLocals)
+            for k, v in allLocals.items():
+                setattr(config, k, v)
+        except Exception as e:
+            logging.exception("Error reading init file")
 
 
 def main(argv = None):
@@ -177,19 +172,20 @@ def main(argv = None):
         logging.basicConfig( level = loglevel )
     else:
         print("Hiding console")
-        print("Logging into '%s'" % os.path.join(ENSO_DIR, "enso.log"))
-        sys.stdout = open("stdout.log", "w", 0) #NullDevice()
-        sys.stderr = open("stderr.log", "w", 0) #NullDevice()
+        user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
+        print("Logging into '%s'" % user_log)
+        #sys.stdout = open(user_log, "w") #NullDevice()
+        #sys.stderr = open(user_log, "w") #NullDevice()
         logging.basicConfig(
-            filename = os.path.join(ENSO_DIR, "enso.log"),
+            filename = user_log,
             level = loglevel )
 
     if loglevel == logging.DEBUG:
         print(opts)
         print(args)
 
-#    if not opts.quiet and opts.show_splash:
-#        displayMessage("<p>Starting <command>Enso</command>...</p>")
+    user_commands = os.path.join(config.ENSO_USER_DIR, "commands", "user.py")
+    open(user_commands, 'a').close()
 
     load_rc_config(os.path.join(config.ENSO_USER_DIR, "ensorc.py"))
     load_rc_config(os.path.expanduser("~/.ensorc"))
