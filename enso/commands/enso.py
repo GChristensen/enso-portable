@@ -19,7 +19,7 @@ def cmd_enso(ensoapi, action):
     &nbsp;&nbsp- restart - restart Enso<br>
     &nbsp;&nbsp- settings - open Enso settings page<br>
     &nbsp;&nbsp- commands - open Enso command list<br>
-    &nbsp;&nbsp- scheduler - open Enso scheduler<br>
+    &nbsp;&nbsp- task - open Enso task editor<br>
     &nbsp;&nbsp- editor - open Enso command editor<br>
     &nbsp;&nbsp- about - show application information<br>
     """
@@ -40,7 +40,7 @@ def cmd_enso(ensoapi, action):
     elif action == 'commands':
         if config.ENABLE_WEB_UI:
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
-    elif action == 'scheduler':
+    elif action == 'tasks':
         if config.ENABLE_WEB_UI:
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/tasks.html")
     elif action == 'editor':

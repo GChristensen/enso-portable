@@ -61,10 +61,20 @@
             };
             xhr.open('GET', 'https://api.github.com/repos/gchristensen/enso-portable/releases/latest');
             xhr.send();
+
+            function watch() {
+                document.getElementById('placeholder').style.display='none';
+                document.getElementById('videoman').style.display='block';
+            }
         </script>
 
-        <p onclick="document.getElementById('videoman').style.display='block'; this.style.display='none'">
-            <img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" />
+        <p id="placeholder" onclick="watch()">
+            <div style="position: relative; display: table;">
+                <!--img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" /-->
+                <img title="Watch on Youtube" style="cursor: pointer;" src="https://gchristensen.github.io/enso-portable/screen.jpg" alt="screen" />
+                <div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()">
+                    <img src="https://gchristensen.github.io/youtube.png" style="vertical-align: middle; cursor: pointer;"> YouTube</div>
+            </div>
         </p>
 
         <p style="display: none" id="videoman">
@@ -76,27 +86,27 @@
         <p>SEE ALSO: <a href="https://gchristensen.github.io/ubiquitywe/">UbiquityWE</a>
         <h4>Description</h4>
         <p style="text-align: justify;">Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using
-            the <b>learn as open</b> command) and perform many other operations with text command line triggered by the CAPSLOCK key.
+            the <b>learn as open</b> command) and perform many other operations with a text command line triggered by the CAPSLOCK key.
             It's possible to create your own commands using Python programming language.
         </p>
         <p style="text-align: justify;">
-            Find more information on command authoring in the tutorial available at Enso settings pages.
+            Find more information on command authoring in the tutorial available at Enso settings pages
+            (use the tray menu or 'enso settings' command to reach them).
         </p>
         <h4>History</h4>
 
-        <p style="text-align: justify;">At first there was a propietary closed-source Enso Launcher from Humanized
+        <p style="text-align: justify;">At first there was a proprietary closed-source Enso Launcher from Humanized
             [<a href="https://web.archive.org/web/20140701081042/http://humanized.com/" rel="nofollow">web archive</a>]
-            (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open-source
+            (the guys who also created Ubiquity). This version was extensible by many programming languages, but someday it went open (Enso Community Edition)
             and became extensible only by python [<a href="https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page" rel="nofollow"
-            >web archive of community enso</a>].
-            By some reasons it has also ceased.</p>
+            >web archive of community enso</a>]. By some reasons it has also ceased.</p>
+        <p>At the moment <b>Enso open-source</b> is the most feature-rich descendant of <b>Enso Community Edition</b> you can find out there.</p>
 
         <h4>Known Issues</h4>
         <ul>
-            <li>The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the `capslock toggle' command to flip CAPSLOCK state if it's wrong).
+            <li>The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state if it's wrong).
                 Enso also may spontaneously stuck if some system event that grabs input is triggered.</li>
-            <li><g-emoji class="g-emoji" alias="red_circle" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f534.png">🔴</g-emoji>
-                Some security tools may consider <b>run-enso.exe</b> as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.</li>
+            <li>Some security tools may consider <b>run-enso.exe</b> as a potentially unwanted program. These are false-positive claims since the launcher uses API needed to run other programs.</li>
         </ul>
     </section>
     <footer>

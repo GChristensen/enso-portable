@@ -35,7 +35,7 @@ SetCompressor LZMA
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_RUN "$INSTDIR\run-enso.exe"
+#!define MUI_FINISHPAGE_RUN "$INSTDIR\run-enso.exe"
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -127,7 +127,6 @@ Section /o "Portable installation" Section_portable
     File enso\enso-portable.exe
 
     Delete run-enso.exe
-    Delete uninstall.exe
 SectionEnd
 
 

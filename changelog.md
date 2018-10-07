@@ -1,3 +1,10 @@
+##### 07.09.2018 (v.0.4.0)
+
+* Added UbiquityWE-styled settings pages.
+* Added ability to disable separate commands.
+* Added 'Tasks' feature.
+* The most actual information on command authoring is moved to the tutorial at Enso settings. 
+
 ##### 04.09.2018 (v.0.3.0)
 
 * Angelic Retreat is now Enso Retreat (an optional Enso module).

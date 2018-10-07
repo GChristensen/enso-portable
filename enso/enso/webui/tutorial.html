@@ -200,8 +200,11 @@
     <p>Python's standard <code>import</code> statement can be used from command
         scripts, of course. But the disadvantage of doing this with evolving
         code is that imported modules won't be reloaded
-        if their contents change. If you need to import some code that is not installable as a Python module,
-        place it at the 'lib' folder under your Enso configuration directory (available at settings).</p>
+        if their contents change.<br>
+        It's possible to install or uninstall necessary Python libraries from <a href="https://pypi.org/">PyPi</a>
+        using 'enso install' and 'enso uninstall' commands respectively.<br>
+        If you need to import some code that is not installable as a Python module,
+        place it at the 'lib' folder under your Enso configuration directory (available at Enso settings).</p>
 
     <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
     <p>Mediaprobes allow to create commands that automatically pass items found in the filesystem (or specified
