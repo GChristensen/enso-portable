@@ -41,7 +41,7 @@ The original source code of **Enso Community Edition** could be found here:
 #### Additional functionality not found in the original Enso
 
 * Python 3 support.
-* Setting pages with built-in command editor.
+* Option pages with built-in command editor.
 * Ability to disable commands.
 * It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
 * Mediaprobes.
