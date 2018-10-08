@@ -11,11 +11,10 @@ SEE ALSO: [Ubiquity WebExtension](https://github.com/GChristensen/ubiquitywe#rea
 
 Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using the 
 `learn as open' command) and perform many other operations with a text command line 
-triggered by the CAPSLOCK key. It's possible to create your own commands using Python 
+triggered by the CAPSLOCK key. It's possible to create your own commands in Python 
 programming language.
 
-Find more information on command authoring in the tutorial available at Enso settings pages
-(use the tray menu or 'enso settings' command to reach them).
+Find more information on command authoring in the tutorial available at Enso settings pages.
 
 
 #### History
