@@ -1,5 +1,5 @@
 !define APPNAME "Enso open-source"
-!define VERSION "0.4.0"
+!define VERSION "0.4.1"
 
 !include LogicLib.nsh
 
@@ -59,6 +59,9 @@ Section "Enso open-source" Section_enso
     File enso\debug.bat
     File enso\run-enso.exe
 
+    SetOutPath "$INSTDIR\lib"
+    File enso\lib\SendKeys.py
+
     SetOutPath "$INSTDIR\commands"
     File enso\commands\calc.py
     File enso\commands\enso.py
@@ -85,9 +88,14 @@ Section "Winamp" Section_winamp
     File enso\commands\winamp.py
 SectionEnd
 
+Section "Web search" Section_websearch
+    SetOutPath "$INSTDIR\commands"
+    File enso\commands\web_search.py
+SectionEnd
+
 Section /o "Media Player Classic" Section_mpc
     SetOutPath "$INSTDIR"
-    File /r enso\lib
+    File /r  /x __pycache__ enso\lib
     SetOutPath "$INSTDIR\commands"
     File enso\commands\mpc.py
 SectionEnd
@@ -183,6 +191,7 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_system} "'terminate' command that allows to end system processes"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_session} "Windows session management: logout, restart, hibernate..."
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_winamp} "Control WinAmp or foobar2000 from Enso"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_websearch} "Web search commands"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_mpc} "Send commands to Media Player Classic (requires MPC Web UI to be enabled)"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_idgen} "Generate random numbers or UUIDs"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software"
