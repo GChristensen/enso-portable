@@ -57,6 +57,10 @@ Enso also may spontaneously stuck if some system event that grabs input is trigg
 #### Change Log
 [full changelog](changelog.md)
 
+##### 09.09.2018 (v.0.4.1)
+
+* Restored web search commands.
+
 ##### 07.09.2018 (v.0.4.0)
 
 * Added UbiquityWE-styled settings pages.

@@ -1,3 +1,7 @@
+##### 09.09.2018 (v.0.4.1)
+
+* Restored web search commands.
+
 ##### 07.09.2018 (v.0.4.0)
 
 * Added UbiquityWE-styled settings pages.
