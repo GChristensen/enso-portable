@@ -42,8 +42,19 @@
 
 from .TransparentWindow import TransparentWindow
 
-# Aliases to external names.
-from .TransparentWindow import _getDesktopSize as getDesktopSize
+# Aliases to external names. Not using implementation in C from TransparentWindow.cxx in favor of python ctypes implementation.
+# from .TransparentWindow import _getDesktopSize as getDesktopSize
+# from .TransparentWindow import _getDesktopOffset as getDesktopOffset
+
+from ctypes import windll
+from ctypes import wintypes, byref
+SPI_GETWORKAREA = 48
+SystemParametersInfo = windll.user32.SystemParametersInfoA
+rectWorkarea = wintypes.RECT()
+SystemParametersInfo(SPI_GETWORKAREA, 0, byref(rectWorkarea), 0)
+
+def getDesktopSize():
+    return ( (rectWorkarea.right - rectWorkarea.left), (rectWorkarea.bottom - rectWorkarea.top) )
 
 def getDesktopOffset():
-    return (0, 0)
+    return (rectWorkarea.left, rectWorkarea.top)

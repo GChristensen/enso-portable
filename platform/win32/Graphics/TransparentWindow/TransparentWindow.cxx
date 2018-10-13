@@ -619,8 +619,10 @@ _getDesktopSize( int *width,
     if ( GetWindowRect(hWndDesktop, &desktopRect) == 0 )
         throw FatalError( "Couldn't get desktop window size." );
 
-    *width = desktopRect.right;
-    *height = desktopRect.bottom;    
+    int widthRightMinusLeft = *desktopRect.right - *desktopRect.left;
+    int heightBottomMinusTop = *desktopRect.bottom - *desktopRect.top;
+    *width = &widthRightMinusLeft;
+    *height = &heightBottomMinusTop;
 }
 
 /* ------------------------------------------------------------------------
@@ -632,14 +634,13 @@ void
 _getDesktopOffset( int *left,
                  int *top )
 {
-    //HWND hWndDesktop = GetDesktopWindow();
-    //RECT desktopRect;
+    HWND hWndDesktop = GetDesktopWindow();
+    RECT desktopRect;
 
-    //if ( GetWindowRect(hWndDesktop, &desktopRect) == 0 )
-    //    throw FatalError( "Couldn't get desktop window size." );
+    if ( GetWindowRect(hWndDesktop, &desktopRect) == 0 )
+       throw FatalError( "Couldn't get desktop window size." );
 
-    //TODO: IMplement desktop offset
-    *left = 0;
-    *top = 0;
+    *left = desktopRect.left;
+    *top = desktopRect.top;
 }
 
