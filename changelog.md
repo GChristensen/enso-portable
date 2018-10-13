@@ -1,3 +1,7 @@
+##### 13.09.2018 (v.0.4.2)
+
+* Added APPEAR_OVER_TASKBAR custom initialization option, see the main site for details.
+
 ##### 09.09.2018 (v.0.4.1)
 
 * Restored web search commands.

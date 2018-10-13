@@ -57,16 +57,9 @@ Enso also may spontaneously stuck if some system event that grabs input is trigg
 #### Change Log
 [full changelog](changelog.md)
 
-##### 09.09.2018 (v.0.4.1)
+##### 13.09.2018 (v.0.4.2)
 
-* Restored web search commands.
-
-##### 07.09.2018 (v.0.4.0)
-
-* Added UbiquityWE-styled settings pages.
-* Added ability to disable separate commands.
-* Added 'Tasks' feature.
-* The most actual information on command authoring is moved to the tutorial at Enso settings. 
+* Added APPEAR_OVER_TASKBAR custom initialization option, see the main site for details.
 
 #### Contributors
 
