@@ -222,8 +222,8 @@ def _getDesktopSize():
     return _TransparentWindow._getDesktopSize()
 _getDesktopSize = _TransparentWindow._getDesktopSize
 
-def _getDesktopOffset(left, top):
-    return _TransparentWindow._getDesktopOffset(left, top)
+def _getDesktopOffset():
+    return _TransparentWindow._getDesktopOffset()
 _getDesktopOffset = _TransparentWindow._getDesktopOffset
 # This file is compatible with both classic and new-style classes.
 

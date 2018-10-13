@@ -73,7 +73,7 @@ class TextWindow:
         left, top = graphics.getDesktopOffset()
 
         xPos, yPos = position
-        self.__window = TransparentWindow(xPos + left, yPos, width, height )
+        self.__window = TransparentWindow(xPos + left, yPos + top, width, height )
         self.__context = self.__window.makeCairoContext()
         
 

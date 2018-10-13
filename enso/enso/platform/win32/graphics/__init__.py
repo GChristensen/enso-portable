@@ -39,11 +39,17 @@
 # Imports
 # ----------------------------------------------------------------------------
 
+from enso import config
 
 from .TransparentWindow import TransparentWindow
 
 # Aliases to external names.
 from .TransparentWindow import _getDesktopSize as getDesktopSize
+from .TransparentWindow import _getDesktopOffset
+
 
 def getDesktopOffset():
-    return (0, 0)
+    if config.APPEAR_OVER_TASKBAR:
+        return (0, 0)
+    else:
+        return _getDesktopOffset()

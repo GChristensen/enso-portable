@@ -55,6 +55,7 @@ static Pycairo_CAPI_t *Pycairo_CAPI = 0;
 /* Convert these two output parameters to a Python tuple. */
 %include "typemaps.i"
 %apply int *OUTPUT { int *width, int *height };
+%apply int *OUTPUT { int *left, int *top };
 
 /* Use the TransparentWindow's header file to define our Python
  * interface. */

@@ -45,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "GlobalConstants.h"
 
 
+#include <stdio.h>
+
 /* ***************************************************************************
  * Module Variables
  * **************************************************************************/
@@ -632,14 +634,12 @@ void
 _getDesktopOffset( int *left,
                  int *top )
 {
-    //HWND hWndDesktop = GetDesktopWindow();
-    //RECT desktopRect;
+    RECT rectWorkArea;
 
-    //if ( GetWindowRect(hWndDesktop, &desktopRect) == 0 )
-    //    throw FatalError( "Couldn't get desktop window size." );
+    if ( SystemParametersInfo(SPI_GETWORKAREA, 0, &rectWorkArea, 0) == 0 )
+        throw FatalError( "Couldn't get desktop window size." );
 
-    //TODO: IMplement desktop offset
-    *left = 0;
-    *top = 0;
+    *left = rectWorkArea.left;
+    *top = rectWorkArea.top;
 }
 

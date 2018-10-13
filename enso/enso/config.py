@@ -3,13 +3,17 @@
 # such strings).
 
 # Enso version for use in UI
-ENSO_VERSION = "0.4.1"
+ENSO_VERSION = "0.4.2"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
 
 # Enso color theme
 COLOR_THEME = "green"
+
+# Defines should Enso take into account the top- or left- positioned
+# Windows taskbar, it appears atop of the taskbar by default.
+APPEAR_OVER_TASKBAR = True
 
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
