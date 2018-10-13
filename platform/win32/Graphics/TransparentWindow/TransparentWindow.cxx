@@ -619,8 +619,8 @@ _getDesktopSize( int *width,
     if ( GetWindowRect(hWndDesktop, &desktopRect) == 0 )
         throw FatalError( "Couldn't get desktop window size." );
 
-    *width = desktopRect.right;
-    *height = desktopRect.bottom;    
+    *width = desktopRect.right - desktopRect.left;
+    *height = desktopRect.bottom - desktopRect.top;
 }
 
 /* ------------------------------------------------------------------------
