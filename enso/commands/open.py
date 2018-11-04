@@ -11,11 +11,19 @@ import win32process
 import pythoncom
 import logging
 
+import xml.etree.ElementTree as etree
+import ctypes as ct
+
+import subprocess
 
 unlearn_open_undo = []
 
 my_documents_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
 LEARN_AS_DIR = os.path.join(os.path.expanduser("~"), ".enso", "commands", "learned")
+
+SHLoadIndirectString = ct.windll.shlwapi.SHLoadIndirectString
+SHLoadIndirectString.argtypes = [ct.c_wchar_p, ct.c_wchar_p, ct.c_uint, ct.POINTER(ct.c_void_p)]
+SHLoadIndirectString.restype = ct.HRESULT
 
 # Check if Learn-as dir exist and create it if not
 if (not os.path.isdir(LEARN_AS_DIR)):
@@ -313,6 +321,133 @@ class PyInternetShortcut(_PyShortcut):
         )
         _PyShortcut.__init__(self, base)
 
+class AppXPackage(object):
+    """Represents a windows app package
+    """
+
+    def __init__(self, property_dict):
+        """Sets needed properties from the dict as member
+        """
+        # for key, value in property_dict.items():
+        #     setattr(self, key, value)
+
+        self.Name = property_dict["Name"] if "Name" in property_dict else None
+        self.InstallLocation = property_dict["InstallLocation"] if "InstallLocation" in property_dict else None
+        self.PackageFamilyName = property_dict["PackageFamilyName"] if "PackageFamilyName" in property_dict else None
+        self.applications = []
+
+    def apps(self):
+        if not self.applications:
+            self.applications = self._get_applications()
+        return self.applications
+
+    def _get_applications(self):
+        """Reads the manifest of the package and extracts name, description, applications and logos
+        """
+        manifest_path = os.path.join(self.InstallLocation, "AppxManifest.xml")
+        if not os.path.isfile(manifest_path):
+            return []
+        manifest = etree.parse(manifest_path)
+        ns = {"default": re.sub(r"\{(.*?)\}.+", r"\1", manifest.getroot().tag)}
+
+        package_applications = manifest.findall("./default:Applications/default:Application", ns)
+        if not package_applications:
+            return []
+
+        apps = []
+
+        package_identity = None
+        package_identity_node = manifest.find("./default:Identity", ns)
+        if package_identity_node is not None:
+            package_identity = package_identity_node.get("Name")
+
+        description = None
+        description_node = manifest.find("./default:Properties/default:Description", ns)
+        if description_node is not None:
+            description = description_node.text
+
+        display_name = None
+        display_name_node = manifest.find("./default:Properties/default:DisplayName", ns)
+        if display_name_node is not None:
+            display_name = display_name_node.text
+
+        icon_path = None
+        logo_node = manifest.find("./default:Properties/default:Logo", ns)
+        if logo_node is not None:
+            logo = logo_node.text
+            icon_path = os.path.join(self.InstallLocation, logo)
+
+        for application in package_applications:
+            if display_name and display_name.startswith("ms-resource:"):
+                resource = self._get_resource(self.InstallLocation, package_identity, display_name)
+                if resource is not None:
+                    display_name = resource
+                else:
+                    continue
+
+            if description and description.startswith("ms-resource:"):
+                resource = self._get_resource(self.InstallLocation, package_identity, description)
+                if resource is not None:
+                    description = resource
+                else:
+                    continue
+
+            apps.append(AppX("shell:AppsFolder\{}!{}".format(self.PackageFamilyName, application.get("Id")),
+                             display_name,
+                             description,
+                             icon_path))
+        return apps
+
+    @staticmethod
+    def _get_resource(install_location, package_id, resource):
+        """Helper method to resolve resource strings to their (localized) value
+        """
+        try:
+            resource_descriptor = None
+            if resource.startswith("ms-resource:/"):
+                resource_descriptor = "@{{{}\\resources.pri? {}}}".format(install_location,
+                                                                          resource)
+            elif resource.startswith("ms-resource:"):
+                resource_descriptor = "@{{{}\\resources.pri? ms-resource://{}/resources/{}}}".format(install_location,
+                                                                                                     package_id,
+                                                                                                     resource[len("ms-resource:"):])
+            if resource_descriptor is None:
+                return None
+
+            inp = ct.create_unicode_buffer(resource_descriptor)
+            output = ct.create_unicode_buffer(1024)
+            result = SHLoadIndirectString(inp, output, ct.sizeof(output), None)
+            if result == 0:
+                return output.value
+            else:
+                return None
+        except OSError:
+            pass
+
+        try:
+            resource_descriptor = "@{{{}\\resources.pri? ms-resource://{}}}".format(install_location,
+                                                                                    resource[len("ms-resource:"):])
+            input = ct.create_unicode_buffer(resource_descriptor)
+            output = ct.create_unicode_buffer(1024)
+            result = SHLoadIndirectString(inp, output, ct.sizeof(output), None)
+            if result == 0:
+                return output.value
+            else:
+                return None
+        except OSError:
+            pass
+
+        return None
+
+
+class AppX(object):
+    """Represents an executable application from a windows app package
+    """
+    def __init__(self, execution=None, display_name=None, description=None, icon_path=None):
+        self.execution = execution
+        self.display_name = display_name
+        self.description = description
+        self.icon_path = icon_path
 
 def expand_path_variables(file_path):
     import re
@@ -421,6 +556,37 @@ def get_shortcuts(directory):
                 shortcuts.append((shortcut_type, name.lower(), shortcut_path))
     return shortcuts
 
+def get_universal_windows_apps():
+    shortcuts = []
+
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    output, err = subprocess.Popen(["powershell.exe",
+                                    "mode con cols=512; Get-AppxPackage"],
+                                    stdout=subprocess.PIPE,
+                                    universal_newlines=True,
+                                    shell=False,
+                                    startupinfo=startupinfo).communicate()
+
+
+    # packages a separated by a double newline within the output
+    for package in output.strip().split("\n\n"):
+        # collect all the properties into a dict
+        props = {}
+        for line in package.splitlines():
+            idx = line.index(":")
+            key = line[:idx].strip()
+            value = line[idx+1:].strip()
+            props[key] = value
+
+        app = AppXPackage(props)
+
+        apps = app.apps()
+
+        if apps:
+            shortcuts.append((SHORTCUT_TYPE_DOCUMENT, apps[0].display_name.lower(), apps[0].execution))
+
+    return shortcuts
 
 def reload_shortcuts_map():
     desktop_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOPDIRECTORY, 0, 0)
@@ -433,11 +599,13 @@ def reload_shortcuts_map():
     common_start_menu_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_STARTMENU, 0, 0)
     #control_panel = shell.SHGetFolderPath(0, shellcon.CSIDL_CONTROLS, 0, 0)
 
+
     shortcuts = get_shortcuts(LEARN_AS_DIR) + \
         get_shortcuts(desktop_dir) + \
         get_shortcuts(quick_launch_dir) + \
         get_shortcuts(start_menu_dir) + \
         get_shortcuts(common_start_menu_dir) + \
+        get_universal_windows_apps() + \
         control_panel_applets
 
     return dict((s[1], s) for s in shortcuts)
