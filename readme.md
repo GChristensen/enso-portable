@@ -35,7 +35,7 @@ At the moment <b>Enso open-source</b> is the most feature-rich descendant of <b>
 #### Background
 
 The original source code of **Enso Community Edition** could be found here:
-[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the full original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
+[https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
 #### Additional functionality not found in the original Enso
 
