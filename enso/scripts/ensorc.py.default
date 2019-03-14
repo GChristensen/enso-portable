@@ -1,0 +1,6 @@
+# Load Universal Windows Platform Apps
+LOAD_UWP_APPS = True
+# Determines should the Quasimode be sticky
+IS_QUASIMODE_MODAL = True
+# Useful if you have a top- or left- positioned Windows taskbar
+APPEAR_OVER_TASKBAR = True

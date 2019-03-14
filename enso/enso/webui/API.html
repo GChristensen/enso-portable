@@ -71,7 +71,7 @@
     <h2>mediaprobe module functions</h2>
     <h3><a class="anchor" aria-hidden="true" href="#"></a>dictionary_probe(category, dictionary, player="", all="", findfirst=False)</h3>
     <blockquote>
-        <p>Sends values found in the dictionary to the <b>player</b> by the corresponding arguments.<br><br>
+        <p>Sends values found in the dictionary to the <b>player</b>. Obtains command arguments from the dictionary entries.<br><br>
             The <b>category</b> parameter specifies the name of the generated command argument.<br>
             If <b>findfirst</b> is true and the dictionary item value is a directory path, the first file found
             in the directory is sent into the player instead of the item.<br>
@@ -81,15 +81,15 @@
 
     <h3><a class="anchor" aria-hidden="true" href="#"></a>directory_probe(category, directory, player="", additional=None)</h3>
     <blockquote>
-        <p>Sends directory entries found in the <b>directory</b> to <b>player</b>. Makes command arguments from the directory entries.<br><br>
+        <p>Sends directory entries found in the <b>directory</b> to <b>player</b>. Obtains command arguments from the directory entries.<br><br>
             The <b>category</b> parameter specifies the name of the generated command argument.<br>
             The <b>additional</b> function parameter allows to create additional command argument values (from a supplied dictionary), not found in the <b>directory</b>.</p>
     </blockquote>
 
     <h3><a class="anchor" aria-hidden="true" href="#"></a>findfirst_probe(category, dictionary, player="")</h3>
     <blockquote>
-        <p>Uses the default shell program to open a first <i>file</i> in the <b>directory</b>, or uses the <b>player</b> if specified.<br><br>
-            The <b>category</b> parameter specifies the name of the generated command argument.<br></p>
+        <p>Uses the default shell program to open a first <i>file</i> in the <b>directory</b>; uses the <b>player</b> if given. Obtains command arguments from the directory entries.<br><br>
+            The <b>category</b> parameter stets the name of the generated command argument.<br></p>
     </blockquote>
 </body>
 </html>

@@ -7,6 +7,7 @@ import pythoncom
 import subprocess
 import win32gui
 import win32con
+import shutil
 
 import enso
 from enso import webui
@@ -194,7 +195,14 @@ def main(argv = None):
 
     open(user_commands, 'a').close()
 
-    load_rc_config(os.path.join(config.ENSO_USER_DIR, "ensorc.py"))
+    default_enso_rc = os.path.join(config.ENSO_USER_DIR, "ensorc.py")
+    if not os.path.exists( default_enso_rc ):
+        shutil.copyfile(os.path.join(config.ENSO_DIR, "scripts", "ensorc.py.default"),
+                        os.path.join(config.ENSO_USER_DIR, "ensorc.py"))
+
+    load_rc_config(default_enso_rc)
+
+    # legacy ensorc, currently undocumented
     load_rc_config(os.path.expanduser("~/.ensorc"))
 
     if opts.show_tray_icon:

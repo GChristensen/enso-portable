@@ -1,5 +1,7 @@
 from win32comext.shell import shell, shellcon
 from enso.platform.win32.scriptfolder import get_script_folder_name
+from enso import config
+
 import os
 import glob
 import operator
@@ -13,7 +15,6 @@ import logging
 
 import xml.etree.ElementTree as etree
 import ctypes as ct
-
 import subprocess
 
 unlearn_open_undo = []
@@ -362,9 +363,9 @@ class AppXPackage(object):
             package_identity = package_identity_node.get("Name")
 
         description = None
-        description_node = manifest.find("./default:Properties/default:Description", ns)
-        if description_node is not None:
-            description = description_node.text
+        # description_node = manifest.find("./default:Properties/default:Description", ns)
+        # if description_node is not None:
+        #     description = description_node.text
 
         display_name = None
         display_name_node = manifest.find("./default:Properties/default:DisplayName", ns)
@@ -372,10 +373,10 @@ class AppXPackage(object):
             display_name = display_name_node.text
 
         icon_path = None
-        logo_node = manifest.find("./default:Properties/default:Logo", ns)
-        if logo_node is not None:
-            logo = logo_node.text
-            icon_path = os.path.join(self.InstallLocation, logo)
+        # logo_node = manifest.find("./default:Properties/default:Logo", ns)
+        # if logo_node is not None:
+        #     logo = logo_node.text
+        #     icon_path = os.path.join(self.InstallLocation, logo)
 
         for application in package_applications:
             if display_name and display_name.startswith("ms-resource:"):
@@ -385,12 +386,12 @@ class AppXPackage(object):
                 else:
                     continue
 
-            if description and description.startswith("ms-resource:"):
-                resource = self._get_resource(self.InstallLocation, package_identity, description)
-                if resource is not None:
-                    description = resource
-                else:
-                    continue
+            # if description and description.startswith("ms-resource:"):
+            #     resource = self._get_resource(self.InstallLocation, package_identity, description)
+            #     if resource is not None:
+            #         description = resource
+            #     else:
+            #         continue
 
             apps.append(AppX("shell:AppsFolder\{}!{}".format(self.PackageFamilyName, application.get("Id")),
                              display_name,
@@ -559,32 +560,41 @@ def get_shortcuts(directory):
 def get_universal_windows_apps():
     shortcuts = []
 
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    output, err = subprocess.Popen(["powershell.exe",
-                                    "mode con cols=512; Get-AppxPackage"],
-                                    stdout=subprocess.PIPE,
-                                    universal_newlines=True,
-                                    shell=False,
-                                    startupinfo=startupinfo).communicate()
+    if not config.LOAD_UWP_APPS:
+        return []
+
+    try:
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        output, err = subprocess.Popen(["powershell.exe",
+                                        "mode con cols=512; Get-AppxPackage"],
+                                        stdout=subprocess.PIPE,
+                                        universal_newlines=True,
+                                        shell=False,
+                                        startupinfo=startupinfo).communicate()
 
 
-    # packages a separated by a double newline within the output
-    for package in output.strip().split("\n\n"):
-        # collect all the properties into a dict
-        props = {}
-        for line in package.splitlines():
-            idx = line.index(":")
-            key = line[:idx].strip()
-            value = line[idx+1:].strip()
-            props[key] = value
+        # packages a separated by a double newline within the output
+        for package in output.strip().split("\n\n"):
+            # collect all the properties into a dict
+            props = {}
+            try:
+                for line in package.splitlines():
+                    idx = line.index(":")
+                    key = line[:idx].strip()
+                    value = line[idx+1:].strip()
+                    props[key] = value
+            except Exception as e:
+                logging.error(e)
 
-        app = AppXPackage(props)
+            app = AppXPackage(props)
 
-        apps = app.apps()
+            apps = app.apps()
 
-        if apps:
-            shortcuts.append((SHORTCUT_TYPE_DOCUMENT, apps[0].display_name.lower(), apps[0].execution))
+            if apps:
+                shortcuts.append((SHORTCUT_TYPE_DOCUMENT, apps[0].display_name.lower(), apps[0].execution))
+    except Exception as e:
+        logging.error(e)
 
     return shortcuts
 

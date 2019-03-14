@@ -57,12 +57,14 @@ Enso also may spontaneously stuck if some system event that grabs input is trigg
 #### Change Log
 [full changelog](changelog.md)
 
-##### 13.09.2018 (v.0.4.2)
+##### 14.03.2019 (v.0.4.3)
 
-* Added APPEAR_OVER_TASKBAR custom initialization option, see the main site for details.
+* Added UWP application support (based on commit by Mark Wiseman).
+* Added some common initialization variables to settings page configuration block.
 
 #### Contributors
 
 * [Brian Peiris](https://github.com/brianpeiris)
 * [thdoan](https://github.com/thdoan)
 * [Caleb John](https://github.com/CalebJohn)
+* [Mark Wiseman](https://github.com/mawiseman)

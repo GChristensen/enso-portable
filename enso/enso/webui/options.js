@@ -79,15 +79,7 @@ function onDocumentLoad() {
     editor.renderer.setShowGutter(false);
 
 
-    var ensorc_help = `# Custom Python code needed to initialize Enso.
-# Some commands may ask you to declare variables here.
-# You can access variables declared at this block 
-# in your own commands through the 'config' module.
-# For example, you can obtain the following variable:
-MY_VARIABLE = "my value"
-# with the following code in your command:
-from enso import config
-my_value = config.MY_VARIABLE`;
+    var ensorc_help = ``;
 
     $.ajax({
         url: '/api/enso/get/ensorc',
@@ -97,89 +89,31 @@ my_value = config.MY_VARIABLE`;
                 data = data.trim();
                 if (data)
                     editor.getSession().setValue(data);
-                else
-                    editor.getSession().setValue(ensorc_help);
+                // else
+                //     editor.getSession().setValue(ensorc_help);
             }
-            else
-                editor.getSession().setValue(ensorc_help);
+            // else
+            //     editor.getSession().setValue(ensorc_help);
         },
         error: function(data) {
             editor.getSession().setValue(ensorc_help)
         }
     });
 
-    editor.on("focus", function (event) {
-        if (editor.getSession().getValue() === ensorc_help)
-            editor.getSession().setValue("");
-    });
+    // editor.on("focus", function (event) {
+    //     if (editor.getSession().getValue() === ensorc_help)
+    //         editor.getSession().setValue("");
+    // });
 
     editor.on("blur", function (event) {
         var ensorc = editor.getSession().getValue();
-        if (ensorc !== ensorc_help) {
+        //if (ensorc !== ensorc_help) {
             $.ajax({
                 url: '/api/enso/set/ensorc',
                 type: 'POST',
                 data: {ensorc: ensorc}});
-            if (!ensorc)
-                editor.getSession().setValue(ensorc_help);
-        }
+            //if (!ensorc)
+            //    editor.getSession().setValue(ensorc_help);
+        //}
     });
-
-
-    // $("#export-settings").mouseover((e) => {
-    //     chrome.storage.local.get(undefined, (settings) => {
-    //         let exported = {};
-    //         Object.assign(exported, settings);
-    //         exported.version = CmdUtils.VERSION;
-    //
-    //         Utils.getCustomScripts(all_scripts => {
-    //             exported.customScripts = all_scripts;
-    //
-    //             var file = new Blob([JSON.stringify(exported, null, 2)], {type: "application/json"});
-    //             e.target.href = URL.createObjectURL(file);
-    //             e.target.download = "ensouity.json";
-    //         });
-    //     });
-    // });
-    //
-    // $("#import-settings").click((e) => {
-    //     e.preventDefault();
-    //     $("#file-picker").click();
-    // });
-    //
-    // $("#file-picker").change((e) => {
-    //     if (e.target.files.length > 0) {
-    //         let reader = new FileReader();
-    //         reader.onload = function(re) {
-    //             let imported = JSON.parse(re.target.result);
-    //
-    //             // versioned operations here
-    //
-    //             if (imported.version)
-    //                 delete imported.version;
-    //
-    //             let customScripts = imported.customScripts;
-    //
-    //             if (customScripts !== undefined)
-    //                 delete imported.customScripts;
-    //
-    //             chrome.storage.local.set(imported);
-    //
-    //             if (customScripts && typeof customScripts === "object") {
-    //                 let multipleObjects = [];
-    //                 try {
-    //                     multipleObjects = Object.values(customScripts).map(scripts =>
-    //                         Utils.saveCustomScripts(scripts.namespace, scripts.scripts));
-    //                 }
-    //                 catch (e) {
-    //                     console.error(e);
-    //                 }
-    //                 Promise.all(multipleObjects).then(() => chrome.runtime.reload());
-    //             }
-    //             else
-    //                 chrome.runtime.reload();
-    //         };
-    //         reader.readAsText(e.target.files[0]);
-    //     }
-    // });
 }

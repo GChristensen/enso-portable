@@ -3,7 +3,7 @@
 # such strings).
 
 # Enso version for use in UI
-ENSO_VERSION = "0.4.2"
+ENSO_VERSION = "0.4.3"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
@@ -14,6 +14,9 @@ COLOR_THEME = "green"
 # Defines should Enso take into account the top- or left- positioned
 # Windows taskbar, it appears atop of the taskbar by default.
 APPEAR_OVER_TASKBAR = True
+
+# Load Windows Universal Platform Apps
+LOAD_UWP_APPS = True
 
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
@@ -97,7 +100,7 @@ ABOUT_BOX_XML = "<p><command>Enso</command> open-source " + ENSO_VERSION + "</p>
     "<caption>Based on Enso Community Edition</caption><p> </p>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
-    "<p>Copyright &#169; 2011-2018 <command>g/christensen</command></p>" \
+    "<p>Copyright &#169; 2011-2019 <command>g/christensen</command></p>" \
     "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
 

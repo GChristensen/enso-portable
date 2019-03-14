@@ -1,4 +1,9 @@
-var scriptNamespace = window.location.search? decodeURI(window.location.search.substring(1)): "user";
+
+lastNamespace = localStorage.getItem("lastNamespace");
+
+scriptNamespace =  window.location.search
+        ? decodeURI(window.location.search.substring(1))
+        : (lastNamespace? lastNamespace: "user");
 
 function insertExampleStub() {
     var stubs = {
@@ -70,8 +75,11 @@ $(() => {
     }
 
     $("#script-namespaces").change(() => {
+
+
         saveScripts(() => {
             scriptNamespace = $("#script-namespaces").val();
+            localStorage.setItem("lastNamespace", scriptNamespace);
             editNamespaceScripts(scriptNamespace);
         });
     });
