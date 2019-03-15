@@ -1,7 +1,3 @@
-distrib:
-	rm -f enso-portable.zip
-	7za a enso-portable.zip enso/* -xr!__pycache__
-
 .PHONY: platform
 platform:
 	cd platform; scons.bat

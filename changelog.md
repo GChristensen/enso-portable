@@ -1,11 +1,11 @@
 ##### 14.03.2019 (v.0.4.3)
 
-* Added UWP application support (based on commit by Mark Wiseman).
+* Added UWP application support (based on the commit by Mark Wiseman).
 * Added some common initialization variables to settings page configuration block.
 
 ##### 13.09.2018 (v.0.4.2)
 
-* Added APPEAR_OVER_TASKBAR custom initialization option, see the main site for details.
+* Added APPEAR_OVER_TASKBAR custom initialization option.
 
 ##### 09.09.2018 (v.0.4.1)
 
@@ -43,7 +43,7 @@
 
 * Fixed `go' command
 * CapsLock key works instantly after start
-* Removed resource-consuming currency conversion from calculate command
+* Removed resource-consuming currency conversion from the calculate command
 * Removed web-search commands
 
 ##### 01.09.2018
