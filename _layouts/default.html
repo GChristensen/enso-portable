@@ -69,18 +69,16 @@
                 // videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
                 //                    + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
 
-                var video = document.getElementById('webm');
-                video.style.display='block';
+                document.getElementById('webm').style.display='block';
+                var video = document.querySelector('#webm video');
                 video.play();
-                // videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
-                //                    + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
             }
 
             setTimeout(function() {
                 watch();
                 setTimeout(function() {
-                    document.getElementById('placeholder').style.display='block';
                     document.getElementById('webm').style.display='none';
+                    document.getElementById('placeholder').style.display='block';
                 }, 12000)
             }, 5000);
         </script>
