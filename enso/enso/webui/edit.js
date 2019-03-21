@@ -1,10 +1,4 @@
 
-lastNamespace = localStorage.getItem("lastNamespace");
-
-scriptNamespace =  window.location.search
-        ? decodeURI(window.location.search.substring(1))
-        : (lastNamespace? lastNamespace: "user");
-
 function insertExampleStub() {
     var stubs = {
         'insertsimplecommandstub':
@@ -53,6 +47,12 @@ function saveScripts(callback) {
 }
 
 $(() => {
+    lastNamespace = localStorage.getItem("lastNamespace");
+
+    scriptNamespace =  window.location.search
+        ? decodeURI(window.location.search.substring(1))
+        : (lastNamespace? lastNamespace: "user");
+
 
     editor = ace.edit("code");
     editor.setTheme("ace/theme/monokai");

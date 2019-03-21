@@ -13,7 +13,7 @@ the following command at the repository root:
 python enso/scripts/run_enso.py -l INFO
 </pre>
 You need to place a Python interpreter (with all required dependencies preinstalled)
-under /enso/python to use `debug.bat`, `/enso/run-enso.exe` or `/enso/enso-portable.exe`. 
+under /enso/python to use `/enso/debug.bat`, `/enso/run-enso.exe` or `/enso/enso-portable.exe`. 
 
 #### Required dependencies
 

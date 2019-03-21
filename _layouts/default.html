@@ -63,24 +63,42 @@
             xhr.send();
 
             function watch() {
-                //document.getElementById('placeholder').style.display='none';
-                var videoman = document.getElementById('videoman');
-                videoman.style.display='block';
-                videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
-                                   + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
+                document.getElementById('placeholder').style.display='none';
+                // var videoman = document.getElementById('videoman');
+                // videoman.style.display='block';
+                // videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
+                //                    + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
+
+                var video = document.getElementById('webm');
+                video.style.display='block';
+                video.play();
+                // videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
+                //                    + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
             }
+
+            setTimeout(function() {
+                watch();
+                setTimeout(function() {
+                    document.getElementById('placeholder').style.display='block';
+                    document.getElementById('webm').style.display='none';
+                }, 12000)
+            }, 5000);
         </script>
 
         <p id="placeholder">
             <div style="position: relative; display: table;" onclick="watch()">
                 <!--img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" /-->
-                <img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" />
-                <div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()">
-                    <img src="/youtube.png" style="vertical-align: middle; cursor: pointer;"> YouTube</div>
+                <img style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" />
+                <!--div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()">
+                    <img src="/youtube.png" style="vertical-align: middle; cursor: pointer;"> YouTube</div-->
             </div>
         </p>
 
-        <p style="display: none" id="videoman"></p>
+        <p id="webm" style="display: none;">
+            <video src="/enso-portable/media/enso.webm" width="500px" height="280px" type="video/webm" />
+        </p>
+
+        <!--p style="display: none" id="videoman"></p-->
 
         <p>SEE ALSO: <a href="https://gchristensen.github.io/ubiquitywe/">UbiquityWE</a>
         <h4>Description</h4>
@@ -123,7 +141,7 @@
 
         <p style="text-align: justify;">
         <a href="https://gchristensen.github.io/ubiquitywe/">UbiquityWE</a> is a browser add-on that allows to perform tasks and manipulate
-            web-page data by utilizing natural language interface powered by customizable JavaScript-based commands.
+            web-page data by utilizing a natural language interface powered by customizable JavaScript-based commands.
         </p>
 
     </section>

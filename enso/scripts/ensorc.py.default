@@ -1,4 +1,4 @@
-# Load Universal Windows Platform Apps
+# Launch Universal Windows Platform apps
 LOAD_UWP_APPS = True
 # Determines should the Quasimode be sticky
 IS_QUASIMODE_MODAL = True
