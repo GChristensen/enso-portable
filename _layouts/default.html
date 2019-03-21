@@ -78,23 +78,23 @@
                 watch();
                 setTimeout(function() {
                     document.getElementById('webm').style.display='none';
-                    document.getElementById('placeholder').style.display='block';
+                    document.getElementById('placeholder').style.display='table';
                 }, 12000)
             }, 5000);
         </script>
 
-        <p id="placeholder">
+        <div id="placeholder">
             <div style="position: relative; display: table;" onclick="watch()">
                 <!--img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" /-->
                 <img style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" />
                 <!--div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()">
                     <img src="/youtube.png" style="vertical-align: middle; cursor: pointer;"> YouTube</div-->
             </div>
-        </p>
+        </div>
 
-        <p id="webm" style="display: none;">
+        <div id="webm" style="display: none;">
             <video src="/enso-portable/media/enso.webm" width="500px" height="280px" type="video/webm" />
-        </p>
+        </div>
 
         <!--p style="display: none" id="videoman"></p-->
 
