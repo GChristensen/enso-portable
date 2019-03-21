@@ -67,6 +67,10 @@
                 document.getElementById('webm').style.display='block';
                 var video = document.querySelector('#webm video');
                 video.play();
+                setTimeout(function () {
+                    document.getElementById('webm').style.display = 'none';
+                    document.getElementById('placeholder').style.display = 'block';
+                }, 16000);
             }
 
             setTimeout(function() {
@@ -74,20 +78,16 @@
                     || navigator.userAgent.search("Firefox") >= 0) {
 
                     watch();
-                    setTimeout(function () {
-                        document.getElementById('webm').style.display = 'none';
-                        document.getElementById('placeholder').style.display = 'table';
-                    }, 12000)
                 }
-            }, 3000);
+            }, 1000);
         </script>
 
-        <div id="placeholder">
+        <div id="placeholder" style="display: block;">
             <div style="position: relative; display: table;" onclick="watch()">
                 <!--img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" /-->
-                <img style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" />
-                <!--div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()">
-                    <img src="/youtube.png" style="vertical-align: middle; cursor: pointer;"> YouTube</div-->
+                <img style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen"/>
+                <div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()"
+                ><img src="/play_video.png" style="vertical-align: middle; cursor: pointer;"></div>
             </div>
         </div>
 
