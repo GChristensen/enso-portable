@@ -64,22 +64,21 @@
 
             function watch() {
                 document.getElementById('placeholder').style.display='none';
-                // var videoman = document.getElementById('videoman');
-                // videoman.style.display='block';
-                // videoman.innerHTML = '<iframe width="500" height="280" src="https://www.youtube.com/embed/QFXBp2vuEEA?autoplay=1"'
-                //                    + 'frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><br/>'
-
                 document.getElementById('webm').style.display='block';
                 var video = document.querySelector('#webm video');
                 video.play();
             }
 
             setTimeout(function() {
-                watch();
-                setTimeout(function() {
-                    document.getElementById('webm').style.display='none';
-                    document.getElementById('placeholder').style.display='table';
-                }, 12000)
+                if (navigator.userAgent.search("Chrome") >= 0
+                    || navigator.userAgent.search("Firefox") >= 0) {
+
+                    watch();
+                    setTimeout(function () {
+                        document.getElementById('webm').style.display = 'none';
+                        document.getElementById('placeholder').style.display = 'table';
+                    }, 12000)
+                }
             }, 3000);
         </script>
 
