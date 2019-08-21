@@ -206,7 +206,7 @@ def main(argv = None):
     load_rc_config(os.path.expanduser("~/.ensorc"))
 
     if opts.show_tray_icon:
-        # Execute tray-icon code in separate thread
+        # Execute tray-icon code in a separate thread
         threading.Thread(target = systray, args = (config,)).start()
 
     retreat.start()

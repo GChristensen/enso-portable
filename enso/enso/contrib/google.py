@@ -90,7 +90,7 @@ class GoogleCommand( CommandObject ):
         MAX_QUERY_LENGTH = 2048
 
         if self.parameter != None:
-            text = self.parameter.decode()
+            text = self.parameter
             # '...' gets replaced with current selection
             if "..." in text:
                 seldict = selection.get()

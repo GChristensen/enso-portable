@@ -65,6 +65,16 @@ $(() => {
     });
     $(window).resize();
 
+    $.get("/api/enso/get/config/TRACK_COMMAND_CHANGES", function (data) {
+        if (data === "True")
+            $("#track-changes").prop("checked", true);
+    });
+
+    $("#track-changes").change(function () {
+        var track_changes = $("#track-changes").prop("checked");
+        $.get("/api/enso/set/config/TRACK_COMMAND_CHANGES/" + (track_changes? "True": "False"));
+    });
+
     function editNamespaceScripts(namespace) {
         $.get("/api/enso/commands/read_category/" + namespace, function (data) {
             if (data)

@@ -41,8 +41,18 @@
             display: none;
         }
 
-        #script-namespaces, #create-namespace, #delete-namespace, #ns-label, #expand-editor {
+        #script-namespaces, #create-namespace, #delete-namespace, #ns-label, #expand-editor, #apply-changes-label,
+        #apply-changes-help {
             float: right; display: inline-block;
+        }
+
+        #ns-label {
+            padding-left: 10px;
+        }
+
+        #apply-changes-label {
+            display: flex;
+            align-items: center;
         }
 
         #footer {
@@ -98,7 +108,9 @@
     <select id="script-namespaces">
         <option value="user">&lt;user&gt;</option>
     </select>
-    <span id="ns-label">Category:&nbsp;</span>
+    <span id="ns-label">Category:&nbsp;</span><sup id="apply-changes-help" class="help"
+                                                   title="Disabling this option may improve Enso performance on slow machines.&#013;Reasonable to check only when editing commands.">?</sup>
+    <label id="apply-changes-label"><input type="checkbox" id="track-changes">Track command changes</label>
 </div>
 </div>
 <div id="panel">

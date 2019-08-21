@@ -56,7 +56,7 @@ def cmd_calculate(ensoapi, expression = None):
         # functions of math module (ex. __xxx__)
         + math_funcs)
 
-    print(whitelist)
+#    print(whitelist)
 
     math_funcs_dict = dict([ (mf, eval('math.%s' % mf)) for mf in math_funcs])
     math_funcs_dict['abs'] = abs

@@ -80,7 +80,7 @@ class ScriptTracker:
 
         commandManager.registerCommand( TracebackCommand.NAME,
                                         TracebackCommand() )
-        self._updateScripts()
+        self._updateScripts(True)
 
     @classmethod
     def install( cls, eventManager, commandManager ):
@@ -170,20 +170,22 @@ class ScriptTracker:
 
         self._fileDependencies = list( set(baseDeps + extraDeps) )
 
-    def _updateScripts( self ):
-        shouldReload = False
-        for fileName in self._fileDependencies:
-            if os.path.exists( fileName ):
-                lastMod = os.stat( fileName ).st_mtime
-                if lastMod != self._lastMods.get(fileName):
-                    self._lastMods[fileName] = lastMod
-                    shouldReload = True
+    def _updateScripts( self, init=False):
+        shouldReload = init
 
-        for fileName in self._getCommandFiles():
-            if fileName not in self._fileDependencies:
-                self._fileDependencies.append(fileName)
-                self._lastMods[fileName] = os.stat( fileName ).st_mtime
-                shouldReload = True
+        if config.TRACK_COMMAND_CHANGES:
+            for fileName in self._fileDependencies:
+                if os.path.exists( fileName ):
+                    lastMod = os.stat( fileName ).st_mtime
+                    if lastMod != self._lastMods.get(fileName):
+                        self._lastMods[fileName] = lastMod
+                        shouldReload = True
+
+            for fileName in self._getCommandFiles():
+                if fileName not in self._fileDependencies:
+                    self._fileDependencies.append(fileName)
+                    self._lastMods[fileName] = os.stat( fileName ).st_mtime
+                    shouldReload = True
 
         if shouldReload:
             self._reloadPyScripts()

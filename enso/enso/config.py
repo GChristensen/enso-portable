@@ -3,7 +3,7 @@
 # such strings).
 
 # Enso version for use in UI
-ENSO_VERSION = "0.4.3"
+ENSO_VERSION = "0.4.4"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
@@ -17,6 +17,9 @@ APPEAR_OVER_TASKBAR = True
 
 # Load Windows Universal Platform Apps
 LOAD_UWP_APPS = True
+
+# Check if command files are changed upon each invocation of the command line
+TRACK_COMMAND_CHANGES = False
 
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
@@ -106,9 +109,6 @@ ABOUT_BOX_XML = "<p><command>Enso</command> open-source " + ENSO_VERSION + "</p>
 
 BLOCKED_BY_RETREAT_MSG = "<p>Enso Retreat denies the operation.</p><caption>Enso</caption>"
 
-# for the example at the ensorc box, just in case...
-MY_VARIABLE = "my value"
-
 RETREAT_DISABLE = False
 
 RETREAT_SHOW_ICON = True
@@ -152,23 +152,28 @@ def store_value(key, value):
     else:
         parser[CONFIG_SECTION][key] = str(value)
 
+        try:
+            globals()[key] = literal_eval(value)
+        except:
+            globals()[key] = value
+
     with open(CONFIG_FILE, 'w') as stream:
         parser.write(stream)
 
 
 if os.path.exists(CONFIG_FILE):
-        parser = configparser.ConfigParser()
-        parser.optionxform = str
-        parser.read(CONFIG_FILE)
+    parser = configparser.ConfigParser()
+    parser.optionxform = str
+    parser.read(CONFIG_FILE)
 
-        for key in parser[CONFIG_SECTION].keys():
-            if key == "DISABLED_COMMANDS":
-                if parser[CONFIG_SECTION][key]:
-                    globals()[key] = parser[CONFIG_SECTION][key].split(",")
-            else:
-                try:
-                    globals()[key] = literal_eval(parser[CONFIG_SECTION][key])
-                except:
-                    globals()[key] = parser[CONFIG_SECTION][key]
+    for key in parser[CONFIG_SECTION].keys():
+        if key == "DISABLED_COMMANDS":
+            if parser[CONFIG_SECTION][key]:
+                globals()[key] = parser[CONFIG_SECTION][key].split(",")
+        else:
+            try:
+                globals()[key] = literal_eval(parser[CONFIG_SECTION][key])
+            except:
+                globals()[key] = parser[CONFIG_SECTION][key]
 
 # vim:set tabstop=4 shiftwidth=4 expandtab:

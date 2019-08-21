@@ -1,5 +1,5 @@
 !define APPNAME "Enso open-source"
-!define VERSION "0.4.3"
+!define VERSION "0.4.4"
 
 !include LogicLib.nsh
 
@@ -197,7 +197,7 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A module that makes you to take periodic breaks from work during the day"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 

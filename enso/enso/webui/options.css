@@ -448,3 +448,7 @@ span.arguments {
 .advanced {
   margin: 5px;
 }
+
+.help {
+    cursor: help;
+}

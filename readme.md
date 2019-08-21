@@ -36,10 +36,11 @@ The original source code of **Enso Community Edition** could be found here:
 #### Change log
 [full changelog](changelog.md)
 
-##### 14.03.2019 (v.0.4.3)
+##### 21.08.2019 (v.0.4.4)
 
-* Added UWP application support (based on the commit by Mark Wiseman).
-* Added some common initialization variables to settings page configuration block.
+* Fixed Google command.
+* Automatic command code change tracking is disabled by default to improve performance. 
+  It may be enabled again in the command editor.
 
 #### Contributors
 
