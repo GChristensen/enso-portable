@@ -18,7 +18,8 @@ APPEAR_OVER_TASKBAR = True
 # Load Windows Universal Platform Apps
 LOAD_UWP_APPS = True
 
-# Check if command files are changed upon each invocation of the command line
+# Check if all known command files are changed upon each invocation of the command line
+# Only changes in commands entered through WebUI are tracked by default
 TRACK_COMMAND_CHANGES = False
 
 # The keys to start, exit, and cancel the quasimode.

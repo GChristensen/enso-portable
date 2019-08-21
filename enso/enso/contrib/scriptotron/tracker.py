@@ -72,6 +72,7 @@ class ScriptTracker:
         self._scriptFolder = getInterface("scripts_folder")()
         self._lastMods = {}
         self._registerDependencies()
+        self._pendingChanges = False
 
         eventManager.registerResponder(
             self._updateScripts,
@@ -84,7 +85,14 @@ class ScriptTracker:
 
     @classmethod
     def install( cls, eventManager, commandManager ):
-        cls( eventManager, commandManager )
+        cls._instance = cls( eventManager, commandManager )
+
+    @classmethod
+    def get( cls ):
+        return cls._instance
+
+    def setPendingChanges( self ):
+        self._pendingChanges = True
 
     @safetyNetted
     def _getGlobalsFromSourceCode( self, text, filename ):
@@ -173,7 +181,7 @@ class ScriptTracker:
     def _updateScripts( self, init=False):
         shouldReload = init
 
-        if config.TRACK_COMMAND_CHANGES:
+        if config.TRACK_COMMAND_CHANGES or self._pendingChanges:
             for fileName in self._fileDependencies:
                 if os.path.exists( fileName ):
                     lastMod = os.stat( fileName ).st_mtime
@@ -186,6 +194,8 @@ class ScriptTracker:
                     self._fileDependencies.append(fileName)
                     self._lastMods[fileName] = os.stat( fileName ).st_mtime
                     shouldReload = True
+
+            self._pendingChanges = False
 
         if shouldReload:
             self._reloadPyScripts()

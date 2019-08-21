@@ -6,6 +6,7 @@ from enso import config
 from enso.contrib import retreat
 from enso.quasimode import layout
 from enso.commands.manager import CommandManager
+from enso.contrib.scriptotron.tracker import ScriptTracker
 
 from flask import Flask, request, send_from_directory
 from werkzeug.serving import make_server
@@ -131,6 +132,9 @@ def post_enso_commands_write_category(value):
 
     with open(category_file, "wb") as cat:
         cat.write(request.form["code"].encode("utf-8"))
+
+    ScriptTracker.get().setPendingChanges()
+
     return ""
 
 @app.route('/api/enso/commands/read_category/<value>')

@@ -1,8 +1,7 @@
 ##### 21.08.2019 (v.0.4.4)
 
 * Fixed Google command.
-* Automatic command code change tracking is disabled by default to improve performance. 
-  May be enabled again in the command editor.
+* Improved quasimode performance through smart command change tracking.
 
 ##### 14.03.2019 (v.0.4.3)
 

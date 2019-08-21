@@ -39,8 +39,7 @@ The original source code of **Enso Community Edition** could be found here:
 ##### 21.08.2019 (v.0.4.4)
 
 * Fixed Google command.
-* Automatic command code change tracking is disabled by default to improve performance. 
-  It may be enabled again in the command editor.
+* Improved quasimode performance through smart command change tracking.
 
 #### Contributors
 
