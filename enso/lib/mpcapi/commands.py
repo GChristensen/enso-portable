@@ -45,7 +45,7 @@ command_mapping = {
       "descr":"Load Subtitle",
       "command_name": "load_subtitle",
    },
-   "810":{  
+   "804":{  
       "descr":"Close",
       "command_name": "close",
    },
