@@ -220,7 +220,7 @@
     <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
     <p>Mediaprobes allow to create commands that automatically pass items found in filesystem (or listed
         in a dictionary) to the specified program. Let's assume that
-        you have a directory named 'd:/tv-shows', which contains subdirectories named: 'columbo', 'the octopus' and 'inspector gadget'.
+        you have a directory named 'd:/tv-shows', which contains subdirectories: 'columbo', 'the octopus' and 'inspector gadget'.
         Let's create a command named 'show' that has the names of all subdirectories
         under 'd:/tv-shows' as arguments (the argument will be named "series") and opens the given directory (or file) in Media Player Classic.</p>
     <div class="highlight highlight-source-python"><pre><span class="pl-c"><span class="pl-c">#</span> place the following into command editor</span>
@@ -235,7 +235,7 @@ cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-
         <li>prev - open the previous show in the player.</li>
         <li>all - pass 'd:/tv-shows' to the player.</li>
     </ul>
-    <p>It is possible to create media commands based on a dictionary:</p>
+    <p>It is possible to create probe commands based on a dictionary:</p>
     <div class="highlight highlight-source-python"><pre>what_to_watch <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>formula 1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula 1 stream&gt;<span class="pl-pds">"</span></span>,
                  <span class="pl-s"><span class="pl-pds">"</span>formula e<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula e stream&gt;<span class="pl-pds">"</span></span>}
 cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
@@ -248,6 +248,6 @@ cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="p
 # associated with the encountered file type
 cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 </code></pre>
-    <p>Of course, you may construct dictionaries by various ways.</p>
+    <p>Of course, you may construct dictionaries in various ways.</p>
 </body>
 </html>
