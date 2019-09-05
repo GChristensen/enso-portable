@@ -40,6 +40,7 @@ def cmd_enso(ensoapi, action):
     elif action == 'refresh':
         Shortcuts.get().refreshShortcuts()
         ScriptTracker.get()._reloadPyScripts()
+        displayMessage(config.REFRESHING_MSG_XML)
     elif action == 'settings':
         if config.ENABLE_WEB_UI:
             os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")

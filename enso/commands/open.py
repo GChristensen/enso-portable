@@ -43,6 +43,9 @@ def cmd_open(ensoapi, target):
                 executable = file_path
                 params = None
             try:
+                # somewhere /name parameter of control.exe is mangled
+                params = params.replace("\\name Microsoft", "/name Microsoft")
+
                 rcode = win32api.ShellExecute(
                     0,
                     'open',

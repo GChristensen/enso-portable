@@ -202,11 +202,13 @@ class Quasimode:
 
         if eventType == input.EVENT_KEY_QUASIMODE:
             if keyCode == input.KEYCODE_QUASIMODE_START:
-                assert not self._inQuasimode
-                self.__quasimodeBegin()
+                #assert not self._inQuasimode
+                if not self._inQuasimode:
+                    self.__quasimodeBegin()
             elif keyCode == input.KEYCODE_QUASIMODE_END:
-                assert self._inQuasimode
-                self.__quasimodeEnd()
+                #assert self._inQuasimode
+                if self._inQuasimode:
+                    self.__quasimodeEnd()
             elif keyCode == input.KEYCODE_QUASIMODE_CANCEL:
                 self.__suggestionList.clearState()
                 self.__quasimodeEnd()

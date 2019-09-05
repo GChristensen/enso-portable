@@ -236,6 +236,9 @@ control_panel_applets = [i[:3] for i in (
      "control.exe bhtprops.cpl",
      _cpl_exists("bhtprops")),
 
+    (SHORTCUT_TYPE_CONTROL_PANEL,
+     "network and sharing center (control panel)",
+     "control.exe /name Microsoft.NetworkAndSharingCenter"),
     #Pick a Time Zone Dialog:
     #    rundll32.exe shell32.dll,Control_RunDLL timedate.cpl,,/f
 ) if len(i) < 4 or i[3]]

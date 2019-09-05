@@ -71,6 +71,9 @@ QUASIMODE_NO_COMMAND_HELP = "There is no matching command. "\
 # Message XML for the Splash message shown when Enso first loads.
 OPENING_MSG_XML = "<p><command>Enso</command> is loaded!</p>"
 
+# Message XML for the Splash message shown when Enso is refreshed.
+REFRESHING_MSG_XML = "<p><command>Enso</command> is refreshed!</p>"
+
 # Message XML displayed when the mouse hovers over a mini message.
 MINI_MSG_HELP_XML = "<p>The <command>hide mini messages</command>" \
     " and <command>put</command> commands control" \
