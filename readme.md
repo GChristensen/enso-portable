@@ -17,7 +17,7 @@ to use it you do not need to compile the platform code, just add Python 3.8 with
 Enso does not work properly in this case, probably due to API inconsistencies between Pycairo 
 versions. In quasimode (and only in it) only the font is rendered on a improperly 
 positioned window without background. Because ruling out all inconsistencies requires a
-substaitial work, the migration probably will not be completed until Python 4 release.
+substaitial work, the migration probably will not be completed until the Python 4 release.
 
 
 #### Bringing the source snapshot back to life
