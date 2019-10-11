@@ -4,6 +4,22 @@ A feature-rich descendant of Enso Community Edition (win32).
 
 This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
 
+#### Migrating to Python 3.8
+
+Due to [certain changs](https://github.com/python/cpython/commit/bf8e82f976b37856c7d35cdf88a238cb6f57fe65)
+in Python, the current legacy version of [Pycairo](https://cairographics.org/pycairo/) module could not be used with Python 3.8 as is, 
+and the recent version of [Cairo](https://www.cairographics.org/) graphics library
+could not be compiled as easily in Windows at the current legacy one.
+
+Although it is possible to compile the recent Pycairo to use with [this](https://github.com/preshing/cairo-windows/releases) prebuilt 
+Cairo binary (see the branch [Python 3.8](https://github.com/GChristensen/enso-portable/tree/python-3.8),
+to use it you do not need to compile the platform code, just add Python 3.8 with all necessary dependencies),
+Enso does not work properly in this case, probably due to API inconsistencies between Pycairo 
+versions. In quasimode (and only in it) only the font is rendered on a improperly 
+positioned window without background. Because ruling out all inconsistencies requires a
+substaitial work, the migration probably will not be completed until Python 4 release.
+
+
 #### Bringing the source snapshot back to life
 
 Enso source snapshot does not contain a Python interpreter and can not be run as is. 
