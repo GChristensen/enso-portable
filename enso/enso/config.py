@@ -3,7 +3,7 @@
 # such strings).
 
 # Enso version for use in UI
-ENSO_VERSION = "0.4.5"
+ENSO_VERSION = "0.4.6"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
