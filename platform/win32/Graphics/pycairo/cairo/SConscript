@@ -51,6 +51,7 @@ env["CCFLAGS"].append("/DCAIRO_VERSION_MAJOR=1")
 env["CCFLAGS"].append("/DCAIRO_VERSION_MINOR=15")
 env["CCFLAGS"].append("/DCAIRO_VERSION_MICRO=12")
 
+env["CCFLAGS"].append("/DCAIRO_HAS_IMAGE_SURFACE")
 
 
 sourceList = [

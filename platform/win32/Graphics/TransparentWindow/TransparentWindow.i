@@ -68,8 +68,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         cairo_surface_t *surface;
         PyObject *pycairoSurface;
 
-        if ( Pycairo_CAPI == 0 )
-            Pycairo_CAPI = (Pycairo_CAPI_t *)import_cairo();
+        if ( Pycairo_CAPI == 0 ) {
+            PyObject *mo = PyImport_ImportModule("enso.platform.win32.cairo");
+            PyObject *dict = PyModule_GetDict(mo);
+            PyObject *capsule = PyDict_GetItem(dict, PyUnicode_FromString("CAPI"));
+            Pycairo_CAPI = (Pycairo_CAPI_t *)PyCapsule_GetPointer(capsule, "cairo.CAPI");
+        }
 
         surface = self->makeCairoSurface();
         
