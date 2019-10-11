@@ -9,7 +9,7 @@ This is a development page. Please visit the main site at: https://gchristensen.
 Due to [certain changs](https://github.com/python/cpython/commit/bf8e82f976b37856c7d35cdf88a238cb6f57fe65)
 in Python, the current legacy version of [Pycairo](https://cairographics.org/pycairo/) module could not be used with Python 3.8 as is, 
 and the recent version of [Cairo](https://www.cairographics.org/) graphics library
-could not be compiled as easily in Windows at the current legacy one.
+could not be compiled as easily in Windows as the current legacy one.
 
 Although it is possible to compile the recent Pycairo to use with [this](https://github.com/preshing/cairo-windows/releases) prebuilt 
 Cairo binary (see the branch [Python 3.8](https://github.com/GChristensen/enso-portable/tree/python-3.8),
