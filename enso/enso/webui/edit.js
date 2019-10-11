@@ -78,9 +78,11 @@ $(() => {
     function editNamespaceScripts(namespace) {
         $.get("/api/enso/commands/read_category/" + namespace, function (data) {
             if (data)
-                return editor.setValue(data, -1);
+                editor.setValue(data, -1);
             else
-                return editor.setValue("");
+                editor.setValue("");
+
+            editor.getSession().setUndoManager(new ace.UndoManager())
         });
     }
 

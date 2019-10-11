@@ -14,3 +14,5 @@ __pycache__
 *.iml
 .idea
 enso-open-source-*.exe
+/enso/python37/
+/enso/python38/

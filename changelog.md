@@ -1,3 +1,6 @@
+##### 11.10.2019 (v.0.4.6)
+* Fixed command editor undo history.
+
 ##### 24.08.2019 (v.0.4.5)
 * Optimized 'open' command shortcut reloading (should seed up command editing/testing cycle).
 * Added 'enso refresh' command option.
