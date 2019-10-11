@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -38,6 +38,8 @@
 
 #include "cairoint.h"
 
+CAIRO_BEGIN_DECLS
+
 cairo_private void
 _cairo_arc_path (cairo_t *cr,
 		 double	  xc,
@@ -53,5 +55,7 @@ _cairo_arc_path_negative (cairo_t *cr,
 			  double   radius,
 			  double   angle1,
 			  double   angle2);
+
+CAIRO_END_DECLS
 
 #endif /* CAIRO_ARC_PRIVATE_H */

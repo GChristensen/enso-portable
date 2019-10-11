@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TransparentWindow.h"
 #include "pycairo.h"
 
-static Pycairo_CAPI_t *Pycairo_CAPI = 0;
+//static Pycairo_CAPI_t *Pycairo_CAPI = 0;
 
 %}
 
@@ -69,13 +69,12 @@ static Pycairo_CAPI_t *Pycairo_CAPI = 0;
         PyObject *pycairoSurface;
 
         if ( Pycairo_CAPI == 0 )
-            Pycairo_IMPORT;
+            Pycairo_CAPI = (Pycairo_CAPI_t *)import_cairo();
 
         surface = self->makeCairoSurface();
         
         pycairoSurface = PycairoSurface_FromSurface(
             surface,
-            &PycairoWin32Surface_Type,
             NULL
             );
 

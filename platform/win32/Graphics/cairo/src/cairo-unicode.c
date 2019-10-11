@@ -1,5 +1,6 @@
-/* cairo_unicode.c: Unicode conversion routines
- * 
+/* -*- Mode: c; c-basic-offset: 4; indent-tabs-mode: t; tab-width: 8; -*- */
+/* cairo - a vector graphics library with display and print output
+ *
  * The code in this file is derived from GLib's gutf8.c and
  *   ultimately from libunicode. It is relicensed under the
  *   dual LGPL/MPL with permission of the original authors.
@@ -17,7 +18,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -30,8 +31,7 @@
  * OF ANY KIND, either express or implied. See the LGPL or the MPL for
  * the specific language governing rights and limitations.
  *
- * The Original Code is cairo_unicode.c as distributed with the
- *   cairo graphics library.
+ * The Original Code is the cairo graphics library.
  *
  * The Initial Developer of the Original Code is Tom Tromey.
  *  and Red Hat, Inc.
@@ -40,9 +40,8 @@
  *	Owen Taylor <otaylor@redhat.com>
  */
 
-#include <limits.h>
-
-#include <cairoint.h>
+#include "cairoint.h"
+#include "cairo-error-private.h"
 
 #define UTF8_COMPUTE(Char, Mask, Len)					      \
   if (Char < 128)							      \
@@ -84,7 +83,6 @@
     ((Char) < 0x10000 ? 3 :            \
      ((Char) < 0x200000 ? 4 :          \
       ((Char) < 0x4000000 ? 5 : 6)))))
-   
 
 #define UTF8_GET(Result, Chars, Count, Mask, Len)			      \
   (Result) = (Chars)[0] & (Mask);					      \
@@ -104,8 +102,7 @@
      (((Char) & 0xFFFFF800) != 0xD800) &&     \
      ((Char) < 0xFDD0 || (Char) > 0xFDEF) &&  \
      ((Char) & 0xFFFE) != 0xFFFE)
-   
-     
+
 static const char utf8_skip_data[256] = {
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -143,7 +140,7 @@ _utf8_get_char (const unsigned char *p)
  */
 static uint32_t
 _utf8_get_char_extended (const unsigned char *p,
-			 long		      max_len)  
+			 long		      max_len)
 {
     int i, len;
     uint32_t wc = (unsigned char) *p;
@@ -170,7 +167,7 @@ _utf8_get_char_extended (const unsigned char *p,
     } else {
 	return (uint32_t)-1;
     }
-  
+
     if (max_len >= 0 && len > max_len) {
 	for (i = 1; i < max_len; i++) {
 	    if ((((unsigned char *)p)[i] & 0xc0) != 0x80)
@@ -181,7 +178,7 @@ _utf8_get_char_extended (const unsigned char *p,
 
     for (i = 1; i < len; ++i) {
 	uint32_t ch = ((unsigned char *)p)[i];
-      
+
 	if ((ch & 0xc0) != 0x80) {
 	    if (ch)
 		return (uint32_t)-1;
@@ -195,73 +192,187 @@ _utf8_get_char_extended (const unsigned char *p,
 
     if (UTF8_LENGTH(wc) != len)
 	return (uint32_t)-1;
-  
+
     return wc;
 }
 
 /**
- * _cairo_utf8_to_utf32:
+ * _cairo_utf8_get_char_validated:
+ * @p: a UTF-8 string
+ * @unicode: location to store one Unicode character
+ *
+ * Decodes the first character of a valid UTF-8 string, and returns
+ * the number of bytes consumed.
+ *
+ * Note that the string should be valid.  Do not use this without
+ * validating the string first.
+ *
+ * Returns: the number of bytes forming the character returned.
+ **/
+int
+_cairo_utf8_get_char_validated (const char *p,
+				uint32_t   *unicode)
+{
+    int i, mask = 0, len;
+    uint32_t result;
+    unsigned char c = (unsigned char) *p;
+
+    UTF8_COMPUTE (c, mask, len);
+    if (len == -1) {
+	if (unicode)
+	    *unicode = (uint32_t)-1;
+	return 1;
+    }
+    UTF8_GET (result, p, i, mask, len);
+
+    if (unicode)
+	*unicode = result;
+    return len;
+}
+
+/**
+ * _cairo_utf8_to_ucs4:
  * @str: an UTF-8 string
  * @len: length of @str in bytes, or -1 if it is nul-terminated.
  *   If @len is supplied and the string has an embedded nul
  *   byte, only the portion before the nul byte is converted.
  * @result: location to store a pointer to a newly allocated UTF-32
- *   string (always native endian). Free with free(). A 0
+ *   string (always native endian), or %NULL. Free with free(). A 0
  *   word will be written after the last character.
- * @items_written: location to store number of 32-bit words 
+ * @items_written: location to store number of 32-bit words
  *   written. (Not including the trailing 0)
  *
  * Converts a UTF-8 string to UCS-4. UCS-4 is an encoding of Unicode
  * with 1 32-bit word per character. The string is validated to
  * consist entirely of valid Unicode characters.
- * 
+ *
  * Return value: %CAIRO_STATUS_SUCCESS if the entire string was
- *   succesfully converted. %CAIRO_STATUS_INVALID_STRING if an
- *   an invalid sequence was found.
+ *   successfully converted. %CAIRO_STATUS_INVALID_STRING if an
+ *   invalid sequence was found.
  **/
 cairo_status_t
-_cairo_utf8_to_ucs4 (const unsigned char *str,
-		     int		  len,
-		     uint32_t		**result,
-		     int		 *items_written)
+_cairo_utf8_to_ucs4 (const char *str,
+		     int	 len,
+		     uint32_t  **result,
+		     int	*items_written)
 {
     uint32_t *str32 = NULL;
     int n_chars, i;
     const unsigned char *in;
-  
-    in = str;
+    const unsigned char * const ustr = (const unsigned char *) str;
+
+    in = ustr;
     n_chars = 0;
-    while ((len < 0 || str + len - in > 0) && *in)
+    while ((len < 0 || ustr + len - in > 0) && *in)
     {
-	uint32_t wc = _utf8_get_char_extended (in, str + len - in);
+	uint32_t wc = _utf8_get_char_extended (in, ustr + len - in);
 	if (wc & 0x80000000 || !UNICODE_VALID (wc))
-	    return CAIRO_STATUS_INVALID_STRING;
-      
+	    return _cairo_error (CAIRO_STATUS_INVALID_STRING);
+
 	n_chars++;
 	if (n_chars == INT_MAX)
-	    return CAIRO_STATUS_INVALID_STRING;
+	    return _cairo_error (CAIRO_STATUS_INVALID_STRING);
 
 	in = UTF8_NEXT_CHAR (in);
     }
 
-    str32 = malloc (sizeof (uint32_t) * (n_chars + 1));
-    if (!str32)
-	return CAIRO_STATUS_NO_MEMORY;
-  
-    in = str;
-    for (i=0; i < n_chars; i++) {
-	str32[i] = _utf8_get_char (in);
-	in = UTF8_NEXT_CHAR (in);
-    }
-    str32[i] = 0;
+    if (result) {
+	str32 = _cairo_malloc_ab (n_chars + 1, sizeof (uint32_t));
+	if (!str32)
+	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
-    *result = str32;
+	in = ustr;
+	for (i=0; i < n_chars; i++) {
+	    str32[i] = _utf8_get_char (in);
+	    in = UTF8_NEXT_CHAR (in);
+	}
+	str32[i] = 0;
+
+	*result = str32;
+    }
+
     if (items_written)
 	*items_written = n_chars;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
+/**
+ * _cairo_ucs4_to_utf8:
+ * @unicode: a UCS-4 character
+ * @utf8: buffer to write utf8 string into. Must have at least 4 bytes
+ * space available. Or %NULL.
+ *
+ * This space left intentionally blank.
+ *
+ * Return value: Number of bytes in the utf8 string or 0 if an invalid
+ * unicode character
+ **/
+int
+_cairo_ucs4_to_utf8 (uint32_t  unicode,
+		     char     *utf8)
+{
+    int bytes;
+    char *p;
+
+    if (unicode < 0x80) {
+	if (utf8)
+	    *utf8 = unicode;
+	return 1;
+    } else if (unicode < 0x800) {
+	bytes = 2;
+    } else if (unicode < 0x10000) {
+	bytes = 3;
+    } else if (unicode < 0x200000) {
+	bytes = 4;
+    } else {
+	return 0;
+    }
+
+    if (!utf8)
+	return bytes;
+
+    p = utf8 + bytes;
+    while (p > utf8) {
+	*--p = 0x80 | (unicode & 0x3f);
+	unicode >>= 6;
+    }
+    *p |= 0xf0 << (4 - bytes);
+
+    return bytes;
+}
+
+/**
+ * _cairo_ucs4_to_utf16:
+ * @unicode: a UCS-4 character
+ * @utf16: buffer to write utf16 string into. Must have at least 2
+ * elements. Or %NULL.
+ *
+ * This space left intentionally blank.
+ *
+ * Return value: Number of elements in the utf16 string or 0 if an
+ * invalid unicode character
+ **/
+int
+_cairo_ucs4_to_utf16 (uint32_t  unicode,
+		      uint16_t *utf16)
+{
+    if (unicode < 0x10000) {
+	if (utf16)
+	    utf16[0] = unicode;
+	return 1;
+    } else if (unicode < 0x110000) {
+	if (utf16) {
+	    utf16[0] = (unicode - 0x10000) / 0x400 + 0xd800;
+	    utf16[1] = (unicode - 0x10000) % 0x400 + 0xdc00;
+	}
+	return 2;
+    } else {
+	return 0;
+    }
+}
+
+#if CAIRO_HAS_UTF8_TO_UTF16
 /**
  * _cairo_utf8_to_utf16:
  * @str: an UTF-8 string
@@ -271,62 +382,57 @@ _cairo_utf8_to_ucs4 (const unsigned char *str,
  * @result: location to store a pointer to a newly allocated UTF-16
  *   string (always native endian). Free with free(). A 0
  *   word will be written after the last character.
- * @items_written: location to store number of 16-bit words 
+ * @items_written: location to store number of 16-bit words
  *   written. (Not including the trailing 0)
  *
  * Converts a UTF-8 string to UTF-16. UTF-16 is an encoding of Unicode
  * where characters are represented either as a single 16-bit word, or
  * as a pair of 16-bit "surrogates". The string is validated to
  * consist entirely of valid Unicode characters.
- * 
+ *
  * Return value: %CAIRO_STATUS_SUCCESS if the entire string was
- *   succesfully converted. %CAIRO_STATUS_INVALID_STRING if an
+ *   successfully converted. %CAIRO_STATUS_INVALID_STRING if an
  *   an invalid sequence was found.
  **/
 cairo_status_t
-_cairo_utf8_to_utf16 (const unsigned char *str,
-		      int		   len,
-		      uint16_t		 **result,
-		      int		  *items_written)
+_cairo_utf8_to_utf16 (const char *str,
+		      int	  len,
+		      uint16_t **result,
+		      int	*items_written)
 {
     uint16_t *str16 = NULL;
     int n16, i;
     const unsigned char *in;
+    const unsigned char * const ustr = (const unsigned char *) str;
 
-    in = str;
+    in = ustr;
     n16 = 0;
-    while ((len < 0 || str + len - in > 0) && *in) {
-	uint32_t wc = _utf8_get_char_extended (in, str + len - in);
+    while ((len < 0 || ustr + len - in > 0) && *in) {
+	uint32_t wc = _utf8_get_char_extended (in, ustr + len - in);
 	if (wc & 0x80000000 || !UNICODE_VALID (wc))
-	    return CAIRO_STATUS_INVALID_STRING;
-	
+	    return _cairo_error (CAIRO_STATUS_INVALID_STRING);
+
 	if (wc < 0x10000)
 	    n16 += 1;
 	else
 	    n16 += 2;
-      
+
 	if (n16 == INT_MAX - 1 || n16 == INT_MAX)
-	    return CAIRO_STATUS_INVALID_STRING;
-	
+	    return _cairo_error (CAIRO_STATUS_INVALID_STRING);
+
 	in = UTF8_NEXT_CHAR (in);
     }
 
-  
-    str16 = malloc (sizeof (uint16_t) * (n16 + 1));
+    str16 = _cairo_malloc_ab (n16 + 1, sizeof (uint16_t));
     if (!str16)
-	return CAIRO_STATUS_NO_MEMORY;
-  
-    in = str;
+	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+
+    in = ustr;
     for (i = 0; i < n16;) {
 	uint32_t wc = _utf8_get_char (in);
 
-	if (wc < 0x10000) {
-	    str16[i++] = wc;
-	} else {
-	    str16[i++] = (wc - 0x10000) / 0x400 + 0xd800;
-	    str16[i++] = (wc - 0x10000) % 0x400 + 0xdc00;
-	}
-      
+	i += _cairo_ucs4_to_utf16 (wc, str16 + i);
+
 	in = UTF8_NEXT_CHAR (in);
     }
 
@@ -338,3 +444,4 @@ _cairo_utf8_to_utf16 (const unsigned char *str,
 
     return CAIRO_STATUS_SUCCESS;
 }
+#endif

@@ -1,3 +1,4 @@
+/* -*- Mode: c; c-basic-offset: 4; indent-tabs-mode: t; tab-width: 8; -*- */
 /* cairo - a vector graphics library with display and print output
  *
  * Copyright © 2002 University of Southern California
@@ -12,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -35,174 +36,306 @@
  */
 
 #include "cairoint.h"
+#include "cairo-boxes-private.h"
+#include "cairo-error-private.h"
+#include "cairo-path-fixed-private.h"
+#include "cairo-region-private.h"
+#include "cairo-traps-private.h"
 
 typedef struct cairo_filler {
+    cairo_polygon_t *polygon;
     double tolerance;
-    cairo_traps_t *traps;
+
+    cairo_box_t limit;
+    cairo_bool_t has_limits;
 
     cairo_point_t current_point;
-
-    cairo_polygon_t polygon;
+    cairo_point_t last_move_to;
 } cairo_filler_t;
 
-static void
-_cairo_filler_init (cairo_filler_t *filler, double tolerance, cairo_traps_t *traps);
-
-static void
-_cairo_filler_fini (cairo_filler_t *filler);
-
 static cairo_status_t
-_cairo_filler_move_to (void *closure, cairo_point_t *point);
-
-static cairo_status_t
-_cairo_filler_line_to (void *closure, cairo_point_t *point);
-
-static cairo_status_t
-_cairo_filler_curve_to (void *closure,
-			cairo_point_t *b,
-			cairo_point_t *c,
-			cairo_point_t *d);
-
-static cairo_status_t
-_cairo_filler_close_path (void *closure);
-
-static void
-_cairo_filler_init (cairo_filler_t *filler, double tolerance, cairo_traps_t *traps)
+_cairo_filler_line_to (void *closure,
+		       const cairo_point_t *point)
 {
-    filler->tolerance = tolerance;
-    filler->traps = traps;
-
-    filler->current_point.x = 0;
-    filler->current_point.y = 0;
-
-    _cairo_polygon_init (&filler->polygon);
-}
-
-static void
-_cairo_filler_fini (cairo_filler_t *filler)
-{
-    _cairo_polygon_fini (&filler->polygon);
-}
-
-static cairo_status_t
-_cairo_filler_move_to (void *closure, cairo_point_t *point)
-{
-    cairo_status_t status;
     cairo_filler_t *filler = closure;
-    cairo_polygon_t *polygon = &filler->polygon;
+    cairo_status_t status;
 
-    status = _cairo_polygon_close (polygon);
-    if (status)
-	return status;
-      
-    status = _cairo_polygon_move_to (polygon, point);
-    if (status)
-	return status;
+    status = _cairo_polygon_add_external_edge (filler->polygon,
+					       &filler->current_point,
+					       point);
 
     filler->current_point = *point;
-
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-_cairo_filler_line_to (void *closure, cairo_point_t *point)
-{
-    cairo_status_t status;
-    cairo_filler_t *filler = closure;
-    cairo_polygon_t *polygon = &filler->polygon;
-
-    status = _cairo_polygon_line_to (polygon, point);
-    if (status)
-	return status;
-
-    filler->current_point = *point;
-
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-_cairo_filler_curve_to (void *closure,
-			cairo_point_t *b,
-			cairo_point_t *c,
-			cairo_point_t *d)
-{
-    int i;
-    cairo_status_t status = CAIRO_STATUS_SUCCESS;
-    cairo_filler_t *filler = closure;
-    cairo_polygon_t *polygon = &filler->polygon;
-    cairo_spline_t spline;
-
-    status = _cairo_spline_init (&spline, &filler->current_point, b, c, d);
-
-    if (status == CAIRO_INT_STATUS_DEGENERATE)
-	return CAIRO_STATUS_SUCCESS;
-
-    _cairo_spline_decompose (&spline, filler->tolerance);
-    if (status)
-	goto CLEANUP_SPLINE;
-
-    for (i = 1; i < spline.num_points; i++) {
-	status = _cairo_polygon_line_to (polygon, &spline.points[i]);
-	if (status)
-	    break;
-    }
-
-  CLEANUP_SPLINE:
-    _cairo_spline_fini (&spline);
-
-    filler->current_point = *d;
 
     return status;
 }
 
 static cairo_status_t
-_cairo_filler_close_path (void *closure)
+_cairo_filler_close (void *closure)
 {
-    cairo_status_t status;
     cairo_filler_t *filler = closure;
-    cairo_polygon_t *polygon = &filler->polygon;
 
-    status = _cairo_polygon_close (polygon);
-    if (status)
+    /* close the subpath */
+    return _cairo_filler_line_to (closure, &filler->last_move_to);
+}
+
+static cairo_status_t
+_cairo_filler_move_to (void *closure,
+		       const cairo_point_t *point)
+{
+    cairo_filler_t *filler = closure;
+    cairo_status_t status;
+
+    /* close current subpath */
+    status = _cairo_filler_close (closure);
+    if (unlikely (status))
 	return status;
+
+        /* make sure that the closure represents a degenerate path */
+    filler->current_point = *point;
+    filler->last_move_to = *point;
+
+    return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
+_cairo_filler_curve_to (void		*closure,
+			const cairo_point_t	*p1,
+			const cairo_point_t	*p2,
+			const cairo_point_t	*p3)
+{
+    cairo_filler_t *filler = closure;
+    cairo_spline_t spline;
+
+    if (filler->has_limits) {
+	if (! _cairo_spline_intersects (&filler->current_point, p1, p2, p3,
+					&filler->limit))
+	    return _cairo_filler_line_to (filler, p3);
+    }
+
+    if (! _cairo_spline_init (&spline,
+			      (cairo_spline_add_point_func_t)_cairo_filler_line_to, filler,
+			      &filler->current_point, p1, p2, p3))
+    {
+	return _cairo_filler_line_to (closure, p3);
+    }
+
+    return _cairo_spline_decompose (&spline, filler->tolerance);
+}
+
+cairo_status_t
+_cairo_path_fixed_fill_to_polygon (const cairo_path_fixed_t *path,
+				   double tolerance,
+				   cairo_polygon_t *polygon)
+{
+    cairo_filler_t filler;
+    cairo_status_t status;
+
+    filler.polygon = polygon;
+    filler.tolerance = tolerance;
+
+    filler.has_limits = FALSE;
+    if (polygon->num_limits) {
+	filler.has_limits = TRUE;
+	filler.limit = polygon->limit;
+    }
+
+    /* make sure that the closure represents a degenerate path */
+    filler.current_point.x = 0;
+    filler.current_point.y = 0;
+    filler.last_move_to = filler.current_point;
+
+    status = _cairo_path_fixed_interpret (path,
+					  _cairo_filler_move_to,
+					  _cairo_filler_line_to,
+					  _cairo_filler_curve_to,
+					  _cairo_filler_close,
+					  &filler);
+    if (unlikely (status))
+	return status;
+
+    return _cairo_filler_close (&filler);
+}
+
+typedef struct cairo_filler_rectilinear_aligned {
+    cairo_polygon_t *polygon;
+
+    cairo_point_t current_point;
+    cairo_point_t last_move_to;
+} cairo_filler_ra_t;
+
+static cairo_status_t
+_cairo_filler_ra_line_to (void *closure,
+			  const cairo_point_t *point)
+{
+    cairo_filler_ra_t *filler = closure;
+    cairo_status_t status;
+    cairo_point_t p;
+
+    p.x = _cairo_fixed_round_down (point->x);
+    p.y = _cairo_fixed_round_down (point->y);
+
+    status = _cairo_polygon_add_external_edge (filler->polygon,
+					       &filler->current_point,
+					       &p);
+
+    filler->current_point = p;
+
+    return status;
+}
+
+static cairo_status_t
+_cairo_filler_ra_close (void *closure)
+{
+    cairo_filler_ra_t *filler = closure;
+    return _cairo_filler_ra_line_to (closure, &filler->last_move_to);
+}
+
+static cairo_status_t
+_cairo_filler_ra_move_to (void *closure,
+			  const cairo_point_t *point)
+{
+    cairo_filler_ra_t *filler = closure;
+    cairo_status_t status;
+    cairo_point_t p;
+
+    /* close current subpath */
+    status = _cairo_filler_ra_close (closure);
+    if (unlikely (status))
+	return status;
+
+    p.x = _cairo_fixed_round_down (point->x);
+    p.y = _cairo_fixed_round_down (point->y);
+
+    /* make sure that the closure represents a degenerate path */
+    filler->current_point = p;
+    filler->last_move_to = p;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
 cairo_status_t
-_cairo_path_fixed_fill_to_traps (cairo_path_fixed_t *path,
-				 cairo_fill_rule_t   fill_rule,
-				 double              tolerance,
-				 cairo_traps_t      *traps)
+_cairo_path_fixed_fill_rectilinear_to_polygon (const cairo_path_fixed_t *path,
+					       cairo_antialias_t antialias,
+					       cairo_polygon_t *polygon)
 {
-    cairo_status_t status = CAIRO_STATUS_SUCCESS;
-    cairo_filler_t filler;
+    cairo_filler_ra_t filler;
+    cairo_status_t status;
 
-    _cairo_filler_init (&filler, tolerance, traps);
+    if (antialias != CAIRO_ANTIALIAS_NONE)
+	return _cairo_path_fixed_fill_to_polygon (path, 0., polygon);
 
-    status = _cairo_path_fixed_interpret (path,
-					  CAIRO_DIRECTION_FORWARD,
-					  _cairo_filler_move_to,
-					  _cairo_filler_line_to,
-					  _cairo_filler_curve_to,
-					  _cairo_filler_close_path,
-					  &filler);
-    if (status)
-	goto BAIL;
+    filler.polygon = polygon;
 
-    status = _cairo_polygon_close (&filler.polygon);
-    if (status)
-	goto BAIL;
+    /* make sure that the closure represents a degenerate path */
+    filler.current_point.x = 0;
+    filler.current_point.y = 0;
+    filler.last_move_to = filler.current_point;
 
-    status = _cairo_traps_tessellate_polygon (filler.traps,
-					      &filler.polygon,
-					      fill_rule);
-    if (status)
-	goto BAIL;
+    status = _cairo_path_fixed_interpret_flat (path,
+					       _cairo_filler_ra_move_to,
+					       _cairo_filler_ra_line_to,
+					       _cairo_filler_ra_close,
+					       &filler,
+					       0.);
+    if (unlikely (status))
+	return status;
 
-BAIL:
-    _cairo_filler_fini (&filler);
+    return _cairo_filler_ra_close (&filler);
+}
+
+cairo_status_t
+_cairo_path_fixed_fill_to_traps (const cairo_path_fixed_t *path,
+				 cairo_fill_rule_t fill_rule,
+				 double tolerance,
+				 cairo_traps_t *traps)
+{
+    cairo_polygon_t polygon;
+    cairo_status_t status;
+
+    if (_cairo_path_fixed_fill_is_empty (path))
+	return CAIRO_STATUS_SUCCESS;
+
+    _cairo_polygon_init (&polygon, traps->limits, traps->num_limits);
+    status = _cairo_path_fixed_fill_to_polygon (path, tolerance, &polygon);
+    if (unlikely (status || polygon.num_edges == 0))
+	goto CLEANUP;
+
+    status = _cairo_bentley_ottmann_tessellate_polygon (traps,
+							&polygon, fill_rule);
+
+  CLEANUP:
+    _cairo_polygon_fini (&polygon);
+    return status;
+}
+
+static cairo_status_t
+_cairo_path_fixed_fill_rectilinear_tessellate_to_boxes (const cairo_path_fixed_t *path,
+							cairo_fill_rule_t fill_rule,
+							cairo_antialias_t antialias,
+							cairo_boxes_t *boxes)
+{
+    cairo_polygon_t polygon;
+    cairo_status_t status;
+
+    _cairo_polygon_init (&polygon, boxes->limits, boxes->num_limits);
+    boxes->num_limits = 0;
+
+    /* tolerance will be ignored as the path is rectilinear */
+    status = _cairo_path_fixed_fill_rectilinear_to_polygon (path, antialias, &polygon);
+    if (likely (status == CAIRO_STATUS_SUCCESS)) {
+	status =
+	    _cairo_bentley_ottmann_tessellate_rectilinear_polygon_to_boxes (&polygon,
+									    fill_rule,
+									    boxes);
+    }
+
+    _cairo_polygon_fini (&polygon);
 
     return status;
 }
 
+cairo_status_t
+_cairo_path_fixed_fill_rectilinear_to_boxes (const cairo_path_fixed_t *path,
+					     cairo_fill_rule_t fill_rule,
+					     cairo_antialias_t antialias,
+					     cairo_boxes_t *boxes)
+{
+    cairo_path_fixed_iter_t iter;
+    cairo_status_t status;
+    cairo_box_t box;
+
+    if (_cairo_path_fixed_is_box (path, &box))
+	return _cairo_boxes_add (boxes, antialias, &box);
+
+    _cairo_path_fixed_iter_init (&iter, path);
+    while (_cairo_path_fixed_iter_is_fill_box (&iter, &box)) {
+	if (box.p1.y == box.p2.y || box.p1.x == box.p2.x)
+	    continue;
+
+	if (box.p1.y > box.p2.y) {
+	    cairo_fixed_t t;
+
+	    t = box.p1.y;
+	    box.p1.y = box.p2.y;
+	    box.p2.y = t;
+
+	    t = box.p1.x;
+	    box.p1.x = box.p2.x;
+	    box.p2.x = t;
+	}
+
+	status = _cairo_boxes_add (boxes, antialias, &box);
+	if (unlikely (status))
+	    return status;
+    }
+
+    if (_cairo_path_fixed_iter_at_end (&iter))
+	return _cairo_bentley_ottmann_tessellate_boxes (boxes, fill_rule, boxes);
+
+    /* path is not rectangular, try extracting clipped rectilinear edges */
+    _cairo_boxes_clear (boxes);
+    return _cairo_path_fixed_fill_rectilinear_tessellate_to_boxes (path,
+								   fill_rule,
+								   antialias,
+								   boxes);
+}

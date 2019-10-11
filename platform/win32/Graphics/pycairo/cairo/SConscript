@@ -42,6 +42,17 @@ import glob
 # Build Actions
 # ----------------------------------------------------------------------------
 
+env["CCFLAGS"].append("/DPYCAIRO_VERSION_MAJOR=1")
+env["CCFLAGS"].append("/DPYCAIRO_VERSION_MINOR=18")
+env["CCFLAGS"].append("/DPYCAIRO_VERSION_MICRO=1")
+
+
+env["CCFLAGS"].append("/DCAIRO_VERSION_MAJOR=1")
+env["CCFLAGS"].append("/DCAIRO_VERSION_MINOR=15")
+env["CCFLAGS"].append("/DCAIRO_VERSION_MICRO=12")
+
+
+
 sourceList = [
     glob.glob( "*.c" )
     ]

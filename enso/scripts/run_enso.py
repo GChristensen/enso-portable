@@ -10,8 +10,12 @@ import win32con
 import shutil
 
 import enso
-from enso import webui
 from enso import config
+
+if sys.version_info > (3, 7, 0):
+    os.add_dll_directory(os.path.join(config.ENSO_DIR, "enso", "platform", "win32"))
+
+from enso import webui
 from enso.messages import displayMessage
 from enso.events import EventManager
 from enso.platform.win32.taskbar import SysTrayIcon

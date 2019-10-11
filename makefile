@@ -10,7 +10,6 @@ platform:
 	cp -f platform/enso/platform/win32/CLogging.dll enso/enso/platform/win32/CLogging.dll
 	cp -f platform/enso/platform/win32/Keyhook.dll enso/enso/platform/win32/Keyhook.dll
 	cp -f platform/enso/platform/win32/freetype2.dll enso/enso/platform/win32/freetype2.dll
-	cp -f platform/enso/platform/win32/libcairo-2.dll enso/enso/platform/win32/libcairo-2.dll
 
 .PHONY: clean-platform
 clean-platform:

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -67,41 +67,33 @@ _cairo_stock_color (cairo_stock_t stock)
 	return &cairo_color_black;
     case CAIRO_STOCK_TRANSPARENT:
 	return &cairo_color_transparent;
+
+    case CAIRO_STOCK_NUM_COLORS:
+    default:
+	ASSERT_NOT_REACHED;
+	/* If the user can get here somehow, give a color that indicates a
+	 * problem. */
+	return &cairo_color_magenta;
     }
-
-    ASSERT_NOT_REACHED;
-
-    /* If the user can get here somehow, give a color that indicates a
-     * problem. */
-    return &cairo_color_magenta;
 }
 
-void
-_cairo_color_init (cairo_color_t *color)
-{
-    *color = cairo_color_white;
-}
-
-void
-_cairo_color_init_rgb (cairo_color_t *color,
-		       double red, double green, double blue)
-{
-    _cairo_color_init_rgba (color, red, green, blue, 1.0);
-}
-
-/* We multiply colors by (0x10000 - epsilon), such that we get a uniform
- * range even for 0xffff.  In other words, (1.0 - epsilon) would convert
- * to 0xffff, not 0xfffe.
+/* Convert a double in [0.0, 1.0] to an integer in [0, 65535]
+ * The conversion is designed to choose the integer i such that
+ * i / 65535.0 is as close as possible to the input value.
  */
-#define CAIRO_COLOR_ONE_MINUS_EPSILON (65536.0 - 1e-5)
+uint16_t
+_cairo_color_double_to_short (double d)
+{
+    return d * 65535.0 + 0.5;
+}
 
 static void
 _cairo_color_compute_shorts (cairo_color_t *color)
 {
-    color->red_short   = color->red   * color->alpha * CAIRO_COLOR_ONE_MINUS_EPSILON;
-    color->green_short = color->green * color->alpha * CAIRO_COLOR_ONE_MINUS_EPSILON;
-    color->blue_short  = color->blue  * color->alpha * CAIRO_COLOR_ONE_MINUS_EPSILON;
-    color->alpha_short = color->alpha * CAIRO_COLOR_ONE_MINUS_EPSILON;
+    color->red_short   = _cairo_color_double_to_short (color->red   * color->alpha);
+    color->green_short = _cairo_color_double_to_short (color->green * color->alpha);
+    color->blue_short  = _cairo_color_double_to_short (color->blue  * color->alpha);
+    color->alpha_short = _cairo_color_double_to_short (color->alpha);
 }
 
 void
@@ -150,4 +142,52 @@ _cairo_color_get_rgba_premultiplied (cairo_color_t *color,
     *green = color->green * color->alpha;
     *blue  = color->blue  * color->alpha;
     *alpha = color->alpha;
+}
+
+/* NB: This function works both for unmultiplied and premultiplied colors */
+cairo_bool_t
+_cairo_color_equal (const cairo_color_t *color_a,
+	            const cairo_color_t *color_b)
+{
+    if (color_a == color_b)
+	return TRUE;
+
+    if (color_a->alpha_short != color_b->alpha_short)
+        return FALSE;
+
+    if (color_a->alpha_short == 0)
+        return TRUE;
+
+    return color_a->red_short   == color_b->red_short   &&
+           color_a->green_short == color_b->green_short &&
+           color_a->blue_short  == color_b->blue_short;
+}
+
+cairo_bool_t
+_cairo_color_stop_equal (const cairo_color_stop_t *color_a,
+			 const cairo_color_stop_t *color_b)
+{
+    if (color_a == color_b)
+	return TRUE;
+
+    return color_a->alpha_short == color_b->alpha_short &&
+           color_a->red_short   == color_b->red_short   &&
+           color_a->green_short == color_b->green_short &&
+           color_a->blue_short  == color_b->blue_short;
+}
+
+cairo_content_t
+_cairo_color_get_content (const cairo_color_t *color)
+{
+    if (CAIRO_COLOR_IS_OPAQUE (color))
+        return CAIRO_CONTENT_COLOR;
+
+    if (color->red_short == 0 &&
+	color->green_short == 0 &&
+	color->blue_short == 0)
+    {
+        return CAIRO_CONTENT_ALPHA;
+    }
+
+    return CAIRO_CONTENT_COLOR_ALPHA;
 }

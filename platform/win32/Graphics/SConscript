@@ -56,7 +56,7 @@ env.addLib(
     basePath = env.makeRootRelativePath( "cairo" ),
     libPath = "src",
     includePath = "src",
-    CAIRO_LIB_NAME = "libcairo-2",
+    CAIRO_LIB_NAME = "cairo",
     )
 
 # PyCairo

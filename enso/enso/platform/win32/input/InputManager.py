@@ -279,8 +279,3 @@ KEYCODE_NONAME = _InputManager.KEYCODE_NONAME
 KEYCODE_PA1 = _InputManager.KEYCODE_PA1
 KEYCODE_OEM_CLEAR = _InputManager.KEYCODE_OEM_CLEAR
 TICK_TIMER_INTRVL = _InputManager.TICK_TIMER_INTRVL
-
-glob = globals().copy()
-
-for v in glob:
-    setattr(glob["InputManager"], v, glob[v])
