@@ -312,7 +312,7 @@ _cairo_ps_surface_emit_header (cairo_ps_surface_t *surface)
 
     _cairo_output_stream_printf (surface->final_stream,
 				 "%%!PS-Adobe-3.0%s\n"
-				 "%%%%Creator: cairo %s (https://cairographics.org)\n"
+				 "%%%%Creator: cairo %s (http://cairographics.org)\n"
 				 "%%%%CreationDate: %s"
 				 "%%%%Pages: %d\n",
 				 eps_header,
@@ -1103,7 +1103,7 @@ _cairo_ps_surface_get_page_media (cairo_ps_surface_t     *surface)
 	}
     }
 
-    page = _cairo_malloc (sizeof (cairo_page_media_t));
+    page = malloc (sizeof (cairo_page_media_t));
     if (unlikely (page == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return NULL;
@@ -1139,7 +1139,7 @@ _cairo_ps_surface_create_for_stream_internal (cairo_output_stream_t *stream,
     cairo_status_t status, status_ignored;
     cairo_ps_surface_t *surface;
 
-    surface = _cairo_malloc (sizeof (cairo_ps_surface_t));
+    surface = malloc (sizeof (cairo_ps_surface_t));
     if (unlikely (surface == NULL)) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto CLEANUP;
@@ -2378,7 +2378,7 @@ _base85_strings_stream_create (cairo_output_stream_t *output)
 {
     string_array_stream_t *stream;
 
-    stream = _cairo_malloc (sizeof (string_array_stream_t));
+    stream = malloc (sizeof (string_array_stream_t));
     if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
@@ -2408,7 +2408,7 @@ _base85_wrap_stream_create (cairo_output_stream_t *output)
 {
     string_array_stream_t *stream;
 
-    stream = _cairo_malloc (sizeof (string_array_stream_t));
+    stream = malloc (sizeof (string_array_stream_t));
     if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
@@ -2673,7 +2673,7 @@ _cairo_ps_surface_emit_image (cairo_ps_surface_t          *surface,
     if (use_mask)
 	data_size += (ps_image->width + 7)/8;
     data_size *= ps_image->height;
-    data = _cairo_malloc (data_size);
+    data = malloc (data_size);
     if (unlikely (data == NULL)) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto bail1;

@@ -312,7 +312,7 @@ intel_surface_create (cairo_drm_device_t *device,
     intel_surface_t *surface;
     cairo_status_t status;
 
-    surface = _cairo_malloc (sizeof (intel_surface_t));
+    surface = malloc (sizeof (intel_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -363,7 +363,7 @@ intel_surface_create_for_name (cairo_drm_device_t *device,
     if (stride < cairo_format_stride_for_width (format, width))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_INVALID_STRIDE));
 
-    surface = _cairo_malloc (sizeof (intel_surface_t));
+    surface = malloc (sizeof (intel_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -425,7 +425,7 @@ _cairo_drm_intel_device_create (int fd, dev_t dev, int vendor_id, int chip_id)
     if (! intel_info (fd, NULL))
 	return NULL;
 
-    device = _cairo_malloc (sizeof (intel_device_t));
+    device = malloc (sizeof (intel_device_t));
     if (unlikely (device == NULL))
 	return (cairo_drm_device_t *) _cairo_device_create_in_error (CAIRO_STATUS_NO_MEMORY);
 

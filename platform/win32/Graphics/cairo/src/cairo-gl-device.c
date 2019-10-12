@@ -71,7 +71,7 @@ _gl_flush (void *device)
 
     status = _cairo_gl_context_acquire (device, &ctx);
     if (unlikely (status))
-	return status;
+        return status;
 
     _cairo_gl_composite_flush (ctx);
 
@@ -79,8 +79,8 @@ _gl_flush (void *device)
     _cairo_gl_context_destroy_operand (ctx, CAIRO_GL_TEX_MASK);
 
     if (ctx->clip_region) {
-	cairo_region_destroy (ctx->clip_region);
-	ctx->clip_region = NULL;
+        cairo_region_destroy (ctx->clip_region);
+        ctx->clip_region = NULL;
     }
 
     ctx->current_target = NULL;
@@ -295,19 +295,19 @@ _cairo_gl_context_init (cairo_gl_context_t *ctx)
 
     status = _cairo_gl_context_init_shaders (ctx);
     if (unlikely (status))
-	return status;
+        return status;
 
     status = _cairo_cache_init (&ctx->gradients,
-				_cairo_gl_gradient_equal,
-				NULL,
-				(cairo_destroy_func_t) _cairo_gl_gradient_destroy,
-				CAIRO_GL_GRADIENT_CACHE_SIZE);
+                                _cairo_gl_gradient_equal,
+                                NULL,
+                                (cairo_destroy_func_t) _cairo_gl_gradient_destroy,
+                                CAIRO_GL_GRADIENT_CACHE_SIZE);
     if (unlikely (status))
-	return status;
+        return status;
 
     ctx->vbo_size = _cairo_gl_get_vbo_size();
 
-    ctx->vb = _cairo_malloc (ctx->vbo_size);
+    ctx->vb = malloc (ctx->vbo_size);
     if (unlikely (ctx->vb == NULL)) {
 	    _cairo_cache_fini (&ctx->gradients);
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
@@ -334,16 +334,16 @@ _cairo_gl_context_init (cairo_gl_context_t *ctx)
 
 void
 _cairo_gl_context_activate (cairo_gl_context_t *ctx,
-			    cairo_gl_tex_t      tex_unit)
+                            cairo_gl_tex_t      tex_unit)
 {
     if (ctx->max_textures <= (GLint) tex_unit) {
-	if (tex_unit < 2) {
-	    _cairo_gl_composite_flush (ctx);
-	    _cairo_gl_context_destroy_operand (ctx, ctx->max_textures - 1);
-	}
-	glActiveTexture (ctx->max_textures - 1);
+        if (tex_unit < 2) {
+            _cairo_gl_composite_flush (ctx);
+            _cairo_gl_context_destroy_operand (ctx, ctx->max_textures - 1);
+        }
+        glActiveTexture (ctx->max_textures - 1);
     } else {
-	glActiveTexture (GL_TEXTURE0 + tex_unit);
+        glActiveTexture (GL_TEXTURE0 + tex_unit);
     }
 }
 
@@ -393,13 +393,13 @@ _cairo_gl_ensure_msaa_gles_framebuffer (cairo_gl_context_t *ctx,
 
 void
 _cairo_gl_ensure_framebuffer (cairo_gl_context_t *ctx,
-			      cairo_gl_surface_t *surface)
+                              cairo_gl_surface_t *surface)
 {
     GLenum status;
     cairo_gl_dispatch_t *dispatch = &ctx->dispatch;
 
     if (likely (surface->fb))
-	return;
+        return;
 
     /* Create a framebuffer object wrapping the texture so that we can render
      * to it.
@@ -512,7 +512,7 @@ _cairo_gl_ensure_msaa_depth_stencil_buffer (cairo_gl_context_t *ctx,
 
     dispatch->GenRenderbuffers (1, &surface->msaa_depth_stencil);
     dispatch->BindRenderbuffer (GL_RENDERBUFFER,
-				surface->msaa_depth_stencil);
+			        surface->msaa_depth_stencil);
 
     dispatch->RenderbufferStorageMultisample (GL_RENDERBUFFER,
 					      ctx->num_samples,
@@ -785,8 +785,8 @@ _cairo_gl_context_bind_framebuffer (cairo_gl_context_t *ctx,
 
 void
 _cairo_gl_context_set_destination (cairo_gl_context_t *ctx,
-				   cairo_gl_surface_t *surface,
-				   cairo_bool_t multisampling)
+                                   cairo_gl_surface_t *surface,
+                                   cairo_bool_t multisampling)
 {
     cairo_bool_t changing_surface, changing_sampling;
 

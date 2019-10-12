@@ -348,7 +348,7 @@ _cairo_device_create_observer_internal (cairo_device_t *target,
     cairo_device_observer_t *device;
     cairo_status_t status;
 
-    device = _cairo_malloc (sizeof (cairo_device_observer_t));
+    device = malloc (sizeof (cairo_device_observer_t));
     if (unlikely (device == NULL))
 	return _cairo_device_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -379,7 +379,7 @@ _cairo_surface_create_observer_internal (cairo_device_t *device,
     cairo_surface_observer_t *surface;
     cairo_status_t status;
 
-    surface = _cairo_malloc (sizeof (cairo_surface_observer_t));
+    surface = malloc (sizeof (cairo_surface_observer_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -1418,7 +1418,7 @@ _cairo_surface_observer_add_callback (cairo_list_t *head,
 {
     struct callback_list *cb;
 
-    cb = _cairo_malloc (sizeof (*cb));
+    cb = malloc (sizeof (*cb));
     if (unlikely (cb == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 

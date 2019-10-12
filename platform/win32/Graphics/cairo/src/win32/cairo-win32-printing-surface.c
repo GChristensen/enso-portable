@@ -1020,8 +1020,8 @@ _cairo_win32_printing_surface_paint_linear_pattern (cairo_win32_printing_surface
     num_rects = num_stops - 1;
 
     /* Add an extra four points and two rectangles for EXTEND_PAD */
-    vert = _cairo_malloc (sizeof (TRIVERTEX) * (num_rects*2*num_ranges + 4));
-    rect = _cairo_malloc (sizeof (GRADIENT_RECT) * (num_rects*num_ranges + 2));
+    vert = malloc (sizeof (TRIVERTEX) * (num_rects*2*num_ranges + 4));
+    rect = malloc (sizeof (GRADIENT_RECT) * (num_rects*num_ranges + 2));
 
     for (i = 0; i < num_ranges*num_rects; i++) {
 	vert[i*2].y = (LONG) clip.top;
@@ -2131,7 +2131,7 @@ cairo_win32_printing_surface_create (HDC hdc)
     cairo_win32_printing_surface_t *surface;
     cairo_surface_t *paginated;
 
-    surface = _cairo_malloc (sizeof (cairo_win32_printing_surface_t));
+    surface = malloc (sizeof (cairo_win32_printing_surface_t));
     if (surface == NULL)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -2159,7 +2159,7 @@ cairo_win32_printing_surface_create (HDC hdc)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
     }
 
-    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc, CAIRO_FORMAT_RGB24);
+    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc);
     surface->win32.flags |= CAIRO_WIN32_SURFACE_FOR_PRINTING;
 
     _cairo_win32_printing_surface_init_ps_mode (surface);

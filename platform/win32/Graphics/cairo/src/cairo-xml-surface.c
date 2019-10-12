@@ -258,7 +258,7 @@ _cairo_xml_create_internal (cairo_output_stream_t *stream)
 {
     cairo_xml_t *xml;
 
-    xml = _cairo_malloc (sizeof (cairo_xml_t));
+    xml = malloc (sizeof (cairo_xml_t));
     if (unlikely (xml == NULL))
 	return _cairo_device_create_in_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -933,7 +933,7 @@ _cairo_xml_emit_type42_font (cairo_xml_t *xml,
     if (unlikely (status))
 	return status;
 
-    buf = _cairo_malloc (size);
+    buf = malloc (size);
     if (unlikely (buf == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1098,7 +1098,7 @@ _cairo_xml_surface_create_internal (cairo_device_t *device,
 {
     cairo_xml_surface_t *surface;
 
-    surface = _cairo_malloc (sizeof (cairo_xml_surface_t));
+    surface = malloc (sizeof (cairo_xml_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

@@ -61,7 +61,7 @@ _cairo_freelist_alloc (cairo_freelist_t *freelist)
 	return node;
     }
 
-    return _cairo_malloc (freelist->nodesize);
+    return malloc (freelist->nodesize);
 }
 
 void *
@@ -139,7 +139,7 @@ _cairo_freepool_alloc_from_new_pool (cairo_freepool_t *freepool)
 	else
 	    poolsize = (128 * freepool->nodesize + 8191) & -8192;
 
-	pool = _cairo_malloc (sizeof (cairo_freelist_pool_t) + poolsize);
+	pool = malloc (sizeof (cairo_freelist_pool_t) + poolsize);
 	if (unlikely (pool == NULL))
 	    return pool;
 

@@ -1069,7 +1069,7 @@ _cairo_intern_string (const char **str_inout, int len)
     istring = _cairo_hash_table_lookup (_cairo_intern_string_ht,
 					&tmpl.hash_entry);
     if (istring == NULL) {
-	istring = _cairo_malloc (sizeof (cairo_intern_string_t) + len + 1);
+	istring = malloc (sizeof (cairo_intern_string_t) + len + 1);
 	if (likely (istring != NULL)) {
 	    istring->hash_entry.hash = tmpl.hash_entry.hash;
 	    istring->len = tmpl.len;

@@ -262,9 +262,8 @@ _bitmap_next_id (struct _bitmap *b,
 	prev = &b->next;
 	b = b->next;
     } while (b != NULL);
-    assert (prev != NULL);
 
-    bb = _cairo_malloc (sizeof (struct _bitmap));
+    bb = malloc (sizeof (struct _bitmap));
     if (unlikely (bb == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1105,7 +1104,7 @@ attach_snapshot (cairo_script_context_t *ctx,
     if (! ctx->attach_snapshots)
 	return;
 
-    surface = _cairo_malloc (sizeof (*surface));
+    surface = malloc (sizeof (*surface));
     if (unlikely (surface == NULL))
 	return;
 
@@ -1256,7 +1255,7 @@ _write_image_surface (cairo_output_stream_t *output,
     }
 #else
     if (stride > ARRAY_LENGTH (row_stack)) {
-	rowdata = _cairo_malloc (stride);
+	rowdata = malloc (stride);
 	if (unlikely (rowdata == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
     } else
@@ -2179,7 +2178,7 @@ _cairo_script_surface_finish (void *abstract_surface)
 		}
 		cairo_list_del (&surface->operand.link);
 	    } else {
-		struct deferred_finish *link = _cairo_malloc (sizeof (*link));
+		struct deferred_finish *link = malloc (sizeof (*link));
 		if (link == NULL) {
 		    status2 = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 		    if (status == CAIRO_STATUS_SUCCESS)
@@ -2858,7 +2857,7 @@ _emit_type42_font (cairo_script_surface_t *surface,
     if (unlikely (status))
 	return status;
 
-    buf = _cairo_malloc (size);
+    buf = malloc (size);
     if (unlikely (buf == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -2914,7 +2913,7 @@ _emit_scaled_font_init (cairo_script_surface_t *surface,
     cairo_script_font_t *font_private;
     cairo_int_status_t status;
 
-    font_private = _cairo_malloc (sizeof (cairo_script_font_t));
+    font_private = malloc (sizeof (cairo_script_font_t));
     if (unlikely (font_private == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -3644,7 +3643,7 @@ _cairo_script_surface_create_internal (cairo_script_context_t *ctx,
     if (unlikely (ctx == NULL))
 	return (cairo_script_surface_t *) _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NULL_POINTER));
 
-    surface = _cairo_malloc (sizeof (cairo_script_surface_t));
+    surface = malloc (sizeof (cairo_script_surface_t));
     if (unlikely (surface == NULL))
 	return (cairo_script_surface_t *) _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -3693,7 +3692,7 @@ _cairo_script_context_create_internal (cairo_output_stream_t *stream)
 {
     cairo_script_context_t *ctx;
 
-    ctx = _cairo_malloc (sizeof (cairo_script_context_t));
+    ctx = malloc (sizeof (cairo_script_context_t));
     if (unlikely (ctx == NULL))
 	return _cairo_device_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

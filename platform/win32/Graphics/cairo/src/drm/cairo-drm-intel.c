@@ -576,7 +576,7 @@ _intel_bo_put_a1_image (intel_device_t *device,
 	uint8_t *dst;
 
 	if (width > (int) sizeof (buf)) {
-	    a8 = _cairo_malloc (width);
+	    a8 = malloc (width);
 	    if (a8 == NULL)
 		return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	}
@@ -844,7 +844,7 @@ intel_glyph_cache_add_glyph (intel_device_t *device,
 	int x;
 
 	if (width > (int) sizeof (buf)) {
-	    a8 = _cairo_malloc (width);
+	    a8 = malloc (width);
 	    if (unlikely (a8 == NULL))
 		return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	}

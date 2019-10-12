@@ -198,7 +198,7 @@ void *_buffer_alloc (size_t a, size_t b, const unsigned int size)
         return NULL;
 #else
     /* Clear the malloc'd buffer the way DosAllocMem() does. */
-    buffer = _cairo_malloc (nbytes);
+    buffer = malloc (nbytes);
     if (buffer) {
         memset (buffer, 0, nbytes);
     }
@@ -718,7 +718,7 @@ cairo_os2_surface_create (HPS hps_client_window,
     }
 
     /* Allocate an OS/2 surface structure. */
-    local_os2_surface = (cairo_os2_surface_t *) _cairo_malloc (sizeof (cairo_os2_surface_t));
+    local_os2_surface = (cairo_os2_surface_t *) malloc (sizeof (cairo_os2_surface_t));
     if (!local_os2_surface) {
         status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
         goto error_exit;

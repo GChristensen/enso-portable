@@ -656,7 +656,7 @@ _cairo_svg_surface_create_for_document (cairo_svg_document_t	*document,
     cairo_surface_t *paginated;
     cairo_status_t status, status_ignored;
 
-    surface = _cairo_malloc (sizeof (cairo_svg_surface_t));
+    surface = malloc (sizeof (cairo_svg_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -2862,7 +2862,7 @@ _cairo_svg_document_create (cairo_output_stream_t	 *output_stream,
     if (output_stream->status)
 	return output_stream->status;
 
-    document = _cairo_malloc (sizeof (cairo_svg_document_t));
+    document = malloc (sizeof (cairo_svg_document_t));
     if (unlikely (document == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 

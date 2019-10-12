@@ -224,8 +224,8 @@ _should_use_unbounded_surface (cairo_composite_rectangles_t *composite)
     /* This isn't just an optimization. It also detects when painting is used
        to paint back the unbounded surface, preventing infinite recursion. */
     return ! (source->x <= 0 && source->y <= 0 &&
-	      source->height + source->y >= dst->height &&
-	      source->width + source->x >= dst->width);
+              source->height + source->y >= dst->height &&
+              source->width + source->x >= dst->width);
 }
 
 static cairo_surface_t*
@@ -237,10 +237,10 @@ _prepare_unbounded_surface (cairo_gl_surface_t *dst)
 							dst->width,
 							dst->height);
     if (surface == NULL)
-	return NULL;
+        return NULL;
     if (unlikely (surface->status)) {
-	cairo_surface_destroy (surface);
-	return NULL;
+        cairo_surface_destroy (surface);
+        return NULL;
     }
     return surface;
 }
@@ -361,13 +361,13 @@ _cairo_gl_msaa_compositor_mask_source_operator (const cairo_compositor_t *compos
     else
 	status = _draw_traps (ctx, &setup, &traps);
     if (unlikely (status))
-	goto finish;
+        goto finish;
 
     /* Now draw the second pass. */
     status = _cairo_gl_composite_set_operator (&setup, CAIRO_OPERATOR_ADD,
 					       FALSE /* assume_component_alpha */);
     if (unlikely (status))
-	goto finish;
+        goto finish;
     status = _cairo_gl_composite_set_source (&setup,
 					     &composite->source_pattern.base,
 					     &composite->source_sample_area,
@@ -376,7 +376,7 @@ _cairo_gl_msaa_compositor_mask_source_operator (const cairo_compositor_t *compos
     if (unlikely (status))
 	goto finish;
     status = _cairo_gl_composite_set_mask (&setup,
-					   &composite->mask_pattern.base,
+				           &composite->mask_pattern.base,
 					   &composite->source_sample_area,
 					   &composite->bounded,
 					   FALSE);
@@ -553,9 +553,9 @@ _stroke_shaper_add_quad (void			*closure,
 }
 
 static cairo_int_status_t
-_prevent_overlapping_strokes (cairo_gl_context_t		*ctx,
-			      cairo_gl_composite_t		*setup,
-			      cairo_composite_rectangles_t	*composite,
+_prevent_overlapping_strokes (cairo_gl_context_t 		*ctx,
+			      cairo_gl_composite_t 		*setup,
+			      cairo_composite_rectangles_t 	*composite,
 			      const cairo_path_fixed_t		*path,
 			      const cairo_stroke_style_t	*style,
 			      const cairo_matrix_t		*ctm)
@@ -832,7 +832,7 @@ _cairo_gl_msaa_compositor_fill (const cairo_compositor_t	*compositor,
     else
 	status = _draw_traps (ctx, &setup, &traps);
     if (unlikely (status))
-	goto cleanup_setup;
+        goto cleanup_setup;
 
 cleanup_setup:
     _cairo_gl_composite_fini (&setup);

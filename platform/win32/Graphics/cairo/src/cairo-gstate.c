@@ -241,7 +241,7 @@ _cairo_gstate_save (cairo_gstate_t **gstate, cairo_gstate_t **freelist)
 
     top = *freelist;
     if (top == NULL) {
-	top = _cairo_malloc (sizeof (cairo_gstate_t));
+	top = malloc (sizeof (cairo_gstate_t));
 	if (unlikely (top == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
     } else
@@ -2213,7 +2213,7 @@ _cairo_gstate_transform_glyphs_to_backend (cairo_gstate_t	*gstate,
 	  *num_transformed_glyphs = 0;
 	  return;
 	}
-	/* XXX We currently drop any glyphs that have their position outside
+	/* XXX We currently drop any glyphs that has its position outside
 	 * of the surface boundaries by a safety margin depending on the
 	 * font scale.  This however can fail in extreme cases where the
 	 * font has really long swashes for example...  We can correctly

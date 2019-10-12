@@ -326,7 +326,7 @@ cairo_type1_font_subset_get_matrix (cairo_type1_font_subset_t *font,
 	return CAIRO_INT_STATUS_UNSUPPORTED;
 
     s_max = end - start + 5*decimal_point_len + 1;
-    s = _cairo_malloc (s_max);
+    s = malloc (s_max);
     if (unlikely (s == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -420,7 +420,7 @@ cairo_type1_font_subset_get_fontname (cairo_type1_font_subset_t *font)
     while (end > start && _cairo_isspace(end[-1]))
 	end--;
 
-    s = _cairo_malloc (end - start + 1);
+    s = malloc (end - start + 1);
     if (unlikely (s == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -624,7 +624,7 @@ cairo_type1_font_subset_decrypt_eexec_segment (cairo_type1_font_subset_t *font)
     in = (unsigned char *) font->eexec_segment;
     end = (unsigned char *) in + font->eexec_segment_size;
 
-    font->cleartext = _cairo_malloc (font->eexec_segment_size + 1);
+    font->cleartext = malloc (font->eexec_segment_size + 1);
     if (unlikely (font->cleartext == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -783,7 +783,7 @@ cairo_type1_font_subset_parse_charstring (cairo_type1_font_subset_t *font,
     const unsigned char *p;
     int command;
 
-    charstring = _cairo_malloc (encrypted_charstring_length);
+    charstring = malloc (encrypted_charstring_length);
     if (unlikely (charstring == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1096,7 +1096,7 @@ cairo_type1_font_subset_build_glyph_list (cairo_type1_font_subset_t *font,
     glyph_data_t glyph;
     cairo_status_t status;
 
-    s = _cairo_malloc (name_length + 1);
+    s = malloc (name_length + 1);
     if (unlikely (s == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1285,7 +1285,7 @@ cairo_type1_font_subset_write_private_dict (cairo_type1_font_subset_t *font,
         if (lenIV_end == NULL)
 	    return CAIRO_INT_STATUS_UNSUPPORTED;
 
-        lenIV_str = _cairo_malloc (lenIV_end - lenIV_start + 1);
+        lenIV_str = malloc (lenIV_end - lenIV_start + 1);
         if (unlikely (lenIV_str == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1331,7 +1331,7 @@ cairo_type1_font_subset_write_private_dict (cairo_type1_font_subset_t *font,
 
     /* look for "dup" which marks the beginning of the first subr */
     array_start = find_token (subr_count_end, font->cleartext_end, "dup");
-    if (array_start == NULL)
+    if (subrs == NULL)
 	return CAIRO_INT_STATUS_UNSUPPORTED;
 
     /* Read in the subroutines */
@@ -1642,7 +1642,7 @@ cairo_type1_font_subset_generate (void       *abstract_font,
 	return CAIRO_INT_STATUS_UNSUPPORTED;
 
     font->type1_length = data_length;
-    font->type1_data = _cairo_malloc (font->type1_length);
+    font->type1_data = malloc (font->type1_length);
     if (unlikely (font->type1_data == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1768,7 +1768,7 @@ _cairo_type1_subset_init (cairo_type1_subset_t		*type1_subset,
     length = font.base.header_size +
 	     font.base.data_size +
 	     font.base.trailer_size;
-    type1_subset->data = _cairo_malloc (length);
+    type1_subset->data = malloc (length);
     if (unlikely (type1_subset->data == NULL))
 	goto fail3;
 

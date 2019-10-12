@@ -227,7 +227,7 @@ do							  \
 #define COMPUTE_SHIFT_MASKC(dest, source, mask)
 
 # define LOAD_VECTOR(source)				\
-    v ## source = (typeof(v ## source))vec_xl(0, source);
+    v ## source = *((typeof(v ## source)*)source);
 
 # define LOAD_VECTORS(dest, source)			\
     LOAD_VECTOR(source);				\

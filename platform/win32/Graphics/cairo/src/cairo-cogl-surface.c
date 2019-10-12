@@ -1994,7 +1994,7 @@ _cairo_cogl_get_path_stroke_meta (cairo_cogl_surface_t *surface,
     CAIRO_REFERENCE_COUNT_INIT (&meta->ref_count, 1);
     meta->cache_entry.hash = hash;
     meta->counter = 0;
-    meta_path = _cairo_malloc (sizeof (cairo_path_fixed_t));
+    meta_path = malloc (sizeof (cairo_path_fixed_t));
     if (!meta_path)
 	goto BAIL;
     /* FIXME: we should add a ref-counted wrapper for our user_paths
@@ -2248,7 +2248,7 @@ _cairo_cogl_get_path_fill_meta (cairo_cogl_surface_t *surface)
     meta->cache_entry.hash = hash;
     meta->counter = 0;
     CAIRO_REFERENCE_COUNT_INIT (&meta->ref_count, 1);
-    meta_path = _cairo_malloc (sizeof (cairo_path_fixed_t));
+    meta_path = malloc (sizeof (cairo_path_fixed_t));
     if (!meta_path)
 	goto BAIL;
     /* FIXME: we should add a ref-counted wrapper for our user_paths
@@ -2504,7 +2504,7 @@ _cairo_cogl_surface_create_full (cairo_cogl_device_t *dev,
     if (unlikely (status))
 	return _cairo_surface_create_in_error (status);
 
-    surface = _cairo_malloc (sizeof (cairo_cogl_surface_t));
+    surface = malloc (sizeof (cairo_cogl_surface_t));
     if (unlikely (surface == NULL))
         return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

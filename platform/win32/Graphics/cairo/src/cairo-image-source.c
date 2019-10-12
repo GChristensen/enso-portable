@@ -872,7 +872,7 @@ create_separable_convolution (int *n_values,
     size_y = (1 << ysubsample) * ywidth;
 
     *n_values = 4 + size_x + size_y;
-    params = _cairo_malloc (*n_values * sizeof (pixman_fixed_t));
+    params = malloc (*n_values * sizeof (pixman_fixed_t));
     if (!params) return 0;
 
     params[0] = pixman_int_to_fixed (xwidth);
@@ -1077,7 +1077,7 @@ attach_proxy (cairo_surface_t *source,
 {
     struct proxy *proxy;
 
-    proxy = _cairo_malloc (sizeof (*proxy));
+    proxy = malloc (sizeof (*proxy));
     if (unlikely (proxy == NULL))
 	return _cairo_surface_create_in_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1407,7 +1407,7 @@ _pixman_image_for_surface (cairo_image_surface_t *dst,
 	    return NULL;
 	}
 
-	cleanup = _cairo_malloc (sizeof (*cleanup));
+	cleanup = malloc (sizeof (*cleanup));
 	if (unlikely (cleanup == NULL)) {
 	    _cairo_surface_release_source_image (pattern->surface, image, extra);
 	    pixman_image_unref (pixman_image);
@@ -1498,7 +1498,7 @@ _pixman_image_for_raster (cairo_image_surface_t *dst,
 	return NULL;
     }
 
-    cleanup = _cairo_malloc (sizeof (*cleanup));
+    cleanup = malloc (sizeof (*cleanup));
     if (unlikely (cleanup == NULL)) {
 	pixman_image_unref (pixman_image);
 	_cairo_surface_release_source_image (surface, image, extra);
@@ -1594,7 +1594,7 @@ _cairo_image_source_create_for_pattern (cairo_surface_t *dst,
 
     TRACE ((stderr, "%s\n", __FUNCTION__));
 
-    source = _cairo_malloc (sizeof (cairo_image_source_t));
+    source = malloc (sizeof (cairo_image_source_t));
     if (unlikely (source == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

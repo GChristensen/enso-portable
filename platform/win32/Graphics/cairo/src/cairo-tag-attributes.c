@@ -267,7 +267,7 @@ parse_string (const char *p, char **s)
     if (!end)
 	return NULL;
 
-    *s = _cairo_malloc (len + 1);
+    *s = malloc (len + 1);
     decode_string (p, &len, *s);
     (*s)[len] = 0;
 
@@ -341,7 +341,7 @@ parse_name (const char *p, const char **end, char **s)
 	p2++;
 
     len = p2 - p;
-    name = _cairo_malloc (len + 1);
+    name = malloc (len + 1);
     if (unlikely (name == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 

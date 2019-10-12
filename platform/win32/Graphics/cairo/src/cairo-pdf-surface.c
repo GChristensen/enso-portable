@@ -397,7 +397,7 @@ _cairo_pdf_surface_create_for_stream_internal (cairo_output_stream_t	*output,
     cairo_pdf_surface_t *surface;
     cairo_status_t status, status_ignored;
 
-    surface = _cairo_malloc (sizeof (cairo_pdf_surface_t));
+    surface = malloc (sizeof (cairo_pdf_surface_t));
     if (unlikely (surface == NULL)) {
 	/* destroy stream on behalf of caller */
 	status = _cairo_output_stream_destroy (output);
@@ -1291,6 +1291,7 @@ _cairo_pdf_surface_create_smask_group (cairo_pdf_surface_t	    *surface,
 	group->extents.width = surface->width;
 	group->extents.height = surface->height;
     }
+    group->extents = *extents;
 
     return group;
 }
@@ -1590,7 +1591,7 @@ _cairo_pdf_surface_add_source_surface (cairo_pdf_surface_t	         *surface,
 	unique_id_length = 0;
     }
 
-    surface_entry = _cairo_malloc (sizeof (cairo_pdf_source_surface_entry_t));
+    surface_entry = malloc (sizeof (cairo_pdf_source_surface_entry_t));
     if (surface_entry == NULL) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto fail1;
@@ -2874,7 +2875,7 @@ _cairo_pdf_surface_lookup_jbig2_global (cairo_pdf_surface_t       *surface,
 	}
     }
 
-    global.id = _cairo_malloc (global_id_length);
+    global.id = malloc(global_id_length);
     if (unlikely (global.id == NULL)) {
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
     }
@@ -3169,6 +3170,7 @@ _cairo_pdf_surface_emit_jpeg_image (cairo_pdf_surface_t              *surface,
 						 "   /Height %d\n"
 						 "   /ColorSpace %s\n"
 						 "   /Interpolate %s\n"
+						 "%s"
 						 "   /BitsPerComponent %d\n"
 						 "%s"
 						 "   /Filter /DCTDecode\n",
@@ -3176,6 +3178,7 @@ _cairo_pdf_surface_emit_jpeg_image (cairo_pdf_surface_t              *surface,
 						 info.height,
 						 colorspace,
 						 surface_entry->interpolate ? "true" : "false",
+						 info.is_adobe_jpeg && info.num_components == 4 ? "   /Decode [ 1 0 1 0 1 0 1 0 ]\n" : "",
 						 info.bits_per_component,
 						 smask_buf);
     }
@@ -5163,7 +5166,7 @@ _cairo_utf8_to_pdf_string (const char *utf8, char **str_out)
     }
 
     if (ascii) {
-	str = _cairo_malloc (len + 3);
+	str = malloc (len + 3);
 	if (str == NULL)
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -5180,7 +5183,7 @@ _cairo_utf8_to_pdf_string (const char *utf8, char **str_out)
 	if (unlikely (status))
 	    return status;
 
-	str = _cairo_malloc (utf16_len*4 + 7);
+	str = malloc (utf16_len*4 + 7);
 	if (str == NULL) {
 	    free (utf16);
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
@@ -8329,7 +8332,7 @@ _cairo_pdf_surface_show_text_glyphs (void			*abstract_surface,
 	group->source_res = pattern_res;
 
 	if (utf8_len) {
-	    group->utf8 = _cairo_malloc (utf8_len);
+	    group->utf8 = malloc (utf8_len);
 	    if (unlikely (group->utf8 == NULL)) {
 		_cairo_pdf_smask_group_destroy (group);
 		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);

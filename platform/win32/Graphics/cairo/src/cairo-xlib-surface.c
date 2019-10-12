@@ -1766,7 +1766,7 @@ found:
 	;
     }
 
-    surface = _cairo_malloc (sizeof (cairo_xlib_surface_t));
+    surface = malloc (sizeof (cairo_xlib_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

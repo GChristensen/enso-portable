@@ -43,6 +43,7 @@ typedef struct _cairo_image_info {
     int		 height;
     int		 num_components;
     int		 bits_per_component;
+    int		 is_adobe_jpeg;
 } cairo_image_info_t;
 
 cairo_private cairo_int_status_t

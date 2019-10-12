@@ -428,7 +428,7 @@ cairo_tee_surface_create (cairo_surface_t *master)
     if (unlikely (master->status))
 	return _cairo_surface_create_in_error (master->status);
 
-    surface = _cairo_malloc (sizeof (cairo_tee_surface_t));
+    surface = malloc (sizeof (cairo_tee_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

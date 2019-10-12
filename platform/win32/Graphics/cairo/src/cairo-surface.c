@@ -1438,7 +1438,7 @@ cairo_surface_set_mime_data (cairo_surface_t		*surface,
 	return _cairo_surface_set_error (surface, status);
 
     if (data != NULL) {
-	mime_data = _cairo_malloc (sizeof (cairo_mime_data_t));
+	mime_data = malloc (sizeof (cairo_mime_data_t));
 	if (unlikely (mime_data == NULL))
 	    return _cairo_surface_set_error (surface, _cairo_error (CAIRO_STATUS_NO_MEMORY));
 

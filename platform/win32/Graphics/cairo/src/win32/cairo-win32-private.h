@@ -81,9 +81,6 @@ enum {
 
     /* Whether we can use the CHECKPNGFORMAT escape function */
     CAIRO_WIN32_SURFACE_CAN_CHECK_PNG = (1<<8),
-
-    /* Whether we can use gdi drawing with solid rgb brush with this surface */
-    CAIRO_WIN32_SURFACE_CAN_RGB_BRUSH = (1<<9),
 };
 
 typedef struct _cairo_win32_surface {
@@ -207,7 +204,7 @@ _cairo_win32_surface_get_extents (void			  *abstract_surface,
 				  cairo_rectangle_int_t   *rectangle);
 
 uint32_t
-_cairo_win32_flags_for_dc (HDC dc, cairo_format_t format);
+_cairo_win32_flags_for_dc (HDC dc);
 
 cairo_int_status_t
 _cairo_win32_surface_emit_glyphs (cairo_win32_surface_t *dst,

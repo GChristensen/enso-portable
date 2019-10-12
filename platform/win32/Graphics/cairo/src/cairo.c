@@ -124,7 +124,7 @@
  *
  * For example:
  * <informalexample><programlisting>
- * cairo_tag_begin (cr, CAIRO_TAG_LINK, "uri='https://cairographics.org'");
+ * cairo_tag_begin (cr, CAIRO_TAG_LINK, "uri='http://cairographics.org'");
  * cairo_move_to (cr, 50, 50);
  * cairo_show_text (cr, "This is a link to the cairo website.");
  * cairo_tag_end (cr, CAIRO_TAG_LINK);
@@ -157,7 +157,7 @@
  * cairo_move_to (cr, 50, 70);
  * cairo_text_extents (cr, text2, &text2_extents);
  * sprintf (attribs,
- *          "rect=[%f %f %f %f %f %f %f %f] uri='https://cairographics.org'",
+ *          "rect=[%f %f %f %f %f %f %f %f] uri='http://cairographics.org'",
  *          text1_extents.x_bearing,
  *          text1_extents.y_bearing,
  *          text1_extents.width,
@@ -209,7 +209,7 @@
  *
  * An example of the link attributes to the cairo website:
  * <programlisting>
- * "uri='https://cairographics.org'"
+ * "uri='http://cairographics.org'"
  * </programlisting>
  *
  * ## File Links ## {#file-link}

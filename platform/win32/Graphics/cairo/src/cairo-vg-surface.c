@@ -1517,7 +1517,7 @@ _vg_surface_create_internal (cairo_vg_context_t *context,
 {
     cairo_vg_surface_t *surface;
 
-    surface = _cairo_malloc (sizeof (cairo_vg_surface_t));
+    surface = malloc (sizeof (cairo_vg_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -1712,7 +1712,7 @@ cairo_vg_context_create_for_glx (Display *dpy, GLXContext ctx)
     cairo_vg_context_t *context;
     cairo_status_t status;
 
-    context = _cairo_malloc (sizeof (*context));
+    context = malloc (sizeof (*context));
     if (unlikely (context == NULL))
 	return (cairo_vg_context_t *) &_vg_context_nil;
 
@@ -1817,7 +1817,7 @@ cairo_vg_context_create_for_egl (EGLDisplay egl_display,
     cairo_vg_context_t *context;
     cairo_status_t status;
 
-    context = _cairo_malloc (sizeof (*context));
+    context = malloc (sizeof (*context));
     if (unlikely (context == NULL))
 	return (cairo_vg_context_t *) &_vg_context_nil;
 

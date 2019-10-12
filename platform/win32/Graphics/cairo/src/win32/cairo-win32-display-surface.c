@@ -258,7 +258,7 @@ _create_dc_and_bitmap (cairo_win32_display_surface_t *surface,
 	}
     }
 
-    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc, format);
+    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc);
 
     return CAIRO_STATUS_SUCCESS;
 
@@ -298,7 +298,7 @@ _cairo_win32_display_surface_create_for_dc (HDC             original_dc,
     unsigned char *bits;
     int rowstride;
 
-    surface = _cairo_malloc (sizeof (*surface));
+    surface = malloc (sizeof (*surface));
     if (surface == NULL)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -719,7 +719,7 @@ _cairo_win32_display_surface_set_clip (cairo_win32_display_surface_t *surface,
 
     data_size = sizeof (RGNDATAHEADER) + num_rects * sizeof (RECT);
     if (data_size > sizeof (stack)) {
-	data = _cairo_malloc (data_size);
+	data = malloc (data_size);
 	if (!data)
 	    return _cairo_error(CAIRO_STATUS_NO_MEMORY);
     } else
@@ -988,7 +988,7 @@ cairo_win32_surface_create_with_format (HDC hdc, cairo_format_t format)
 	break;
     }
 
-    surface = _cairo_malloc (sizeof (*surface));
+    surface = malloc (sizeof (*surface));
     if (surface == NULL)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -1007,7 +1007,7 @@ cairo_win32_surface_create_with_format (HDC hdc, cairo_format_t format)
     surface->is_dib = FALSE;
     surface->saved_dc_bitmap = NULL;
 
-    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc, format);
+    surface->win32.flags = _cairo_win32_flags_for_dc (surface->win32.dc);
 
     device = _cairo_win32_device_get ();
 

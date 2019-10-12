@@ -826,7 +826,7 @@ _cairo_surface_to_cgimage (cairo_surface_t       *source,
 	}
     }
 
-    source_img = _cairo_malloc (sizeof (quartz_source_image_t));
+    source_img = malloc (sizeof (quartz_source_image_t));
     if (unlikely (source_img == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -984,7 +984,7 @@ _cairo_quartz_cairo_repeating_surface_pattern_to_quartz (cairo_quartz_surface_t 
     if (unlikely (status))
 	return status;
 
-    info = _cairo_malloc (sizeof (SurfacePatternDrawInfo));
+    info = malloc (sizeof (SurfacePatternDrawInfo));
     if (unlikely (!info))
 	return CAIRO_STATUS_NO_MEMORY;
 
@@ -2253,7 +2253,7 @@ _cairo_quartz_surface_create_internal (CGContextRef cgContext,
     quartz_ensure_symbols ();
 
     /* Init the base surface */
-    surface = _cairo_malloc (sizeof (cairo_quartz_surface_t));
+    surface = malloc (sizeof (cairo_quartz_surface_t));
     if (unlikely (surface == NULL))
 	return (cairo_quartz_surface_t*) _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

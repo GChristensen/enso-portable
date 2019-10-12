@@ -179,9 +179,6 @@ fill_boxes (cairo_win32_display_surface_t	*dst,
 
     TRACE ((stderr, "%s\n", __FUNCTION__));
 
-    if ((dst->win32.flags & CAIRO_WIN32_SURFACE_CAN_RGB_BRUSH) == 0)
-	return CAIRO_INT_STATUS_UNSUPPORTED;
-
     fb.dc = dst->win32.dc;
     fb.brush = CreateSolidBrush (color_to_rgb(color));
     if (!fb.brush)
@@ -216,7 +213,6 @@ copy_boxes (cairo_win32_display_surface_t *dst,
     struct copy_box cb;
     cairo_surface_t *surface;
     cairo_status_t status;
-    cairo_win32_surface_t *src;
 
     TRACE ((stderr, "%s\n", __FUNCTION__));
 
@@ -234,17 +230,8 @@ copy_boxes (cairo_win32_display_surface_t *dst,
 						&cb.tx, &cb.ty))
 	return CAIRO_INT_STATUS_UNSUPPORTED;
 
-    src = to_win32_surface(surface);
-
-    if (src->format != dst->win32.format &&
-	!(src->format == CAIRO_FORMAT_ARGB32 && dst->win32.format == CAIRO_FORMAT_RGB24))
-    {
-	/* forbid copy different surfaces unless it is from argb32 to
-	 * rgb (dropping alpha) */
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    }
     cb.dst = dst->win32.dc;
-    cb.src = src->dc;
+    cb.src = to_win32_surface(surface)->dc;
 
     /* First check that the data is entirely within the image */
     if (! _cairo_boxes_for_each_box (boxes, source_contains_box, &cb))
@@ -489,8 +476,7 @@ static cairo_bool_t check_blit (cairo_composite_rectangles_t *composite)
     if (dst->fallback)
 	return FALSE;
 
-    if (dst->win32.format != CAIRO_FORMAT_RGB24
-	&& dst->win32.format != CAIRO_FORMAT_ARGB32)
+    if (dst->win32.format != CAIRO_FORMAT_RGB24)
 	return FALSE;
 
     if (dst->win32.flags & CAIRO_WIN32_SURFACE_CAN_BITBLT)
@@ -628,10 +614,6 @@ _cairo_win32_gdi_compositor_glyphs (const cairo_compositor_t	*compositor,
 	cairo_win32_display_surface_t *dst = to_win32_display_surface (composite->surface);
 
 	TRACE ((stderr, "%s\n", __FUNCTION__));
-
-	if ((dst->win32.flags & CAIRO_WIN32_SURFACE_CAN_RGB_BRUSH) == 0)
-	    return CAIRO_INT_STATUS_UNSUPPORTED;
-
 	status = _cairo_win32_display_surface_set_clip(dst, composite->clip);
 	if (status)
 	    return status;

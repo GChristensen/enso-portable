@@ -323,7 +323,7 @@ _win32_scaled_font_create (LOGFONTW                   *logfont,
     if (hdc == NULL)
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
-    f = _cairo_malloc (sizeof(cairo_win32_scaled_font_t));
+    f = malloc (sizeof(cairo_win32_scaled_font_t));
     if (f == NULL)
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -472,7 +472,7 @@ _win32_scaled_font_get_unscaled_hfont (cairo_win32_scaled_font_t *scaled_font,
 	if (! otm_size)
 	    return _cairo_win32_print_gdi_error ("_win32_scaled_font_get_unscaled_hfont:GetOutlineTextMetrics");
 
-	otm = _cairo_malloc (otm_size);
+	otm = malloc (otm_size);
 	if (otm == NULL)
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1388,7 +1388,7 @@ _cairo_win32_scaled_font_index_to_ucs4 (void		*abstract_font,
 	goto exit1;
     }
 
-    glyph_set = _cairo_malloc (res);
+    glyph_set = malloc (res);
     if (glyph_set == NULL) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto exit1;
@@ -1696,8 +1696,8 @@ _cairo_win32_scaled_font_init_glyph_path (cairo_win32_scaled_font_t *scaled_font
 	goto CLEANUP_FONT;
     }
 
-    ptr = buffer = _cairo_malloc (bytesGlyph);
-    if (!buffer && bytesGlyph != 0) {
+    ptr = buffer = malloc (bytesGlyph);
+    if (!buffer) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto CLEANUP_FONT;
     }
@@ -2071,7 +2071,7 @@ cairo_win32_font_face_create_for_logfontw_hfont (LOGFONTW *logfont, HFONT font)
     }
 
     /* Otherwise create it and insert into hash table. */
-    font_face = _cairo_malloc (sizeof (cairo_win32_font_face_t));
+    font_face = malloc (sizeof (cairo_win32_font_face_t));
     if (!font_face) {
         _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	goto FAIL;

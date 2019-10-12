@@ -100,7 +100,7 @@ add_tree_node (cairo_pdf_surface_t           *surface,
 {
     cairo_pdf_struct_tree_node_t *node;
 
-    node = _cairo_malloc (sizeof(cairo_pdf_struct_tree_node_t));
+    node = malloc (sizeof(cairo_pdf_struct_tree_node_t));
     if (unlikely (node == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1047,7 +1047,7 @@ cairo_pdf_interchange_write_docinfo (cairo_pdf_surface_t *surface)
 
     _cairo_output_stream_printf (surface->output,
 				 "%d 0 obj\n"
-				 "<< /Producer (cairo %s (https://cairographics.org))\n",
+				 "<< /Producer (cairo %s (http://cairographics.org))\n",
 				 surface->docinfo_res.id,
 				 cairo_version_string ());
 

@@ -137,13 +137,13 @@ fill_boxes (void		*_dst,
 
     status = _cairo_gl_composite_init (&setup, op, _dst, FALSE);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
    _cairo_gl_composite_set_solid_source (&setup, color);
 
     status = _cairo_gl_composite_begin (&setup, &ctx);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     emit_aligned_boxes (ctx, boxes);
     status = _cairo_gl_context_release (ctx, CAIRO_STATUS_SUCCESS);
@@ -173,7 +173,7 @@ composite_boxes (void			*_dst,
 
     status = _cairo_gl_composite_init (&setup, op, _dst, FALSE);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     _cairo_gl_composite_set_source_operand (&setup,
 					    source_to_operand (abstract_src));
@@ -185,7 +185,7 @@ composite_boxes (void			*_dst,
 
     status = _cairo_gl_composite_begin (&setup, &ctx);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     emit_aligned_boxes (ctx, boxes);
     status = _cairo_gl_context_release (ctx, CAIRO_STATUS_SUCCESS);
@@ -215,7 +215,7 @@ composite (void			*_dst,
 
     status = _cairo_gl_composite_init (&setup, op, _dst, FALSE);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     _cairo_gl_composite_set_source_operand (&setup,
 					    source_to_operand (abstract_src));
@@ -227,7 +227,7 @@ composite (void			*_dst,
 
     status = _cairo_gl_composite_begin (&setup, &ctx);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     /* XXX clip */
     _cairo_gl_context_emit_rect (ctx, dst_x, dst_y, dst_x+width, dst_y+height);
@@ -364,7 +364,7 @@ composite_traps (void			*_dst,
 
     status = _cairo_gl_composite_init (&setup, op, _dst, FALSE);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     _cairo_gl_composite_set_source_operand (&setup,
 					    source_to_operand (abstract_src));
@@ -375,7 +375,7 @@ composite_traps (void			*_dst,
 
     status = _cairo_gl_composite_begin (&setup, &ctx);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     /* XXX clip */
     _cairo_gl_context_emit_rect (ctx,
@@ -464,7 +464,7 @@ composite_tristrip (void		*_dst,
 
     status = _cairo_gl_composite_init (&setup, op, _dst, FALSE);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     _cairo_gl_composite_set_source_operand (&setup,
 					    source_to_operand (abstract_src));
@@ -473,7 +473,7 @@ composite_tristrip (void		*_dst,
 
     status = _cairo_gl_composite_begin (&setup, &ctx);
     if (unlikely (status))
-	goto FAIL;
+        goto FAIL;
 
     /* XXX clip */
     _cairo_gl_context_emit_rect (ctx,

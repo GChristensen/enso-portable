@@ -14,7 +14,6 @@ EXTRA_DIST =				\
 	Makefile.win32			\
 	pixman-region.c			\
 	solaris-hwcap.mapfile		\
-	meson.build			\
 	$(NULL)
 
 # mmx code

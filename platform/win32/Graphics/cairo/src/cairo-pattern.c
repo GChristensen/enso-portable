@@ -498,22 +498,22 @@ _cairo_pattern_create_copy (cairo_pattern_t	  **pattern_out,
 
     switch (other->type) {
     case CAIRO_PATTERN_TYPE_SOLID:
-	pattern = _cairo_malloc (sizeof (cairo_solid_pattern_t));
+	pattern = malloc (sizeof (cairo_solid_pattern_t));
 	break;
     case CAIRO_PATTERN_TYPE_SURFACE:
-	pattern = _cairo_malloc (sizeof (cairo_surface_pattern_t));
+	pattern = malloc (sizeof (cairo_surface_pattern_t));
 	break;
     case CAIRO_PATTERN_TYPE_LINEAR:
-	pattern = _cairo_malloc (sizeof (cairo_linear_pattern_t));
+	pattern = malloc (sizeof (cairo_linear_pattern_t));
 	break;
     case CAIRO_PATTERN_TYPE_RADIAL:
-	pattern = _cairo_malloc (sizeof (cairo_radial_pattern_t));
+	pattern = malloc (sizeof (cairo_radial_pattern_t));
 	break;
     case CAIRO_PATTERN_TYPE_MESH:
-	pattern = _cairo_malloc (sizeof (cairo_mesh_pattern_t));
+	pattern = malloc (sizeof (cairo_mesh_pattern_t));
 	break;
     case CAIRO_PATTERN_TYPE_RASTER_SOURCE:
-	pattern = _cairo_malloc (sizeof (cairo_raster_source_pattern_t));
+	pattern = malloc (sizeof (cairo_raster_source_pattern_t));
 	break;
     default:
 	ASSERT_NOT_REACHED;
@@ -604,7 +604,7 @@ _cairo_pattern_create_solid (const cairo_color_t *color)
 	_freed_pool_get (&freed_pattern_pool[CAIRO_PATTERN_TYPE_SOLID]);
     if (unlikely (pattern == NULL)) {
 	/* None cached, need to create a new pattern. */
-	pattern = _cairo_malloc (sizeof (cairo_solid_pattern_t));
+	pattern = malloc (sizeof (cairo_solid_pattern_t));
 	if (unlikely (pattern == NULL)) {
 	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	    return (cairo_pattern_t *) &_cairo_pattern_nil;
@@ -738,7 +738,7 @@ cairo_pattern_create_for_surface (cairo_surface_t *surface)
     pattern =
 	_freed_pool_get (&freed_pattern_pool[CAIRO_PATTERN_TYPE_SURFACE]);
     if (unlikely (pattern == NULL)) {
-	pattern = _cairo_malloc (sizeof (cairo_surface_pattern_t));
+	pattern = malloc (sizeof (cairo_surface_pattern_t));
 	if (unlikely (pattern == NULL)) {
 	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	    return (cairo_pattern_t *)&_cairo_pattern_nil.base;
@@ -790,7 +790,7 @@ cairo_pattern_create_linear (double x0, double y0, double x1, double y1)
     pattern =
 	_freed_pool_get (&freed_pattern_pool[CAIRO_PATTERN_TYPE_LINEAR]);
     if (unlikely (pattern == NULL)) {
-	pattern = _cairo_malloc (sizeof (cairo_linear_pattern_t));
+	pattern = malloc (sizeof (cairo_linear_pattern_t));
 	if (unlikely (pattern == NULL)) {
 	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	    return (cairo_pattern_t *) &_cairo_pattern_nil.base;
@@ -844,7 +844,7 @@ cairo_pattern_create_radial (double cx0, double cy0, double radius0,
     pattern =
 	_freed_pool_get (&freed_pattern_pool[CAIRO_PATTERN_TYPE_RADIAL]);
     if (unlikely (pattern == NULL)) {
-	pattern = _cairo_malloc (sizeof (cairo_radial_pattern_t));
+	pattern = malloc (sizeof (cairo_radial_pattern_t));
 	if (unlikely (pattern == NULL)) {
 	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	    return (cairo_pattern_t *) &_cairo_pattern_nil.base;
@@ -1022,7 +1022,7 @@ cairo_pattern_create_mesh (void)
     pattern =
 	_freed_pool_get (&freed_pattern_pool[CAIRO_PATTERN_TYPE_MESH]);
     if (unlikely (pattern == NULL)) {
-	pattern = _cairo_malloc (sizeof (cairo_mesh_pattern_t));
+	pattern = malloc (sizeof (cairo_mesh_pattern_t));
 	if (unlikely (pattern == NULL)) {
 	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	    return (cairo_pattern_t *) &_cairo_pattern_nil.base;
@@ -4480,7 +4480,7 @@ cairo_mesh_pattern_get_path (cairo_pattern_t *pattern,
 
     patch = _cairo_array_index_const (&mesh->patches, patch_num);
 
-    path = _cairo_malloc (sizeof (cairo_path_t));
+    path = malloc (sizeof (cairo_path_t));
     if (path == NULL)
 	return _cairo_path_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -4694,7 +4694,7 @@ _cairo_debug_print_surface_pattern (FILE *file,
     case CAIRO_SURFACE_TYPE_DRM: s = "drm"; break;
     case CAIRO_SURFACE_TYPE_TEE: s = "tee"; break;
     case CAIRO_SURFACE_TYPE_XML: s = "xml"; break;
-    case CAIRO_SURFACE_TYPE_SKIA: s = "skia"; break; /* Deprecated */
+    case CAIRO_SURFACE_TYPE_SKIA: s = "skia"; break;
     case CAIRO_SURFACE_TYPE_SUBSURFACE: s = "subsurface"; break;
     case CAIRO_SURFACE_TYPE_COGL: s = "cogl"; break;
     default: s = "invalid"; ASSERT_NOT_REACHED; break;

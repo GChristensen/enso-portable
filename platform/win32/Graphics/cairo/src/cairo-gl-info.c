@@ -82,7 +82,7 @@ _cairo_gl_get_vbo_size (void)
 
     const char *env = getenv ("CAIRO_GL_VBO_SIZE");
     if (env == NULL) {
-	vbo_size = CAIRO_GL_VBO_SIZE_DEFAULT;
+        vbo_size = CAIRO_GL_VBO_SIZE_DEFAULT;
     } else {
 	errno = 0;
 	vbo_size = strtol (env, NULL, 10);

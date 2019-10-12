@@ -85,7 +85,7 @@ i915_packed_pixel_surface_create (i915_device_t *device,
     if (width > 2048 || height > 2048)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_INVALID_SIZE));
 
-    surface = _cairo_malloc (sizeof (i915_packed_pixel_surface_t));
+    surface = malloc (sizeof (i915_packed_pixel_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

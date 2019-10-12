@@ -182,7 +182,7 @@ _cairo_image_surface_create_for_pixman_image (pixman_image_t		*pixman_image,
 {
     cairo_image_surface_t *surface;
 
-    surface = _cairo_malloc (sizeof (cairo_image_surface_t));
+    surface = malloc (sizeof (cairo_image_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 

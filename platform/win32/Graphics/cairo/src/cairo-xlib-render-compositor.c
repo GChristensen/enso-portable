@@ -989,7 +989,7 @@ _cairo_xlib_font_create (cairo_xlib_display_t *display,
     cairo_xlib_font_t *priv;
     int i;
 
-    priv = _cairo_malloc (sizeof (cairo_xlib_font_t));
+    priv = malloc (sizeof (cairo_xlib_font_t));
     if (unlikely (priv == NULL))
 	return NULL;
 
@@ -1089,7 +1089,7 @@ _cairo_xlib_glyph_attach (cairo_xlib_display_t	*display,
 {
     cairo_xlib_glyph_private_t *priv;
 
-    priv = _cairo_malloc (sizeof (*priv));
+    priv = malloc (sizeof (*priv));
     if (unlikely (priv == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -1290,7 +1290,7 @@ _cairo_xlib_surface_add_glyph (cairo_xlib_display_t *display,
 	    if (c == 0)
 		break;
 
-	    new = _cairo_malloc (c);
+	    new = malloc (c);
 	    if (!new) {
 		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 		goto BAIL;
@@ -1318,7 +1318,7 @@ _cairo_xlib_surface_add_glyph (cairo_xlib_display_t *display,
 	    if (c == 0)
 		break;
 
-	    new = _cairo_malloc (4 * c);
+	    new = malloc (4 * c);
 	    if (unlikely (new == NULL)) {
 		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 		goto BAIL;

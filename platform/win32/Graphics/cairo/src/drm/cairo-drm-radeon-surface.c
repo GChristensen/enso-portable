@@ -317,7 +317,7 @@ radeon_surface_create_internal (cairo_drm_device_t *device,
     radeon_surface_t *surface;
     cairo_status_t status;
 
-    surface = _cairo_malloc (sizeof (radeon_surface_t));
+    surface = malloc (sizeof (radeon_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -385,7 +385,7 @@ radeon_surface_create_for_name (cairo_drm_device_t *device,
     if (stride < cairo_format_stride_for_width (format, width))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_INVALID_STRIDE));
 
-    surface = _cairo_malloc (sizeof (radeon_surface_t));
+    surface = malloc (sizeof (radeon_surface_t));
     if (unlikely (surface == NULL))
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_NO_MEMORY));
 
@@ -427,7 +427,7 @@ _cairo_drm_radeon_device_create (int fd, dev_t dev, int vendor_id, int chip_id)
     if (! radeon_info (fd, &gart_size, &vram_size))
 	return NULL;
 
-    device = _cairo_malloc (sizeof (radeon_device_t));
+    device = malloc (sizeof (radeon_device_t));
     if (device == NULL)
 	return _cairo_drm_device_create_in_error (CAIRO_STATUS_NO_MEMORY);
 

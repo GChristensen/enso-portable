@@ -67,6 +67,9 @@
 #define SOF14 0xce
 #define SOF15 0xcf
 
+/* Start of tag markers */
+#define APP14 0xee	/* Adobe */
+
 static const unsigned char *
 _jpeg_skip_segment (const unsigned char *p)
 {
@@ -93,6 +96,8 @@ _cairo_image_info_get_jpeg_info (cairo_image_info_t	*info,
 				 long			 length)
 {
     const unsigned char *p = data;
+
+    info->is_adobe_jpeg = FALSE;
 
     while (p + 1 < data + length) {
 	if (*p != 0xff)
@@ -130,6 +135,18 @@ _cairo_image_info_get_jpeg_info (cairo_image_info_t	*info,
 
 	    _jpeg_extract_info (info, p);
 	    return CAIRO_STATUS_SUCCESS;
+
+	case APP14:
+	    /* "Adobe" tags segment indicates inverted CMYK (in
+	     * CMYK images). */
+	    if (p + 12 > data + length)
+		return CAIRO_INT_STATUS_UNSUPPORTED;
+
+	    info->is_adobe_jpeg =
+		(0 == strncmp((const char *)(p + 3), "Adobe", 5));
+
+	    p = _jpeg_skip_segment(p);
+	    break;
 
 	default:
 	    if (*p >= RST_begin && *p <= RST_end) {
@@ -206,6 +223,7 @@ _jpx_extract_info (const unsigned char *p, cairo_image_info_t *info)
     info->width = get_unaligned_be32 (p + 4);
     info->num_components = (p[8] << 8) + p[9];
     info->bits_per_component = p[10];
+    info->is_adobe_jpeg = FALSE;
 }
 
 cairo_int_status_t
@@ -282,6 +300,8 @@ _cairo_image_info_get_png_info (cairo_image_info_t     *info,
     info->width = get_unaligned_be32 (p);
     p += 4;
     info->height = get_unaligned_be32 (p);
+
+    info->is_adobe_jpeg = FALSE;
 
     return CAIRO_STATUS_SUCCESS;
 }
@@ -395,6 +415,7 @@ _jbig2_extract_info (cairo_image_info_t *info, const unsigned char *p)
     info->height = get_unaligned_be32 (p + 4);
     info->num_components = 1;
     info->bits_per_component = 1;
+    info->is_adobe_jpeg = FALSE;
 }
 
 cairo_int_status_t
