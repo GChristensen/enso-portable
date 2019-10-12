@@ -1,0 +1,353 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+		"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+<!ENTITY version SYSTEM "version.xml">
+]>
+<refentry id="cairo-Tags-and-Links">
+<refmeta>
+<refentrytitle role="top_of_page" id="cairo-Tags-and-Links.top_of_page">Tags and Links</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo>CAIRO Library</refmiscinfo>
+</refmeta>
+<refnamediv>
+<refname>Tags and Links</refname>
+<refpurpose>Hyperlinks and document structure</refpurpose>
+</refnamediv>
+
+<refsect1 id="cairo-Tags-and-Links.functions" role="functions_proto">
+<title role="functions_proto.title">Functions</title>
+<informaltable pgwide="1" frame="none">
+<tgroup cols="2">
+<colspec colname="functions_return" colwidth="150px"/>
+<colspec colname="functions_name"/>
+<tbody>
+<row><entry role="function_type"><link linkend="void"><returnvalue>void</returnvalue></link>
+</entry><entry role="function_name"><link linkend="cairo-tag-begin">cairo_tag_begin</link>&#160;<phrase role="c_punctuation">()</phrase></entry></row>
+<row><entry role="function_type"><link linkend="void"><returnvalue>void</returnvalue></link>
+</entry><entry role="function_name"><link linkend="cairo-tag-end">cairo_tag_end</link>&#160;<phrase role="c_punctuation">()</phrase></entry></row>
+
+</tbody>
+</tgroup>
+</informaltable>
+</refsect1>
+<refsect1 id="cairo-Tags-and-Links.other" role="other_proto">
+<title role="other_proto.title">Types and Values</title>
+<informaltable role="enum_members_table" pgwide="1" frame="none">
+<tgroup cols="2">
+<colspec colname="name" colwidth="150px"/>
+<colspec colname="description"/>
+<tbody>
+<row><entry role="define_keyword">#define</entry><entry role="function_name"><link linkend="CAIRO-TAG-DEST:CAPS">CAIRO_TAG_DEST</link></entry></row>
+<row><entry role="define_keyword">#define</entry><entry role="function_name"><link linkend="CAIRO-TAG-LINK:CAPS">CAIRO_TAG_LINK</link></entry></row>
+
+</tbody>
+</tgroup>
+</informaltable>
+</refsect1>
+
+
+<refsect1 id="cairo-Tags-and-Links.description" role="desc">
+<title role="desc.title">Description</title>
+<para>The tag functions provide the ability to specify hyperlinks and
+document logical structure on supported backends. The following tags are supported:</para>
+<itemizedlist>
+<listitem><para><link linkend="link">Link</link> - Create a hyperlink</para></listitem>
+<listitem><para><link linkend="dest">Destinations</link> - Create a hyperlink destination</para></listitem>
+<listitem>
+<para><link linkend="doc-struct">Document Structure Tags</link> - Create PDF Document Structure</para>
+</listitem>
+</itemizedlist>
+<refsect2 id="link"><title>Link Tags</title><para>A hyperlink is specified by enclosing the hyperlink text with the <link linkend="CAIRO-TAG-LINK:CAPS"><literal>CAIRO_TAG_LINK</literal></link> tag.</para>
+<para>For example:</para>
+<informalexample><programlisting>
+cairo_tag_begin (cr, CAIRO_TAG_LINK, "uri='https://cairographics.org'");
+cairo_move_to (cr, 50, 50);
+cairo_show_text (cr, "This is a link to the cairo website.");
+cairo_tag_end (cr, CAIRO_TAG_LINK);
+</programlisting></informalexample>
+<para>The PDF backend uses one or more rectangles to define the clickable
+area of the link.  By default cairo will use the extents of the
+drawing operations enclosed by the begin/end link tags to define the
+clickable area. In some cases, such as a link split across two
+lines, the default rectangle is undesirable.</para>
+<para><parameter>rect</parameter>
+: [optional] The "rect" attribute allows the application to
+specify one or more rectangles that form the clickable region.  The
+value of this attribute is an array of floats. Each rectangle is
+specified by four elements in the array: x, y, width, height. The
+array size must be a multiple of four.</para>
+<para>An example of creating a link with user specified clickable region:</para>
+<informalexample><programlisting>
+cairo_font_extents_t font_extents;
+cairo_text_extents_t text1_extents;
+cairo_text_extents_t text2_extents;
+char attribs[100];
+const char *text1 = "This link is split";
+const char *text2 = "across two lines";
+
+cairo_font_extents (cr, &amp;font_extents);
+cairo_move_to (cr, 450, 50);
+cairo_text_extents (cr, text1, &amp;text1_extents);
+cairo_move_to (cr, 50, 70);
+cairo_text_extents (cr, text2, &amp;text2_extents);
+sprintf (attribs,
+         "rect=[%f %f %f %f %f %f %f %f] uri='https://cairographics.org'",
+         text1_extents.x_bearing,
+         text1_extents.y_bearing,
+         text1_extents.width,
+         text1_extents.height,
+         text2_extents.x_bearing,
+         text2_extents.y_bearing,
+         text2_extents.width,
+         text2_extents.height);
+
+cairo_tag_begin (cr, CAIRO_TAG_LINK, attribs);
+cairo_show_text (cr, "This is a link to the cairo website");
+cairo_move_to (cr, 450, 50);
+cairo_show_text (cr, text1);
+cairo_move_to (cr, 50, 70);
+cairo_show_text (cr, text2);
+cairo_tag_end (cr, CAIRO_TAG_LINK);
+</programlisting></informalexample>
+<para>There are three types of links. Each type has its own attributes as detailed below.</para>
+<itemizedlist>
+<listitem><para><link linkend="internal-link">Internal Links</link> - A link to a location in the same document</para></listitem>
+<listitem><para><link linkend="uri-link">URI Links</link> - A link to a Uniform resource identifier</para></listitem>
+<listitem>
+<para><link linkend="file-link">File Links</link> - A link to a location in another document</para>
+</listitem>
+</itemizedlist>
+<refsect3 id="internal-link"><title>Internal Links</title><para>An internal link is a link to a location in the same document. The destination
+is specified with either:</para>
+<para><parameter>dest</parameter>
+: a UTF-8 string specifying the destination in the PDF file to link
+to. Destinations are created with the <link linkend="CAIRO-TAG-DEST:CAPS"><literal>CAIRO_TAG_DEST</literal></link> tag.</para>
+<para>or the two attributes:</para>
+<para><parameter>page</parameter>
+: An integer specifying the page number in the PDF file to link to.</para>
+<para><parameter>pos</parameter>
+: [optional] An array of two floats specifying the x,y position
+on the page.</para>
+<para>An example of the link attributes to link to a page and x,y position:</para>
+<programlisting>
+"page=3 pos=[3.1 6.2]"
+</programlisting>
+</refsect3>
+<refsect3 id="uri-link"><title>URI Links</title><para>A URI link is a link to a Uniform Resource Identifier (<ulink url="http://tools.ietf.org/html/rfc2396">RFC 2396</ulink>).</para>
+<para>A URI is specified with the following attribute:</para>
+<para><parameter>uri</parameter>
+: An ASCII string specifying the URI.</para>
+<para>An example of the link attributes to the cairo website:</para>
+<programlisting>
+"uri='https://cairographics.org'"
+</programlisting>
+</refsect3>
+<refsect3 id="file-link"><title>File Links</title><para>A file link is a link a location in another PDF file.</para>
+<para>The file attribute (required) specifies the name of the PDF file:</para>
+<para><parameter>file</parameter>
+: File name of PDF file to link to.</para>
+<para>The position is specified by either:</para>
+<para> <parameter>dest</parameter>
+: a UTF-8 string specifying the named destination in the PDF file.</para>
+<para>or</para>
+<para> <parameter>page</parameter>
+: An integer specifying the page number in the PDF file.</para>
+<para> <parameter>pos</parameter>
+: [optional] An array of two floats specifying the x,y
+ position on the page. Position coordinates in external files are in PDF
+ coordinates (0,0 at bottom left).</para>
+<para>An example of the link attributes to PDF file:</para>
+<programlisting>
+"file='document.pdf' page=16 pos=[25 40]"
+</programlisting>
+</refsect3>
+</refsect2>
+<refsect2 id="dest"><title>Destination Tags</title><para>A destination is specified by enclosing the destination drawing
+operations with the <link linkend="CAIRO-TAG-DEST:CAPS"><literal>CAIRO_TAG_DEST</literal></link> tag.</para>
+<para><parameter>name</parameter>
+: [required] A UTF-8 string specifying the name of this destination.</para>
+<para><parameter>x</parameter>
+: [optional] A float specifying the x coordinate of destination
+                position on this page. If not specified the default
+                x coordinate is the left side of the extents of the
+                operations enclosed by the <link linkend="CAIRO-TAG-DEST:CAPS"><literal>CAIRO_TAG_DEST</literal></link> begin/end tags. If
+                no operations are enclosed, the x coordidate is 0.</para>
+<para><parameter>y</parameter>
+: [optional] A float specifying the y coordinate of destination
+                position on this page. If not specified the default
+                y coordinate is the top of the extents of the
+                operations enclosed by the <link linkend="CAIRO-TAG-DEST:CAPS"><literal>CAIRO_TAG_DEST</literal></link> begin/end tags. If
+                no operations are enclosed, the y coordidate is 0.</para>
+<para><parameter>internal</parameter>
+: A boolean that if true, the destination name may be
+           omitted from PDF where possible. In this case, links
+           refer directly to the page and position instead of via
+           the named destination table. Note that if this
+           destination is referenced by another PDF (see <link linkend="file-link">File Links</link>),
+           this attribute must be false. Default is false.</para>
+<informalexample><programlisting>
+/&ast; Create a hyperlink &ast;/
+cairo_tag_begin (cr, CAIRO_TAG_LINK, "dest='mydest' internal");
+cairo_move_to (cr, 50, 50);
+cairo_show_text (cr, "This is a hyperlink.");
+cairo_tag_end (cr, CAIRO_TAG_LINK);
+
+/&ast; Create a destination &ast;/
+cairo_tag_begin (cr, CAIRO_TAG_DEST, "name='mydest'");
+cairo_move_to (cr, 50, 250);
+cairo_show_text (cr, "This paragraph is the destination of the above link.");
+cairo_tag_end (cr, CAIRO_TAG_DEST);
+</programlisting></informalexample>
+</refsect2>
+<refsect2 id="doc-struct"><title>Document Structure (PDF)</title><para>The document structure tags provide a means of specifying structural information
+such as headers, paragraphs, tables, and figures. The inclusion of structural information facilitates:</para>
+<itemizedlist>
+<listitem><para>Extraction of text and graphics for copy and paste</para></listitem>
+<listitem><para>Reflow of text and graphics in the viewer</para></listitem>
+<listitem><para>Processing text eg searching and indexing</para></listitem>
+<listitem><para>Conversion to other formats</para></listitem>
+<listitem>
+<para>Accessability support</para>
+</listitem>
+</itemizedlist>
+<para>The list of structure types is specified in section 14.8.4 of the
+<ulink url="http://www.adobe.com/content/dam/Adobe/en/devnet/acrobat/pdfs/PDF32000_2008.pdf">PDF Reference</ulink>.</para>
+<para>Note the PDF "Link" structure tag is the same as the cairo <link linkend="CAIRO-TAG-LINK:CAPS"><literal>CAIRO_TAG_LINK</literal></link> tag.</para>
+<para>The following example creates a document structure for a document containing two section, each with
+a header and a paragraph.</para>
+<informalexample><programlisting>
+cairo_tag_begin (cr, "Document", NULL);
+
+cairo_tag_begin (cr, "Sect", NULL);
+cairo_tag_begin (cr, "H1", NULL);
+cairo_show_text (cr, "Heading 1");
+cairo_tag_end (cr, "H1");
+
+cairo_tag_begin (cr, "P", NULL);
+cairo_show_text (cr, "Paragraph 1");
+cairo_tag_end (cr, "P");
+cairo_tag_end (cr, "Sect");
+
+cairo_tag_begin (cr, "Sect", NULL);
+cairo_tag_begin (cr, "H1", NULL);
+cairo_show_text (cr, "Heading 2");
+cairo_tag_end (cr, "H1");
+
+cairo_tag_begin (cr, "P", NULL);
+cairo_show_text (cr, "Paragraph 2");
+cairo_tag_end (cr, "P");
+cairo_tag_end (cr, "Sect");
+
+cairo_tag_end (cr, "Document");
+</programlisting></informalexample>
+</refsect2>
+
+</refsect1>
+<refsect1 id="cairo-Tags-and-Links.functions_details" role="details">
+<title role="details.title">Functions</title>
+<refsect2 id="cairo-tag-begin" role="function" condition="since:1.16">
+<title>cairo_tag_begin&#160;()</title>
+<indexterm zone="cairo-tag-begin" role="1.16"><primary sortas="tag_begin">cairo_tag_begin</primary></indexterm>
+<programlisting language="C"><link linkend="void"><returnvalue>void</returnvalue></link>
+cairo_tag_begin (<parameter><link linkend="cairo-t"><type>cairo_t</type></link> *cr</parameter>,
+                 <parameter>const <link linkend="char"><type>char</type></link> *tag_name</parameter>,
+                 <parameter>const <link linkend="char"><type>char</type></link> *attributes</parameter>);</programlisting>
+<para>Marks the beginning of the <parameter>tag_name</parameter>
+ structure. Call
+<link linkend="cairo-tag-end"><function>cairo_tag_end()</function></link> with the same <parameter>tag_name</parameter>
+ to mark the end of the
+structure.</para>
+<para>The attributes string is of the form "key1=value2 key2=value2 ...".
+Values may be boolean (true/false or 1/0), integer, float, string,
+or an array.</para>
+<para>String values are enclosed in single quotes
+('). Single quotes and backslashes inside the string should be
+escaped with a backslash.</para>
+<para>Boolean values may be set to true by only
+specifying the key. eg the attribute string "key" is the equivalent
+to "key=true".</para>
+<para>Arrays are enclosed in '[]'. eg "rect=[1.2 4.3 2.0 3.0]".</para>
+<para>If no attributes are required, <parameter>attributes</parameter>
+ can be an empty string or NULL.</para>
+<para>See <link linkend="cairo-Tags-and-Links.description">Tags and Links Description</link>
+for the list of tags and attributes.</para>
+<para>Invalid nesting of tags or invalid attributes will cause <parameter>cr</parameter>
+ to
+shutdown with a status of <link linkend="CAIRO-STATUS-TAG-ERROR:CAPS"><literal>CAIRO_STATUS_TAG_ERROR</literal></link>.</para>
+<para>See <link linkend="cairo-tag-end"><function>cairo_tag_end()</function></link>.</para>
+<refsect3 id="cairo-tag-begin.parameters" role="parameters">
+<title>Parameters</title>
+<informaltable role="parameters_table" pgwide="1" frame="none">
+<tgroup cols="3">
+<colspec colname="parameters_name" colwidth="150px"/>
+<colspec colname="parameters_description"/>
+<colspec colname="parameters_annotations" colwidth="200px"/>
+<tbody>
+<row><entry role="parameter_name"><para>cr</para></entry>
+<entry role="parameter_description"><para>a cairo context</para></entry>
+<entry role="parameter_annotations"></entry></row>
+<row><entry role="parameter_name"><para>tag_name</para></entry>
+<entry role="parameter_description"><para>tag name</para></entry>
+<entry role="parameter_annotations"></entry></row>
+<row><entry role="parameter_name"><para>attributes</para></entry>
+<entry role="parameter_description"><para>tag attributes</para></entry>
+<entry role="parameter_annotations"></entry></row>
+</tbody></tgroup></informaltable>
+</refsect3><para role="since">Since: <link linkend="api-index-1.16">1.16</link></para></refsect2>
+<refsect2 id="cairo-tag-end" role="function" condition="since:1.16">
+<title>cairo_tag_end&#160;()</title>
+<indexterm zone="cairo-tag-end" role="1.16"><primary sortas="tag_end">cairo_tag_end</primary></indexterm>
+<programlisting language="C"><link linkend="void"><returnvalue>void</returnvalue></link>
+cairo_tag_end (<parameter><link linkend="cairo-t"><type>cairo_t</type></link> *cr</parameter>,
+               <parameter>const <link linkend="char"><type>char</type></link> *tag_name</parameter>);</programlisting>
+<para>Marks the end of the <parameter>tag_name</parameter>
+ structure.</para>
+<para>Invalid nesting of tags will cause <parameter>cr</parameter>
+ to shutdown with a status of
+<link linkend="CAIRO-STATUS-TAG-ERROR:CAPS"><literal>CAIRO_STATUS_TAG_ERROR</literal></link>.</para>
+<para>See <link linkend="cairo-tag-begin"><function>cairo_tag_begin()</function></link>.</para>
+<refsect3 id="cairo-tag-end.parameters" role="parameters">
+<title>Parameters</title>
+<informaltable role="parameters_table" pgwide="1" frame="none">
+<tgroup cols="3">
+<colspec colname="parameters_name" colwidth="150px"/>
+<colspec colname="parameters_description"/>
+<colspec colname="parameters_annotations" colwidth="200px"/>
+<tbody>
+<row><entry role="parameter_name"><para>cr</para></entry>
+<entry role="parameter_description"><para>a cairo context</para></entry>
+<entry role="parameter_annotations"></entry></row>
+<row><entry role="parameter_name"><para>tag_name</para></entry>
+<entry role="parameter_description"><para>tag name</para></entry>
+<entry role="parameter_annotations"></entry></row>
+</tbody></tgroup></informaltable>
+</refsect3><para role="since">Since: <link linkend="api-index-1.16">1.16</link></para></refsect2>
+
+</refsect1>
+<refsect1 id="cairo-Tags-and-Links.other_details" role="details">
+<title role="details.title">Types and Values</title>
+<refsect2 id="CAIRO-TAG-DEST:CAPS" role="macro" condition="since:1.16">
+<title>CAIRO_TAG_DEST</title>
+<indexterm zone="CAIRO-TAG-DEST:CAPS" role="1.16"><primary sortas="TAG_DEST">CAIRO_TAG_DEST</primary></indexterm>
+<programlisting language="C">#define CAIRO_TAG_DEST "cairo.dest"
+</programlisting>
+<para>Create a destination for a hyperlink. Destination tag attributes
+are detailed at <link linkend="dests">Destinations</link>.</para>
+<para role="since">Since: <link linkend="api-index-1.16">1.16</link></para></refsect2>
+<refsect2 id="CAIRO-TAG-LINK:CAPS" role="macro" condition="since:1.16">
+<title>CAIRO_TAG_LINK</title>
+<indexterm zone="CAIRO-TAG-LINK:CAPS" role="1.16"><primary sortas="TAG_LINK">CAIRO_TAG_LINK</primary></indexterm>
+<programlisting language="C">#define CAIRO_TAG_LINK "Link"
+</programlisting>
+<para>Create hyperlink. Link tag attributes are detailed at
+<link linkend="links">Links</link>.</para>
+<para role="since">Since: <link linkend="api-index-1.16">1.16</link></para></refsect2>
+
+</refsect1>
+<refsect1 id="cairo-Tags-and-Links.see-also">
+<title>See Also</title>
+<para><link linkend="cairo-pdf-surface-t"><type>cairo_pdf_surface_t</type></link></para>
+
+</refsect1>
+
+</refentry>

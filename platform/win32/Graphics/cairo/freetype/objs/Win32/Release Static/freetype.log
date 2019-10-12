@@ -1,0 +1,48 @@
+﻿  autofit.c
+  ftbase.c
+  ftbbox.c
+  ftbdf.c
+  ftbitmap.c
+  ftcid.c
+  ftfstype.c
+  ftgasp.c
+  ftglyph.c
+  ftgxval.c
+  ftinit.c
+  ftmm.c
+  ftotval.c
+  ftpatent.c
+  ftpfr.c
+  ftstroke.c
+  ftsynth.c
+  ftsystem.c
+  fttype1.c
+  ftwinfnt.c
+  bdf.c
+  ftcache.c
+  cff.c
+  type1cid.c
+  ftgzip.c
+  ftlzw.c
+  pcf.c
+  pfr.c
+  psaux.c
+  pshinter.c
+  psmodule.c
+  raster.c
+  sfnt.c
+  smooth.c
+  truetype.c
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcolr.c(127,50): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcolr.c(136,40): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcpal.c(121,40): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcpal.c(153,50): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcpal.c(174,50): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\sfnt\ttcpal.c(195,57): warning C4018:  '>': signed/unsigned mismatch (compiling source file ..\..\..\src\sfnt\sfnt.c)
+  type1.c
+  type42.c
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\smooth\ftgrays.c(534): warning C4706:  assignment within conditional expression
+  winfnt.c
+D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\src\truetype\ttgxvar.c(2201): warning C4701:  potentially uninitialized local variable 'fvar_head' used
+  ftdebug.c
+  freetype.vcxproj -> D:\sandbox\python\enso\platform\win32\Graphics\cairo\freetype\builds\windows\vc2010\..\..\..\objs\Win32\Release Static\freetype.lib

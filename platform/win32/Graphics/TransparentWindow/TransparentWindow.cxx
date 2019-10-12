@@ -172,7 +172,12 @@ TransparentWindow::makeCairoSurface( void )
     {
         /* Our private cairo surface doesn't exist yet; create it,
          * which also sets its reference count to 1. */
-        _cairoSurface = cairo_win32_surface_create( _hDC );
+
+        /* Creating surface with cairo 1.16+ */
+
+         //_cairoSurface = cairo_win32_surface_create( _hDC );
+
+         _cairoSurface = cairo_win32_surface_create_with_format(_hDC, CAIRO_FORMAT_ARGB32);
 
         if ( cairo_surface_status(_cairoSurface) != CAIRO_STATUS_SUCCESS )
             throw FatalError( "Couldn't init Cairo surface." );

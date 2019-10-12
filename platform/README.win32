@@ -1,13 +1,16 @@
 Modern build instructions:
 
-  1. Install Python 3.7 anywhere
-  2. Make sure that Python 3.7 is the default Python version accessible from command line
-  3. Install pywin32 for Python 3.7 (https://github.com/mhammond/pywin32)
-  4. Install SCons for Python 3.7 (https://scons.org/)
+  1. Install Python 3 anywhere
+  2. Make sure that Python 3 is the default Python version accessible from command line
+  3. Install pywin32 for Python 3 (https://github.com/mhammond/pywin32)
+  4. Install SCons for Python 3 (https://scons.org/)
   5. Install SWIG (http://www.swig.org/) and make it available through the PATH environment variable
-  6. Install MS Visual Studio 2017
-  7. Open VS Build Tools console, change the current working directory to `platform' (this) folder
-     and run `scons' command
+  6. Install MS Visual Studio 2015+
+  7. Install MSYS2 (https://www.msys2.org/) and make it available through the PATH environment variable
+  8. Open MSVS Developer Console and change the current working directory to `platform' (this) folder
+  9. Navigate to `win32/Graphics/cairo' subdirectory
+  10. Execute "sh build.sh"
+  11  Navigate back to `platform` and and run `scons' command
 
 
 The original build instructions:

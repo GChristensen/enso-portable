@@ -42,24 +42,12 @@ Import( "env" )
 
 env = env.Copy()
 
-# Pixman
-env.addLib(
-    basePath = env.makeRootRelativePath( "pixman" ),
-    includePath = "src",
-    libPath = "src",
-    PIXMAN_LIB_NAME = "pixman",
-    #SHLIBSUFFIX = ".pyd",
-    )
+#from subprocess import call
+#call("sh build.sh")
 
-# Disable "treat all warnings as errors". This is done because the
-# cairo source code raises a number of warnings when compiled under
-# MSVC, and we're not in a position to fix their code at present.
-env["CCFLAGS"].remove( "/WX" )
+#bld = Builder(action = "sh build.sh", chdir=1)
+#env.Append(BUILDERS = {'BuildCairo' : bld})
+#env.BuildCairo(env.makeRootRelativePath( "done"), None)
 
-
-# ----------------------------------------------------------------------------
-# Build Actions
-# ----------------------------------------------------------------------------
-
-SConscript( "pixman/src/SConscript", exports="env" )
-SConscript( "src/SConscript", exports="env" )
+#cairo = env.Command(env.makeRootRelativePath( "cairo/src/release/cairo.dll"), None, "sh build.sh")
+#AlwaysBuild(cairo)

@@ -44,18 +44,18 @@ Import( "env" )
 env = env.Copy()
 
 # FreeType 2
-env.addLib(
-    basePath = env.makeRootRelativePath( "freetype2" ),
-    libPath = "",
-    includePath = "include",
-    FT2_LIB_NAME = "freetype2"
-    )
+#env.addLib(
+#    basePath = env.makeRootRelativePath( "freetype2" ),
+#    libPath = "",
+#    includePath = "include",
+#    FT2_LIB_NAME = "freetype2"
+#    )
 
 # Cairo
 env.addLib(
     basePath = env.makeRootRelativePath( "cairo" ),
-    libPath = "src",
-    includePath = "src",
+    libPath = "cairo/src/release",
+    includePath = "cairo/src",
     CAIRO_LIB_NAME = "cairo",
     )
 
@@ -73,7 +73,6 @@ env.addLib(
 # Build Actions
 # ----------------------------------------------------------------------------
 
-SConscript( "freetype2/SConscript", exports="env" )
 SConscript( "cairo/SConscript", exports="env" )
 SConscript( "pycairo/cairo/SConscript", exports="env" )
 SConscript( "TransparentWindow/SConscript", exports="env" )

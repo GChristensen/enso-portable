@@ -369,6 +369,8 @@ class PrimaryMsgWind( MessageWindow ):
         cr.set_source_rgba( *MSG_BGCOLOR )
         cr.fill_preserve()
 
+        #self._wind._surf.write_to_png("d:/tmp/surf.png")
+
 
     def __layoutBlocks( self, messageDoc, captionDoc ):
         """

@@ -526,11 +526,11 @@ PYCAIRO_MOD_INIT(_cairo)
   PyModule_AddIntConstant(m, "HAS_TEE_SURFACE", 0);
 #endif
 
-  PyModule_AddIntConstant(m, "CAIRO_VERSION", 1);
+  PyModule_AddIntConstant(m, "CAIRO_VERSION", CAIRO_VERSION_ENCODE(1, 16, 0));
   PyModule_AddIntConstant(m, "CAIRO_VERSION_MAJOR", 1);
-  PyModule_AddIntConstant(m, "CAIRO_VERSION_MICRO", 12);
-  PyModule_AddIntConstant(m, "CAIRO_VERSION_MINOR", 15);
-  PyModule_AddStringConstant(m, "CAIRO_VERSION_STRING", "1.15.12");
+  PyModule_AddIntConstant(m, "CAIRO_VERSION_MICRO", 0);
+  PyModule_AddIntConstant(m, "CAIRO_VERSION_MINOR", 16);
+  PyModule_AddStringConstant(m, "CAIRO_VERSION_STRING", "1.16.0");
 
 #define STRCONSTANT(x) PyModule_AddStringConstant(m, #x, CAIRO_##x)
 

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+		"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+<!ENTITY version SYSTEM "version.xml">
+]>
+<refentry id="cairo-cairo-skia">
+<refmeta>
+<refentrytitle role="top_of_page" id="cairo-cairo-skia.top_of_page">cairo-skia</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo>CAIRO Library</refmiscinfo>
+</refmeta>
+<refnamediv>
+<refname>cairo-skia</refname>
+<refpurpose></refpurpose>
+</refnamediv>
+
+
+
+<refsect1 id="cairo-cairo-skia.description" role="desc">
+<title role="desc.title">Description</title>
+
+</refsect1>
+<refsect1 id="cairo-cairo-skia.functions_details" role="details">
+<title role="details.title">Functions</title>
+<para />
+</refsect1>
+<refsect1 id="cairo-cairo-skia.other_details" role="details">
+<title role="details.title">Types and Values</title>
+
+</refsect1>
+
+</refentry>
