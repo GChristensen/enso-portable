@@ -31,10 +31,10 @@ CFG_VAR = release
 endif
 
 ifeq ($(CFG_VAR),debug)
-CFG_CFLAGS  = -MTd -Od -Zi
+CFG_CFLAGS  = -MDd -Od -Zi
 CFG_LDFLAGS = -DEBUG
 else
-CFG_CFLAGS  = -MT -O2
+CFG_CFLAGS  = -MD -O2
 CFG_LDFLAGS =
 endif
 
