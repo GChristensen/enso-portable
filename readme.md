@@ -4,34 +4,6 @@ A feature-rich descendant of Enso Community Edition (win32).
 
 This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
 
-#### Migrating to Python 3.8
-
-Due to [certain changs](https://github.com/python/cpython/commit/bf8e82f976b37856c7d35cdf88a238cb6f57fe65)
-in Python, the current legacy version of [Pycairo](https://cairographics.org/pycairo/) 
-module could not be used with Python 3.8 as is.
-
-Although it is possible to compile the recent Pycairo with the recent version of [Cairo](https://www.cairographics.org/) 
-(see the branch [Python 3.8](https://github.com/GChristensen/enso-portable/tree/python-3.8)),
-Enso does not work properly in this case due to some compatibility issues.
-
-##### The current state of understanding
-
-It seems that actions on Pycairo surface do not propagate to the underlying Windows GDI objects.
-
-If you uncomment [this line](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/enso/enso/messages/primarywindow.py#L372)
- and execute Enso, you will find that Pycairo surface produces 
-properly composed semitransparent image, although the message window does not update. 
-But if you comment [this line](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/enso/enso/messages/primarywindow.py#L369) 
-out and uncomment [this one](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/platform/win32/Graphics/TransparentWindow/TransparentWindow.cxx#L178),
-commenting out [a yet another](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/platform/win32/Graphics/TransparentWindow/TransparentWindow.cxx#L180)
-you will find, that glyphs (but not background) are properly rendered. The saved cairo
-surface image will be empty due to incompatibility of the [GDI](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/platform/win32/Graphics/TransparentWindow/TransparentWindow.cxx#L495)
-and surface bitmap formats.
-
-Because glyphs are able to render, there may be some issues with [cairo win32 compositor](https://github.com/GChristensen/enso-portable/blob/a0fa6c570bce205af0af11072e79bedd3d20a60b/platform/win32/Graphics/cairo/cairo/src/win32/cairo-win32-gdi-compositor.c).
-Any suggestions are welcomed.  
-
-
 #### Bringing the source snapshot back to life
 
 Enso source snapshot does not contain a Python interpreter and can not be run as is. 
