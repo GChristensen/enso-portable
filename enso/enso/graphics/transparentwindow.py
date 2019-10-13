@@ -22,8 +22,7 @@ class TransparentWindow( object ):
                                                   width, height )
 
     def makeCairoContext( self ):
-        self._surf = self._impl.makeCairoSurface() # TODO: do not forget to remove self._surf
-        context = cairo.Context( self._surf )
+        context = cairo.Context( self._impl.makeCairoSurface() )
 
         convertUserSpaceToPoints( context )
         return context

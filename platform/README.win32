@@ -5,8 +5,8 @@ Modern build instructions:
   3. Install pywin32 for Python 3 (https://github.com/mhammond/pywin32)
   4. Install SCons for Python 3 (https://scons.org/)
   5. Install SWIG (http://www.swig.org/) and make it available through the PATH environment variable
-  6. Install MS Visual Studio 2015+
-  7. Install MSYS2 (https://www.msys2.org/) and make it available through the PATH environment variable
+  6. Install MSYS2 (https://www.msys2.org/) and make it available through the PATH environment variable
+  7. Install MS Visual Studio 2015+
   8. Open MSVS Developer Console and change the current working directory to `platform' (this) folder
   9. Navigate to `win32/Graphics/cairo' subdirectory
   10. Execute "sh build.sh"
