@@ -3,7 +3,7 @@
 # such strings).
 
 # Enso version for use in UI
-ENSO_VERSION = "0.4.6"
+ENSO_VERSION = "0.5.0"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
@@ -125,7 +125,15 @@ import os, configparser
 from ast import literal_eval
 
 ENSO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-ENSO_USER_DIR = os.path.expanduser(os.path.join("~", ".enso"))
+
+ENSO_USER_DIR = None
+
+HOME_DIR = os.getenv("HOME")
+if HOME_DIR:
+    ENSO_USER_DIR = os.path.join(HOME_DIR, ".enso")
+
+if not ENSO_USER_DIR:
+    ENSO_USER_DIR = os.path.expanduser(os.path.join("~", ".enso"))
 
 ENSO_EXECUTABLE = os.path.join(ENSO_DIR, "run-enso.exe")
 if not os.path.exists(ENSO_EXECUTABLE):

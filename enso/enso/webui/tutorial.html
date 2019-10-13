@@ -60,9 +60,9 @@
     <p>'Custom Initialization' block at the Enso <a href="/options.html">settings</a> page allows to specify any
         Python code needed to initialize Enso. By using it, you may override variables from config.py or provide
         values required by some commands. You can access variables declared at this block in your own commands through
-        the 'config' module. For example, you can obtain the following variable:
+        the 'config' module. For example, you can obtain <code>MY_VARIABLE</code> defined at the configuration block:
         <p><pre><code>MY_VARIABLE = "my value"</code></pre></p>
-        <p>with the following code in your command:</p>
+        <p>in the following way at your command code:</p>
         <p><pre><code>from enso import config<br>my_value = config.MY_VARIABLE</code></pre></p></p>
 
     <h1><a id="user-content-creating-enso-commands" class="anchor" aria-hidden="true" href="#creating-enso-commands"></a>Creating Enso Commands</h1>
@@ -208,14 +208,15 @@
         use <code>yield</code> to relegate control back to Enso when it knows that some
         operation will take a while to finish.</p>
     <h2><a id="user-content-including-other-files" class="anchor" aria-hidden="true" href="#including-other-files"></a>Including Other Files</h2>
-    <p>Python's standard <code>import</code> statement can be used from command
-        scripts, of course. But the disadvantage of doing this with evolving
-        code is that imported modules won't be reloaded
-        if their contents change.<br>
-        It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
+    <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
         using 'enso install' and 'enso uninstall' commands respectively.<br>
         If you need to import some code that is not installable as a Python module,
-        place it under the 'lib' folder at your Enso configuration directory (available at the Enso <a href="/options.html">settings</a> page).</p>
+        place it under the 'lib' folder at your Enso configuration directory (available at the Enso <a href="/options.html">settings</a> page).
+        <br>
+        Python's standard <code>import</code> statement can be used from command
+        scripts. But the disadvantage of doing this with evolving
+        code is that imported modules won't be reloaded
+        if their contents change.</p>
 
     <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
     <p>Mediaprobes allow to create commands that automatically pass items found in filesystem (or listed
@@ -235,12 +236,12 @@ cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-
         <li>prev - open the previous show in the player.</li>
         <li>all - pass 'd:/tv-shows' to the player.</li>
     </ul>
-    <p>It is possible to create probe commands based on a dictionary:</p>
+    <p><code>mediaprobe.dictionary_probe</code> allows to create probe commands based on a dictionary:</p>
     <div class="highlight highlight-source-python"><pre>what_to_watch <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>formula 1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula 1 stream&gt;<span class="pl-pds">"</span></span>,
                  <span class="pl-s"><span class="pl-pds">"</span>formula e<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula e stream&gt;<span class="pl-pds">"</span></span>}
 cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
-    <p>If player does not accept directories (as, for example, ACD See does), it is possible to pass a first file in the directory specified at
-        a dictionary:</p>
+    <p>If player does not accept directories (as, for example, ACD See does), use <code>mediaprobe.findfirst_probe</code> to pass a first file in a directory (one of the specified at
+        a dictionary):</p>
     <pre><code>what_to_stare_at = {'nature': 'd:/images/nature',
                     'cosmos': 'd:/images/cosmos'}
                     

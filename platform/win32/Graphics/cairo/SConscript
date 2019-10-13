@@ -41,13 +41,3 @@ Import( "env" )
 # ----------------------------------------------------------------------------
 
 env = env.Copy()
-
-#from subprocess import call
-#call("sh build.sh")
-
-#bld = Builder(action = "sh build.sh", chdir=1)
-#env.Append(BUILDERS = {'BuildCairo' : bld})
-#env.BuildCairo(env.makeRootRelativePath( "done"), None)
-
-#cairo = env.Command(env.makeRootRelativePath( "cairo/src/release/cairo.dll"), None, "sh build.sh")
-#AlwaysBuild(cairo)

@@ -171,14 +171,25 @@ def main(argv = None):
         print("Showing console")
         logging.basicConfig( level = loglevel )
     else:
-        print("Hiding console")
         user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
-        print("Logging into '%s'" % user_log)
-        sys.stdout = open(user_log, "w") #NullDevice()
-        sys.stderr = open(user_log, "w") #NullDevice()
-        logging.basicConfig(
-            filename = user_log,
-            level = loglevel )
+        print("Redirection output to: " + user_log)
+
+        logging.basicConfig(filename=user_log, level=loglevel)
+        user_log_file = open(user_log, "wb", 0)
+
+        class log():
+            def __init__(self):
+                self.file = user_log_file
+
+            def write(self, what):
+                self.file.write(what.encode())
+                self.file.flush()
+
+            def __getattr__(self, attr):
+                return getattr(self.file, attr)
+
+        sys.stdout = log()
+        sys.stderr = log()
 
     if loglevel == logging.DEBUG:
         print(opts)
@@ -207,7 +218,7 @@ def main(argv = None):
     load_rc_config(default_enso_rc)
 
     # legacy ensorc, currently undocumented
-    load_rc_config(os.path.expanduser("~/.ensorc"))
+    load_rc_config(os.path.join(config.HOME_DIR, ".ensorc"))
 
     if opts.show_tray_icon:
         # Execute tray-icon code in a separate thread

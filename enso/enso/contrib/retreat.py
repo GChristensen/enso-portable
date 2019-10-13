@@ -3,9 +3,9 @@ from enso import config
 
 
 def installed():
-    # retereat_spec = importlib.util.find_spec('enso.contrib._retreat')
-    # if retereat_spec is not None:
-    #     return True
+    retereat_spec = importlib.util.find_spec('enso.contrib._retreat')
+    if retereat_spec is not None:
+        return True
     return False
 
 

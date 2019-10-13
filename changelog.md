@@ -1,3 +1,8 @@
+##### xx.10.2019 (v.0.5.0)
+* Migrated to Python 3.8
+* Updated Cairo graphics library to the recent version (1.16.0)
+* Dropped support of "~/.ensocommands" file
+
 ##### 11.10.2019 (v.0.4.6)
 * Fixed command editor undo history.
 

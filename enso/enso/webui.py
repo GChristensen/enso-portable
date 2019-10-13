@@ -66,7 +66,7 @@ def get_enso_set_config(key, value):
 
 @app.route('/api/enso/get/config_dir')
 def get_enso_get_config_dir():
-    return os.path.expanduser(config.ENSO_USER_DIR)
+    return config.ENSO_USER_DIR
 
 @app.route('/api/enso/open/config_dir')
 def get_enso_open_config_dir():
