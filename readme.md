@@ -14,7 +14,7 @@ Although it is possible to compile the recent Pycairo with the recent version of
 (see the branch [Python 3.8](https://github.com/GChristensen/enso-portable/tree/python-3.8)),
 Enso does not work properly in this case due to some compatibility issues.
 
-##### The current state of the understanding
+##### The current state of understanding
 
 It seems that actions on Pycairo surface do not propagate to the underlying Windows GDI objects.
 
