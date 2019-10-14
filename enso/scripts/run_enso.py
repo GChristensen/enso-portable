@@ -12,7 +12,7 @@ import shutil
 import enso
 from enso import config
 
-if sys.version_info > (3, 7, 0):
+if sys.version_info > (3, 7):
     os.add_dll_directory(os.path.join(config.ENSO_DIR, "enso", "platform", "win32"))
 
 from enso import webui

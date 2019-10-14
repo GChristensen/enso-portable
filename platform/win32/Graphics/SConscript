@@ -43,14 +43,6 @@ Import( "env" )
 
 env = env.Copy()
 
-# FreeType 2
-#env.addLib(
-#    basePath = env.makeRootRelativePath( "freetype2" ),
-#    libPath = "",
-#    includePath = "include",
-#    FT2_LIB_NAME = "freetype2"
-#    )
-
 # Cairo
 env.addLib(
     basePath = env.makeRootRelativePath( "cairo" ),
