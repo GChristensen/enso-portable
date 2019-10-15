@@ -9,6 +9,9 @@ import win32gui
 import win32con
 import shutil
 
+from optparse import OptionParser
+from win32com.shell import shell, shellcon
+
 import enso
 from enso import config
 
@@ -20,11 +23,6 @@ from enso.messages import displayMessage
 from enso.events import EventManager
 from enso.platform.win32.taskbar import SysTrayIcon
 from enso.contrib import retreat
-
-
-from optparse import OptionParser
-
-from win32com.shell import shell, shellcon
 
 sys.path.append(config.ENSO_DIR)
 sys.path.append(os.path.join(config.ENSO_DIR, "lib"))

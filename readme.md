@@ -79,7 +79,7 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### xx.10.2019 (v.0.5.0)
+##### 15.10.2019 (v.0.5.0)
 * Migrated to Python 3.8
 * Updated Cairo graphics library to the recent version (1.16.0)
 * Dropped support of "~/.ensocommands" file

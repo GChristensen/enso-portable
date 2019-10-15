@@ -1,5 +1,5 @@
 !define APPNAME "Enso open-source"
-!define VERSION "0.4.6"
+!define VERSION "0.5.0"
 
 !include LogicLib.nsh
 
