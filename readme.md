@@ -79,10 +79,8 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 15.10.2019 (v.0.5.0)
-* Migrated to Python 3.8
-* Updated Cairo graphics library to the recent version (1.16.0)
-* Dropped support of "~/.ensocommands" file
+##### 06.08.2020 (v.0.5.1)
+* Fixed invalid shortcut path variable bug on Windows 10.
 
 #### Contributors
 

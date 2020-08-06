@@ -538,9 +538,10 @@ class Shortcuts:
                     name, ext = os.path.splitext(filename)
                     if not ext.lower() in (".lnk", ".url"):
                         continue
-                    #print name, ext
+
                     shortcut_type = SHORTCUT_TYPE_DOCUMENT
                     shortcut_path = ""
+
                     if ext.lower() == ".lnk":
                         shortcut_path = os.path.join(dirpath, filename)
                         sl.load(shortcut_path)
