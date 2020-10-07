@@ -39,7 +39,7 @@ import os
 # Logging Component
 # ----------------------------------------------------------------------------
 
-loggingEnv = env.Copy()
+loggingEnv = env.Clone()
 
 cppDefines = {
     "LOGGING_USE_DL_EXPORT" : "1",

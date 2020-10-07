@@ -16,10 +16,10 @@ LD := link
 AR := lib
 
 ifeq ($(CFG),debug)
-CFG_CFLAGS := -MDd -Od -Zi
+CFG_CFLAGS := -MTd -Od -Zi
 CFG_LDFLAGS := -DEBUG
 else
-CFG_CFLAGS := -MD -O2
+CFG_CFLAGS := -MT -O2
 CFG_LDFLAGS :=
 endif
 
@@ -29,7 +29,7 @@ endif
 PIXMAN_CFLAGS := -I$(PIXMAN_PATH)/pixman/
 PIXMAN_LIBS := $(PIXMAN_PATH)/pixman/$(CFG)/pixman-1.lib
 
-CAIRO_LIBS =  gdi32.lib msimg32.lib user32.lib
+CAIRO_LIBS =  gdi32.lib msimg32.lib user32.lib $(top_builddir)/../freetype/freetype.lib
 
 ifeq ($(CAIRO_HAS_PNG_FUNCTIONS),1)
 ifeq ($(LIBPNG_PATH),)
@@ -45,10 +45,10 @@ ifeq ($(ZLIB_PATH),)
 ZLIB_PATH := $(top_builddir)/../zlib
 endif
 ZLIB_CFLAGS += -I$(ZLIB_PATH)/
-CAIRO_LIBS += $(ZLIB_PATH)/zdll.lib
+CAIRO_LIBS += $(ZLIB_PATH)/zlib.lib
 endif
 
-DEFAULT_CFLAGS = -nologo $(CFG_CFLAGS)
+DEFAULT_CFLAGS = -nologo $(CFG_CFLAGS) -I$(top_srcdir)/../freetype/include
 DEFAULT_CFLAGS += -I. -I$(top_srcdir) -I$(top_srcdir)/src
 DEFAULT_CFLAGS += $(PIXMAN_CFLAGS) $(LIBPNG_CFLAGS) $(ZLIB_CFLAGS)
 

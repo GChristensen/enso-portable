@@ -206,8 +206,8 @@ baseEnv.addLib(
 # Take the base environment and create specialized debug and non-debug
 # environments out of them.
 
-debugEnv = baseEnv.Copy()
-noDebugEnv = baseEnv.Copy()
+debugEnv = baseEnv.Clone()
+noDebugEnv = baseEnv.Clone()
 
 debugEnv.Append(
     CPPDEFINES = cppDebugDefines,

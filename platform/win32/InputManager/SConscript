@@ -37,7 +37,7 @@ Import("env")
 # The Keyhook DLL
 # ----------------------------------------------------------------------------
 
-inputEnv = env.Copy()
+inputEnv = env.Clone()
 
 inputEnv.Append(
     # Enable run-type type information (RTTI), needed by the SWIG

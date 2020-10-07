@@ -41,7 +41,7 @@ Import( "env" )
 # Library Definitions
 # ----------------------------------------------------------------------------
 
-env = env.Copy()
+env = env.Clone()
 
 # Cairo
 env.addLib(

@@ -41,7 +41,7 @@ Import("env")
 # Build Actions
 # ----------------------------------------------------------------------------
 
-env = env.Copy()
+env = env.Clone()
 
 sources = [
     "PythonClipboardFormatRenderer.cxx"

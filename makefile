@@ -5,7 +5,7 @@ cairo:
 
 .PHONY: platform
 platform:
-	cd platform; scons.bat
+	cd platform; scons
 	cp -f platform/enso/platform/win32/cairo/_cairo.pyd enso/enso/platform/win32/cairo/_cairo.pyd
 	cp -f platform/enso/platform/win32/graphics/_TransparentWindow.pyd enso/enso/platform/win32/graphics/_TransparentWindow.pyd
 	cp -f platform/enso/platform/win32/input/_AsyncEventThread.pyd enso/enso/platform/win32/input/_AsyncEventThread.pyd
