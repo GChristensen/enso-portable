@@ -1,3 +1,6 @@
+##### 07.10.2020 (v.0.6.0)
+* Migrated to Python 3.9.
+
 ##### 06.08.2020 (v.0.5.1)
 * Fixed invalid shortcut path variable bug on Windows 10.
 
