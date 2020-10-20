@@ -1,3 +1,6 @@
+##### 20.10.2020 (v.0.6.1)
+* Fixed opening of .URL shortcuts.
+
 ##### 07.10.2020 (v.0.6.0)
 * Migrated to Python 3.9.
 

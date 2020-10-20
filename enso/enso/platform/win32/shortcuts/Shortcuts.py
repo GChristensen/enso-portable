@@ -547,6 +547,7 @@ class Shortcuts:
                         sl.load(shortcut_path)
                         shortcut_type = sl.get_type()
                     elif ext.lower() == ".url":
+                        shortcut_path = os.path.join(dirpath, filename)
                         shortcut_type = SHORTCUT_TYPE_URL
 
                     shortcuts.append((shortcut_type, name.lower(), shortcut_path))

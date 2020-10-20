@@ -79,8 +79,8 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 07.10.2020 (v.0.6.0)
-* Migrated to Python 3.9.
+##### 20.10.2020 (v.0.6.1)
+* Fixed opening of .URL shortcuts.
 
 #### Contributors
 
