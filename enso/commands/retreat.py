@@ -20,4 +20,4 @@ def cmd_retreat(ensoapi, action):
     """Take Enso Retreat action"""
     vars(retreat)[action]()
 
-cmd_retreat.valid_args = ["start", "stop", "options", "about"]
+cmd_retreat.valid_args = ["start", "stop", "settings", "about"]

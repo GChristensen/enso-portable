@@ -12,6 +12,36 @@ body {
   color: #000;
 }
 
+input[type="checkbox"] {
+  padding: 0;
+  margin-right: 4px;
+  border: 0;
+  height: 14px;
+  width: 14px;
+  appearance: none;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  cursor: pointer;
+  background-image: url("images/checkbox.png");
+}
+
+input[type="checkbox"]:checked {
+  background-position: 0 -14px;
+}
+
+input[type="text"] {
+  border: 1px solid #777;
+  appearance: none;
+  padding: 2px;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border: 1px solid #007799;
+  padding: 2px;
+}
+
 #nav-container {
   margin-left: -40px;
   float: left;
@@ -350,6 +380,10 @@ ul#command-feed-graveyard ul li:last-child:after {
   vertical-align: top;
 }
 
+.command-check {
+  padding-top: 4px;
+}
+
 table {
   border-collapse: collapse;
 }
@@ -451,4 +485,10 @@ span.arguments {
 
 .help {
     cursor: help;
+}
+
+.vertically-aligned {
+  display: flex;
+  align-items: center;
+  justify-items: center;
 }

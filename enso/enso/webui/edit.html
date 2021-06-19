@@ -35,24 +35,33 @@
             margin-top: 5px;
             margin-bottom: 5px;
             padding-right: 30px;
+            display: flex;
+            align-content: center;
+            align-items: center;
+        }
+
+        #toolbar-spacer {
+            flex: 1 0;
         }
 
         #file-picker {
             display: none;
         }
 
-        #script-namespaces, #create-namespace, #delete-namespace, #ns-label, #expand-editor, #apply-changes-label,
-        #apply-changes-help {
-            float: right; display: inline-block;
+        #script-namespaces, #create-namespace, #delete-namespace, #ns-label, #expand-editor {
+            display: inline-block;
         }
 
-        #ns-label {
-            padding-left: 10px;
+        #script-namespaces {
+            margin-right: 2px;
         }
 
-        #apply-changes-label {
-            display: flex;
-            align-items: center;
+        #create-namespace, #expand-editor {
+            margin-left: 4px;
+        }
+
+        #delete-namespace {
+            margin-left: 1px;
         }
 
         #footer {
@@ -60,18 +69,18 @@
             padding-right: 30px;
             margin-bottom: 5px;
             flex: 0 1 auto;
+            display: flex;
         }
 
         #buttons {
-            width: 50%;
             float:right;
-            display: inline-block;
             text-align: right;
+            flex-shrink: 1;
+            flex-grow: 0;
         }
 
         #info {
-            width: 40%;
-            display: inline-block;
+            flex-grow: 1;
         }
 
     </style>
@@ -102,16 +111,17 @@
 
     <input type="file" id="file-picker"/>
 
-    <a href=# id="expand-editor">&nbsp;<img src="/images/expand.png"/></a>
-    <a href=# id="delete-namespace"><img src="/images/document_delete.png" title="Delete category"
-    /></a><a href=# id="create-namespace">&nbsp;<img src="/images/document_create.png" title="Create category"/></a>
+    <div id="toolbar-spacer"></div>
+
+    <span id="ns-label">Category:&nbsp;</span>
     <select id="script-namespaces">
         <option value="user">&lt;user&gt;</option>
     </select>
-    <span id="ns-label">Category:&nbsp;</span><!--sup id="apply-changes-help" class="help"
-                                                   title="Disabling this option may improve Enso performance on slow machines.&#013;Reasonable to check only when editing commands.">?</sup>
-    <label id="apply-changes-label"><input type="checkbox" id="track-changes">Track command changes</label-->
+    <a href=# id="create-namespace"><img src="/images/document_create.png" title="Create category"/></a>
+    <a href=# id="delete-namespace"><img src="/images/document_delete.png" title="Delete category"/></a>
+    <a href=# id="expand-editor"><img src="/images/expand.png"/></a>
 </div>
+
 </div>
 <div id="panel">
     <div id="code" name="code"></div>

@@ -45,10 +45,10 @@ def skip():
         return enso.contrib._retreat.skip()
 
 
-def options():
+def settings():
     if not config.RETREAT_DISABLE and installed():
         import enso.contrib._retreat
-        return enso.contrib._retreat.options()
+        return enso.contrib._retreat.settings()
 
 
 def about():

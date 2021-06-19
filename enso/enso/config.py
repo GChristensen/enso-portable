@@ -102,7 +102,7 @@ PLUGINS = ["enso.contrib.scriptotron",
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
 
-ABOUT_BOX_XML = "<p><command>Enso</command> open-source " + ENSO_VERSION + "</p>" \
+ABOUT_BOX_XML = "<p><command>Enso</command> Open-Source " + ENSO_VERSION + "</p>" \
     "" \
     "<caption>Based on Enso Community Edition</caption><p> </p>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \

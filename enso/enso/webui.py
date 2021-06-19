@@ -1,4 +1,4 @@
-import threading, platform, os, random, string, json
+import threading, platform, logging, os, random, string, json
 import enso.messages
 
 import enso
@@ -19,6 +19,9 @@ static_dir = os.path.join(webui_dir, "webui")
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir)
 
+log = logging.getLogger('werkzeug')
+log.disabled = True
+app.logger.disabled = True
 
 @app.after_request
 def add_header(r):

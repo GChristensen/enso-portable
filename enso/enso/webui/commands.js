@@ -55,7 +55,7 @@ function compareByName(a, b) {
 function fillTableRowForCmd(row, cmd, className) {
     var {name, names} = cmd;
 
-    var checkBoxCell = $('<td><input type="checkbox"/></td>');
+    var checkBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
     (checkBoxCell.find("input")
         .val(cmd.id)
         .bind("change", (e) => {
