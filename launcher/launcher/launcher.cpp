@@ -2,7 +2,7 @@
 
 #include "LimitSingleInstance.h"
 
-#define MAX_ARGS_LENGTH 260
+#define MAX_ARGS_LENGTH 1000
 
 DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir)
 {
@@ -17,11 +17,19 @@ DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir
 	
 	// Prepend target as a first argument
 	size_t target_len = _tcslen(target);
+	size_t args_len = _tcslen(arguments);
+
+	if (target_len + args_len >= MAX_ARGS_LENGTH - 10)
+		return 0;
+
 	args[0] = _T('"');
 	_tcscpy(args + 1, target);
 	args[target_len + 1] = _T('"');
 	args[target_len + 2] = _T(' ');
-	_tcsncpy(args + target_len + 3, arguments, MAX_ARGS_LENGTH - target_len - 4);
+	args[target_len + 3] = _T('"');
+	_tcscpy(args + target_len + 4, arguments);
+	args[target_len + args_len + 4] = _T('"');
+	args[target_len + args_len + 5] = _T('\0');
 
 	if (CreateProcess(target, args, NULL, NULL, TRUE, CREATE_NO_WINDOW,
 			NULL, dir, &siStartupInfo, &piProcessInfo))
@@ -50,7 +58,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	}
 	else
 	{
-		CLimitSingleInstance limit(_T("__enso_portable__"));
+		CLimitSingleInstance limit(_T("__enso_open_source__"));
 
 		if (limit.IsAnotherInstanceRunning())
 		{

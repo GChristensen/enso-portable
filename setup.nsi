@@ -1,5 +1,7 @@
+Unicode True
+
 !define APPNAME "Enso open-source"
-!define VERSION "0.6.1"
+!define VERSION "0.7.0"
 
 !include LogicLib.nsh
 
@@ -52,9 +54,11 @@ Section "Enso open-source" Section_enso
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-    File /r /x _retreat.pyd /x __pycache__ enso\enso
+    File /r /x _retreat.pyd /x retreat.html /x __pycache__ enso\enso
+#    File /r /x _retreat.pyd enso\enso
     File /r enso\media
-    File /r /x __pycache__ enso\python
+#    File /r /x __pycache__ enso\python
+    File /r enso\python
     File /r enso\scripts
     File enso\debug.bat
     File enso\run-enso.exe
@@ -96,6 +100,7 @@ SectionEnd
 Section /o "Media Player Classic" Section_mpc
     SetOutPath "$INSTDIR"
     File /r  /x __pycache__ enso\lib
+#    File /r enso\lib
     SetOutPath "$INSTDIR\commands"
     File enso\commands\mpc.py
 SectionEnd
@@ -128,6 +133,7 @@ Section /o "Enso Retreat" Section_retreat
 
     SetOutPath "$INSTDIR\enso\contrib"
     File enso\enso\contrib\_retreat.pyd
+    File enso\enso\contrib\retreat.html
 SectionEnd
 
 Section /o "Portable installation" Section_portable
@@ -148,6 +154,7 @@ Section -FinishSection
         WriteRegStr HKLM "Software\${APPNAME}" "" "$INSTDIR"
         WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME}"
         WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\uninstall.exe"
+        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$INSTDIR\uninstall.exe"
         WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run\" "${APPNAME}" "$INSTDIR\run-enso.exe"
         WriteUninstaller "$INSTDIR\uninstall.exe"
     ${EndIf}

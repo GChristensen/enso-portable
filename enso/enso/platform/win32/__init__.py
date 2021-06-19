@@ -46,7 +46,7 @@ os.environ["PATH"] = "%s;%s" % (os.path.abspath( __path__[0] ), os.environ["PATH
 
 
 # single instance limiting mutex (used in run-enso.exe)
-limiting_mutex = win32event.CreateMutex(None, 0, "__enso_portable__")
+limiting_mutex = win32event.CreateMutex(None, 0, "__enso_open_source__")
 
 
 def get_script_folder_name():

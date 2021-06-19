@@ -1,7 +1,7 @@
 # Configuration settings for Enso.
 
 # Enso version for use in UI
-ENSO_VERSION = "0.6.1"
+ENSO_VERSION = "0.7.0"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
@@ -105,7 +105,7 @@ ABOUT_BOX_XML = "<p><command>Enso</command> Open-Source " + ENSO_VERSION + "</p>
     "<caption>Based on Enso Community Edition</caption><p> </p>" \
     "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
     "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
-    "<p>Copyright &#169; 2011-2020 <command>g/christensen</command></p>" \
+    "<p>Copyright &#169; 2011-2021 <command>g/christensen</command></p>" \
     "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
 
