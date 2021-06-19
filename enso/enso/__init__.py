@@ -73,7 +73,7 @@ def run():
     plugins.install( eventManager )
     def initEnso():
         msgXml = config.OPENING_MSG_XML
-        if msgXml != None:
+        if msgXml is not None and not config.ENSO_IS_QUIET:
             messages.displayMessage( msgXml )
 
         run_tasks()

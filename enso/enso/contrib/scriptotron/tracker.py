@@ -14,9 +14,6 @@ from enso.contrib.scriptotron import cmdretriever
 from enso.contrib.scriptotron import ensoapi
 from enso.contrib.scriptotron import concurrency
 
-# This may no longer be required (it was for backward compat)
-SCRIPTS_FILE_NAME = "~/.ensocommands"
-
 class ScriptCommandTracker:
     def __init__( self, commandManager, eventManager ):
         self._cmdExprs = []
@@ -67,7 +64,6 @@ class ScriptTracker:
     def __init__( self, eventManager, commandManager ):
         self._scriptCmdTracker = ScriptCommandTracker( commandManager,
                                                        eventManager )
-        #self._scriptFilename = os.path.expanduser(SCRIPTS_FILE_NAME)
         from enso.providers import getInterface
         self._scriptFolder = getInterface("scripts_folder")()
         self._lastMods = {}
@@ -132,17 +128,16 @@ class ScriptTracker:
     def _reloadPyScripts( self ):
         self._scriptCmdTracker.clearCommands()
         commandFiles = self._getCommandFiles()
+
         print(commandFiles)
+
         for f in commandFiles:
             try:
                 text = open( f, "r" ).read()
             except:
                 continue
 
-            allGlobals = self._getGlobalsFromSourceCode(
-                text,
-                f
-                )
+            allGlobals = self._getGlobalsFromSourceCode(text, f)
 
             if allGlobals is not None:
                 category = os.path.splitext(os.path.basename(f))[0].replace("_", " ")

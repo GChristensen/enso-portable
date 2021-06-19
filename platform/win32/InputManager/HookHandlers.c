@@ -191,7 +191,7 @@ _installKeyboardHook( void )
     if ( keyHookDLL )
     {
         FARPROC hookFunction = GetProcAddress( keyHookDLL,
-                                               "_KH_KeyHookProc@12" );
+                                               "KH_KeyHookProc" );
 
         if ( hookFunction )
         {
@@ -239,7 +239,7 @@ _installMouseHook( void )
     if ( keyHookDLL )
     {
         FARPROC mouseHookFunction = GetProcAddress( keyHookDLL,
-                                                    "_KH_MouseHookProc@12" );
+                                                    "KH_MouseHookProc" );
 
         if ( mouseHookFunction )
         {

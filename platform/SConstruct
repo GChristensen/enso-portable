@@ -129,7 +129,7 @@ linkNoDebugFlags = [
 baseEnv = Environment(
     # Standard environment variables used by SCons.
     CPPDEFINES = cppBaseDefines,
-    TARGET_ARCH = "x86",
+    TARGET_ARCH = "x86_64",
     CPPPATH = [],
     LIBPATH = [],
     CCFLAGS = ccBaseFlags,

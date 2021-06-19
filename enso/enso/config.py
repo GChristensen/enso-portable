@@ -1,6 +1,4 @@
-# Configuration settings for Enso. Eventually this will take
-# localization into account too (or we can make a separate module for
-# such strings).
+# Configuration settings for Enso.
 
 # Enso version for use in UI
 ENSO_VERSION = "0.6.1"
@@ -11,7 +9,7 @@ ENABLE_WEB_UI = True
 # Enso color theme
 COLOR_THEME = "green"
 
-# Defines should Enso take into account the top- or left- positioned
+# Should Enso take into account the top- or left- positioned
 # Windows taskbar, it appears atop of the taskbar by default.
 APPEAR_OVER_TASKBAR = True
 
@@ -191,5 +189,3 @@ if os.path.exists(CONFIG_FILE):
                 globals()[key] = literal_eval(parser[CONFIG_SECTION][key])
             except:
                 globals()[key] = parser[CONFIG_SECTION][key]
-
-# vim:set tabstop=4 shiftwidth=4 expandtab:

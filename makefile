@@ -1,7 +1,10 @@
 .DEFAULT_GOAL := all
 
+# this target should be made from msys2 shell invoked through msys2_shell.cmd -use-full-path
+# it is not required to build platform binaries
 cairo:
 	cd platform/win32/graphics/cairo; sh build.sh
+	cd platform/win32/graphics/cairo; sh build.sh x64
 
 .PHONY: platform
 platform:
@@ -17,7 +20,7 @@ platform:
 
 .PHONY: all
 all:
-	mingw32-make cairo
+	#mingw32-make cairo
 	mingw32-make platform
 
 .PHONY: clean-platform

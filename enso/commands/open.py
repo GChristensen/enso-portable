@@ -85,8 +85,6 @@ def cmd_open_with(ensoapi, application):
     #print file, application
     global shortcuts_map
     try:
-        print(shortcuts_map[application][2])
-        print(shortcuts_map[application])
         executable = expand_path_variables(shortcuts_map[application][2])
     except:
         print(application)
