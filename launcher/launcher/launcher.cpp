@@ -2,7 +2,7 @@
 
 #include "LimitSingleInstance.h"
 
-#define MAX_ARGS_LENGTH 1000
+#define ENSO_GLOBAL_MUTEX_NAME _T("__enso_open_source__")
 
 DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir)
 {
@@ -12,22 +12,21 @@ DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir
     ZeroMemory(&piProcessInfo, sizeof(piProcessInfo));
     siStartupInfo.cb = sizeof(siStartupInfo); 
 
-	TCHAR args[MAX_ARGS_LENGTH];
+	TCHAR args[MAX_PATH];
 	ZeroMemory(args, sizeof(args));
 
-	//size_t target_len = _tcslen(target);
 	size_t args_len = _tcslen(arguments);
 
-	if (/*target_len + */args_len >= MAX_ARGS_LENGTH - 10)
+	if (args_len >= MAX_PATH - 3)
 		return 0;
 
 	args[0] = _T('"');
 	_tcscpy(args + 1, arguments);
 	args[args_len + 1] = _T('"');
 
-	ShellExecute(NULL, _T("open"), target, args, NULL, 0);
+	ShellExecute(NULL, _T("open"), target, args, dir, 0);
 	
-	return 3;
+	return 0;
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
@@ -46,14 +45,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	}
 	else
 	{
-		CLimitSingleInstance limit(_T("__enso_open_source__"));
+		CLimitSingleInstance limit(ENSO_GLOBAL_MUTEX_NAME);
 
 		if (limit.IsAnotherInstanceRunning())
 		{
 			return 0;
 		}
 	}
-
 
 	TCHAR *point = NULL;
 	TCHAR module_name[MAX_PATH];
@@ -75,7 +73,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
 
-	if (!_tcsicmp(exec_dir, _T("C:\\Program Files\\Enso\\")))
+	bool programFiles = !_tcsicmp(exec_dir, _T("C:\\Program Files\\Enso\\"));
+
+	if (programFiles)
 		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonu.exe"));
 	else
 		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonw.exe"));
@@ -99,6 +99,19 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	}
 #endif
 
+    LaunchTarget(python_path, enso_executable_path, exec_dir);
 
-    return LaunchTarget(python_path, enso_executable_path, exec_dir);
+	if (programFiles) {
+		Sleep(10000);
+		HANDLE hMutex = OpenMutex(SYNCHRONIZE, FALSE, ENSO_GLOBAL_MUTEX_NAME);
+		if (hMutex) {
+			CloseHandle(hMutex);
+		}
+		else {
+			MessageBox(0, _T("Can not start Enso from this location. Please check if the application was properly signed."),
+				_T("Enso Launcher"), MB_OK | MB_ICONWARNING | MB_TOPMOST);
+		}
+	}
+
+	return 0;
 }

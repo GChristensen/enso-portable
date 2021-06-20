@@ -6,28 +6,35 @@ This is a development page. Please visit the main site at: https://gchristensen.
 
 #### Digitally signing Python binary to make Enso work properly with elevated processes
 
-**Prerequisites**
+##### Prerequisites
 
-* Installed (Microsoft Visual Studio)[https://visualstudio.microsoft.com] with Windows Platform SDK
+* Installed [Microsoft Visual Studio](https://visualstudio.microsoft.com) with Windows Platform SDK.
+Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft.
 
-**Signing Python**
+##### Signing Python
 
 1. Install Enso to `C:\Program Files\Enso`
 
-NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly.
+NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly. Enso will fail to launch from this location if unsigned.
 
 2. Launch Visual Studio Developer Command Prompt *as Administrator*.
-3. Change the current directory to where you want to store the copy of the certificate.
+3. Change the current directory to where you want to store the copy of the certificate (appcert.cer).
 4. Execute the following commands to create a self-issued digital certificate:
 
 `makecert -r -pe -n "CN=Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
-`certmgr -add appcert.cer -s -r localMachine root`
+
+`certmgr.exe -add appcert.cer -s -r localMachine root`
+
+NOTE: if you are signing on a virtual machine, you also need to import there the certificate you 
+created and installed on the real one using the `certmgr.exe` command shown above.
 
 5. Sign the Python binary:
 
-SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"
+`SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"`
 
-NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. It will not work being unsigned. 
+NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. 
+Because Enso is a modeless application, it needs this option to get input when elevated processes are in the foreground.
+This version of Python is launched only if Enso is installed to `C:\Program Files\Enso` and will not work being unsigned. 
 
 #### Bringing the source snapshot back to life
 

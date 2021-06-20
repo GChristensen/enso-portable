@@ -614,6 +614,8 @@ class Shortcuts:
                     self._get_universal_windows_apps() + \
                     control_panel_applets
 
+        shortcuts = [s for s in shortcuts if not (s[1] == "microsoft edge" and s[0] != SHORTCUT_TYPE_EXECUTABLE)]
+
         return dict((s[1], s) for s in shortcuts)
 
     def getShortcuts(self):

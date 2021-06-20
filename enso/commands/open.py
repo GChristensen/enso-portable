@@ -56,7 +56,14 @@ def cmd_open(ensoapi, target):
             except Exception as e:
                 logging.error(e)
         else:
-            os.startfile(file_path)
+            #os.startfile(file_path)
+            rcode = win32api.ShellExecute(
+                0,
+                'open',
+                file_path,
+                None,
+                None,
+                win32con.SW_SHOWDEFAULT)
 
         return True
     except Exception as e:
