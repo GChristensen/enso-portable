@@ -1,17 +1,17 @@
 Unicode True
 
-!define APPNAME "Enso open-source"
+!define APPNAME "Enso Open-Source"
 !define VERSION "0.7.0"
 
 !include LogicLib.nsh
 
-!define APPNAMEANDVERSION "Enso open-source ${VERSION}"
+!define APPNAMEANDVERSION "Enso Open-Source ${VERSION}"
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
-InstallDir "$APPDATA\enso"
+InstallDir "$APPDATA\Enso"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
-OutFile "enso-open-source-${VERSION}.exe"
+OutFile "enso-open-source-${VERSION}-x86_64.exe"
 
 ; Use compression
 SetCompressor LZMA
@@ -47,6 +47,58 @@ SetCompressor LZMA
 !insertmacro MUI_LANGUAGE "English"
 #!insertmacro MUI_RESERVEFILE_LANGDLL
 
+!define CreateJunction "!insertmacro CreateJunction"
+
+Function CreateJunction
+  Exch $4
+  Exch
+  Exch $5
+  Push $1
+  Push $2
+  Push $3
+  Push $6
+  CreateDirectory "$5"
+  System::Call "kernel32::CreateFileW(w `$5`, i 0x40000000, i 0, i 0, i 3, i 0x02200000, i 0) i .r6"
+
+  ${If} $0 = "-1"
+    StrCpy $0 "0"
+    RMDir "$5"
+    goto create_junction_end
+  ${EndIf}
+
+  CreateDirectory "$4"  ; Windows XP requires that the destination exists
+  StrCpy $4 "\??\$4"
+  StrLen $0 $4
+  IntOp $0 $0 * 2
+  IntOp $1 $0 + 2
+  IntOp $2 $1 + 10
+  IntOp $3 $1 + 18
+  System::Call "*(i 0xA0000003, &i4 $2, &i2 0, &i2 $0, &i2 $1, &i2 0, &w$1 `$4`, &i2 0)i.r2"
+  System::Call "kernel32::DeviceIoControl(i r6, i 0x900A4, i r2, i r3, i 0, i 0, *i r4r4, i 0) i.r0"
+  System::Call "kernel32::CloseHandle(i r6) i.r1"
+
+  ${If} $0 == "0"
+    RMDir "$5"
+  ${EndIf}
+
+  create_junction_end:
+  Pop $6
+  Pop $3
+  Pop $2
+  Pop $1
+  Pop $5
+  Pop $4
+FunctionEnd
+
+!macro CreateJunction Junction Target outVar
+  Push $0
+  Push "${Junction}"
+  Push "${Target}"
+  Call CreateJunction
+  StrCpy ${outVar} $0
+  Pop $0
+!macroend
+
 Section "Enso open-source" Section_enso
 
 	; Set Section properties
@@ -54,8 +106,8 @@ Section "Enso open-source" Section_enso
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-    File /r /x _retreat.pyd /x retreat.html /x __pycache__ enso\enso
-#    File /r /x _retreat.pyd enso\enso
+#    File /r /x _retreat.pyd /x retreat.html /x __pycache__ enso\enso
+    File /r /x _retreat.pyd enso\enso
     File /r enso\media
 #    File /r /x __pycache__ enso\python
     File /r enso\python
@@ -63,6 +115,12 @@ Section "Enso open-source" Section_enso
     File enso\debug.bat
     File enso\run-enso.exe
 
+    StrCmp "$INSTDIR" "C:\Program Files\Enso" create_junction without_junction
+
+create_junction:
+    ${CreateJunction} "$INSTDIR\python\Lib\site-packages\enso" "$INSTDIR\enso" $9
+
+without_junction:
     SetOutPath "$INSTDIR\lib"
     File enso\lib\SendKeys.py
 
@@ -99,8 +157,8 @@ SectionEnd
 
 Section /o "Media Player Classic" Section_mpc
     SetOutPath "$INSTDIR"
-    File /r  /x __pycache__ enso\lib
-#    File /r enso\lib
+#    File /r  /x __pycache__ enso\lib
+    File /r enso\lib
     SetOutPath "$INSTDIR\commands"
     File enso\commands\mpc.py
 SectionEnd
@@ -207,5 +265,3 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
-
-; eof

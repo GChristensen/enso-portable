@@ -67,12 +67,16 @@ def cmd_capslock_toggle(ensoapi):
 
 def cmd_enso_install(ensoapi, package):
     """ Install Python packages using built-in 'pip' package manager"""
-    subprocess.Popen(["cmd", "/k " + config.ENSO_DIR + "/python/python.exe -m pip install " + package])
+    args = ["cmd", "/k", config.ENSO_DIR + "\\python\\python.exe", "-m", "pip", "install", package]
+    if config.ENSO_DIR.startswith("C:\\Program Files"):
+        args.append("--user")
+    subprocess.Popen(args)
 
 
 def cmd_enso_uninstall(ensoapi, package):
     """ Uninstall Python packages"""
-    subprocess.Popen(["cmd", "/k " + config.ENSO_DIR + "/python/python.exe -m pip uninstall " + package])
+    args = ["cmd", "/k", config.ENSO_DIR + "\\python\\python.exe", "-m", "pip", "uninstall", package]
+    subprocess.Popen(args)
 
 
 def cmd_enso_theme(ensoapi, color = None):

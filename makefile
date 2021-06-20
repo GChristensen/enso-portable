@@ -1,9 +1,10 @@
 .DEFAULT_GOAL := all
 
 # this target should be made from msys2 shell invoked through msys2_shell.cmd -use-full-path
+# from the appropriate (x86/x64) Visual Studio Developer Command Prompt
 # it is not required to build platform binaries
 cairo:
-	cd platform/win32/graphics/cairo; sh build.sh
+	#cd platform/win32/graphics/cairo; sh build.sh
 	cd platform/win32/graphics/cairo; sh build.sh x64
 
 .PHONY: platform

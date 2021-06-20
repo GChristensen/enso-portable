@@ -53,11 +53,16 @@ $(() => {
         ? decodeURI(window.location.search.substring(1))
         : (lastNamespace? lastNamespace: "user");
 
-
     editor = ace.edit("code");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/python");
     editor.setPrintMarginColumn(120);
+
+    editor.commands.addCommand({
+        name: "Save",
+        exec: saveScripts,
+        bindKey: {win: "ctrl-s"}
+    });
 
     $(window).on('resize', e => {
        editor.container.style.height = $(window).innerHeight() - $("#header").height() - $("#footer").height() - 20;
@@ -86,15 +91,12 @@ $(() => {
         });
     }
 
-    $("#script-namespaces").change(() => {
-
-
+    $("#script-namespaces").change(() =>
         saveScripts(() => {
             scriptNamespace = $("#script-namespaces").val();
             localStorage.setItem("lastNamespace", scriptNamespace);
             editNamespaceScripts(scriptNamespace);
-        });
-    });
+        }));
 
     $("#upload").click((e) => {
         $("#file-picker").click();

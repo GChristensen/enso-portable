@@ -14,30 +14,18 @@ DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir
 
 	TCHAR args[MAX_ARGS_LENGTH];
 	ZeroMemory(args, sizeof(args));
-	
-	// Prepend target as a first argument
-	size_t target_len = _tcslen(target);
+
+	//size_t target_len = _tcslen(target);
 	size_t args_len = _tcslen(arguments);
 
-	if (target_len + args_len >= MAX_ARGS_LENGTH - 10)
+	if (/*target_len + */args_len >= MAX_ARGS_LENGTH - 10)
 		return 0;
 
 	args[0] = _T('"');
-	_tcscpy(args + 1, target);
-	args[target_len + 1] = _T('"');
-	args[target_len + 2] = _T(' ');
-	args[target_len + 3] = _T('"');
-	_tcscpy(args + target_len + 4, arguments);
-	args[target_len + args_len + 4] = _T('"');
-	args[target_len + args_len + 5] = _T('\0');
+	_tcscpy(args + 1, arguments);
+	args[args_len + 1] = _T('"');
 
-	if (CreateProcess(target, args, NULL, NULL, TRUE, CREATE_NO_WINDOW,
-			NULL, dir, &siStartupInfo, &piProcessInfo))
-	{
-		CloseHandle(piProcessInfo.hProcess);
-		CloseHandle(piProcessInfo.hThread); 
-		return 0;
-	}
+	ShellExecute(NULL, _T("open"), target, args, NULL, 0);
 	
 	return 3;
 }
@@ -81,18 +69,23 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	point = _tcsrchr(python_path, _T('\\'));
 	*(++point) = NULL;
 
-	_tcscpy(exec_dir, python_path);
+	size_t module_dir_len = lstrlen(python_path);
+
+	_tcscpy_s(exec_dir, MAX_PATH, python_path);
 
 	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
 
-	_tcscpy(point, _T("python\\pythonw.exe"));
+	if (!_tcsicmp(exec_dir, _T("C:\\Program Files\\Enso\\")))
+		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonu.exe"));
+	else
+		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonw.exe"));
 
 	// Enso startup script path
 	TCHAR enso_executable_path[MAX_PATH];
 	lstrcpyn(enso_executable_path, module_name, module_name_len);
 
 	point = _tcsrchr(enso_executable_path, _T('\\'));
-	_tcscpy(point + 1, _T("scripts\\run_enso.py"));
+	_tcscpy_s(point + 1, MAX_PATH - module_dir_len - 1, _T("scripts\\run_enso.py"));
 
 #ifndef PORTABLE
 	if (_tcsstr(lpCmdLine, _T("--portable")))

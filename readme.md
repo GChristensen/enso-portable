@@ -1,8 +1,33 @@
-## Enso open-source
+## Enso Open-Source
 
-A feature-rich descendant of Enso Community Edition (win32). 
+A feature-rich descendant of Enso Community Edition (Microsoft Windows only). 
 
 This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
+
+#### Digitally signing Python binary to make Enso work properly with elevated processes
+
+**Prerequisites**
+
+* Installed (Microsoft Visual Studio)[https://visualstudio.microsoft.com] with Windows Platform SDK
+
+**Signing Python**
+
+1. Install Enso to `C:\Program Files\Enso`
+
+NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly.
+
+2. Launch Visual Studio Developer Command Prompt *as Administrator*.
+3. Change the current directory to where you want to store the copy of the certificate.
+4. Execute the following commands to create a self-issued digital certificate:
+
+`makecert -r -pe -n "CN=Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
+`certmgr -add appcert.cer -s -r localMachine root`
+
+5. Sign the Python binary:
+
+SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"
+
+NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. It will not work being unsigned. 
 
 #### Bringing the source snapshot back to life
 
@@ -79,8 +104,11 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 20.10.2020 (v.0.6.1)
-* Fixed opening of .URL shortcuts.
+##### 2X.06.2021 (v.0.7.0)
+* Migrated to x86_64 platform which allows to bypass some shortcut-related operating system bugs inherent 
+  to 32-bit applications on 64-bit Windows. v0.6.1 is the last 32-bit version of the application.
+* Updated Enso Retreat to version 0.6.
+* Enso now can properly work with elevated processes when digitally signed. See the readme file for more details.
 
 #### Contributors
 
