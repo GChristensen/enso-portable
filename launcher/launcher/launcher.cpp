@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#pragma comment (lib, "wintrust")
 
 #include "LimitSingleInstance.h"
 
@@ -27,6 +28,69 @@ DWORD LaunchTarget(const TCHAR *target, const TCHAR *arguments, const TCHAR *dir
 	ShellExecute(NULL, _T("open"), target, args, dir, 0);
 	
 	return 0;
+}
+
+bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
+{
+    LONG lStatus;
+    DWORD dwLastError;
+
+    WINTRUST_FILE_INFO FileData;
+    memset(&FileData, 0, sizeof(FileData));
+    FileData.cbStruct = sizeof(WINTRUST_FILE_INFO);
+    FileData.pcwszFilePath = pwszSourceFile;
+    FileData.hFile = NULL;
+    FileData.pgKnownSubject = NULL;
+
+    GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+    WINTRUST_DATA WinTrustData;
+
+    memset(&WinTrustData, 0, sizeof(WinTrustData));
+
+    WinTrustData.cbStruct = sizeof(WinTrustData);
+
+    WinTrustData.pPolicyCallbackData = NULL;
+
+    WinTrustData.pSIPClientData = NULL;
+
+    WinTrustData.dwUIChoice = WTD_UI_NONE;
+
+    WinTrustData.fdwRevocationChecks = WTD_REVOKE_NONE;
+
+    WinTrustData.dwUnionChoice = WTD_CHOICE_FILE;
+
+    WinTrustData.dwStateAction = WTD_STATEACTION_VERIFY;
+
+    WinTrustData.hWVTStateData = NULL;
+
+    WinTrustData.pwszURLReference = NULL;
+
+    WinTrustData.dwUIContext = 0;
+
+    WinTrustData.pFile = &FileData;
+
+    lStatus = WinVerifyTrust(
+        NULL,
+        &WVTPolicyGUID,
+        &WinTrustData);
+
+	bool success = false;
+
+    switch (lStatus)
+    {
+    case ERROR_SUCCESS:
+		success = true;
+		break;
+    }
+
+    WinTrustData.dwStateAction = WTD_STATEACTION_CLOSE;
+
+    lStatus = WinVerifyTrust(
+        NULL,
+        &WVTPolicyGUID,
+        &WinTrustData);
+
+    return success;
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
@@ -74,9 +138,15 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
 
 	bool programFiles = !_tcsicmp(exec_dir, _T("C:\\Program Files\\Enso\\"));
+	bool showWarning = false;
 
-	if (programFiles)
+	if (programFiles) {
 		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonu.exe"));
+		if (!VerifyEmbeddedSignature(python_path)) {
+			python_path[_tcslen(python_path) - 5] = _T('w');
+			showWarning = true;
+		}
+	}
 	else
 		_tcscpy_s(point, MAX_PATH - module_dir_len - 1, _T("python\\pythonw.exe"));
 
@@ -101,16 +171,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
     LaunchTarget(python_path, enso_executable_path, exec_dir);
 
-	if (programFiles) {
-		Sleep(10000);
-		HANDLE hMutex = OpenMutex(SYNCHRONIZE, FALSE, ENSO_GLOBAL_MUTEX_NAME);
-		if (hMutex) {
-			CloseHandle(hMutex);
-		}
-		else {
-			MessageBox(0, _T("Can not start Enso from this location. Please check if the application was properly signed."),
-				_T("Enso Launcher"), MB_OK | MB_ICONWARNING | MB_TOPMOST);
-		}
+	if (showWarning) {
+		MessageBox(0, _T("Enso is installed at C:\\Program Files and is not properly signed. Some features will not be available."),
+			_T("Enso Launcher"), MB_OK | MB_ICONWARNING | MB_TOPMOST);
 	}
 
 	return 0;

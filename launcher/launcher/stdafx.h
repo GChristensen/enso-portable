@@ -19,5 +19,9 @@
 #include <memory.h>
 #include <tchar.h>
 
+#include <Softpub.h>
+#include <wincrypt.h>
+#include <wintrust.h>
+
 
 // TODO: reference additional headers your program requires here
