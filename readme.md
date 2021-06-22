@@ -6,12 +6,12 @@ This is a development page. Please visit the main site at: https://gchristensen.
 
 #### Digitally signing Python binary to make Enso work properly with elevated processes
 
-##### Prerequisites
+**Prerequisites**
 
 * Installed [Microsoft Visual Studio](https://visualstudio.microsoft.com) with Windows Platform SDK.
 Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft.
 
-##### Signing Python
+**Signing Python**
 
 1. Install Enso to `C:\Program Files\Enso`
 
@@ -19,16 +19,19 @@ NOTE: installing Enso to `Program Fies` is experimental and is not tested thorou
 
 2. Launch Visual Studio Developer Command Prompt *as Administrator*.
 3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
-4. Execute the following commands to create a self-issued digital certificate:
+4. Execute the following command to create a self-issued digital certificate:
 
 `makecert -r -pe -n "CN=Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
 
+5. Import the certificate to the trusted root store with the following command:
+
 `certmgr.exe -add appcert.cer -s -r localMachine root`
 
-NOTE: if you are signing on a virtual machine, you also need to import there the certificate you 
-created and installed on the real one by using the same `certmgr.exe` command as shown above (administrator elevation is required).
+NOTE: if you are signing on a virtual machine, you also need to import the certificate you have created 
+to the real machine. If you have no Visual Studio installed, launch the Certificate Manager (certmgr.msc),
+open and select `Trusted Root Certificate Authorities/Certificates`, and choose Actions -> All Tasks -> Import... menu item.
 
-5. Issue the following command to sign the Python binary:
+6. Issue the command below to sign the Python binary:
 
 `SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"`
 
