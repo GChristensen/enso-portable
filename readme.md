@@ -15,10 +15,10 @@ Available for free on [virtual machines](https://developer.microsoft.com/en-us/w
 
 1. Install Enso to `C:\Program Files\Enso`
 
-NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly. Enso will fail to launch from this location if unsigned.
+NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly.
 
 2. Launch Visual Studio Developer Command Prompt *as Administrator*.
-3. Change the current directory to where you want to store the copy of the certificate (appcert.cer).
+3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
 4. Execute the following commands to create a self-issued digital certificate:
 
 `makecert -r -pe -n "CN=Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
@@ -26,15 +26,15 @@ NOTE: installing Enso to `Program Fies` is experimental and is not tested thorou
 `certmgr.exe -add appcert.cer -s -r localMachine root`
 
 NOTE: if you are signing on a virtual machine, you also need to import there the certificate you 
-created and installed on the real one using the `certmgr.exe` command shown above.
+created and installed on the real one by using the same `certmgr.exe` command as shown above (administrator elevation is required).
 
-5. Sign the Python binary:
+5. Issue the following command to sign the Python binary:
 
 `SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"`
 
 NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. 
 Because Enso is a modeless application, it needs this option to get input when elevated processes are in the foreground.
-This version of Python is launched only if Enso is installed to `C:\Program Files\Enso` and will not work being unsigned. 
+This version of Python is launched only if it is properly signed and Enso is installed at `C:\Program Files\Enso`. 
 
 #### Bringing the source snapshot back to life
 
@@ -111,8 +111,8 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 2X.06.2021 (v.0.7.0)
-* Migrated to x86_64 platform which allows to bypass some shortcut-related operating system bugs inherent 
+##### 22.06.2021 (v.0.7.0)
+* Migrated to x86_64 platform, which allows to bypass some shortcut-related operating system bugs inherent 
   to 32-bit applications on 64-bit Windows. v0.6.1 is the last 32-bit version of the application.
 * Updated Enso Retreat to version 0.6.
 * Enso now can properly work with elevated processes when digitally signed. See the readme file for more details.

@@ -1,3 +1,9 @@
+##### 22.06.2021 (v.0.7.0)
+* Migrated to x86_64 platform, which allows to bypass some shortcut-related operating system bugs inherent 
+  to 32-bit applications on 64-bit Windows. v0.6.1 is the last 32-bit version of the application.
+* Updated Enso Retreat to version 0.6.
+* Enso now can properly work with elevated processes when digitally signed. See the readme file for more details.
+
 ##### 20.10.2020 (v.0.6.1)
 * Fixed opening of .URL shortcuts.
 
@@ -42,7 +48,7 @@
 * Added UbiquityWE-styled settings pages.
 * Added ability to disable separate commands.
 * Added 'Tasks' feature.
-* The most actual information on command authoring is moved to the tutorial at Enso settings. 
+* The most actual information on command authoring is moved to the tutorial at the Enso settings page. 
 
 ##### 04.09.2018 (v.0.3.0)
 
