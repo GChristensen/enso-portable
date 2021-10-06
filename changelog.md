@@ -1,3 +1,6 @@
+##### 06.10.2021 (v.0.8.0)
+* Migrated to Python 3.10.
+
 ##### 22.06.2021 (v.0.7.0)
 * Migrated to x86_64 platform, which allows to bypass some shortcut-related operating system bugs inherent 
   to 32-bit applications on 64-bit Windows. v0.6.1 is the last 32-bit version of the application.

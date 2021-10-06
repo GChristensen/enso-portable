@@ -1,7 +1,7 @@
 Unicode True
 
 !define APPNAME "Enso Open-Source"
-!define VERSION "0.7.0"
+!define VERSION "0.8.0"
 
 !include LogicLib.nsh
 
@@ -99,7 +99,7 @@ FunctionEnd
   Pop $0
 !macroend
 
-Section "Enso open-source" Section_enso
+Section "Enso Open-Source" Section_enso
 
 	; Set Section properties
 	SetOverwrite on

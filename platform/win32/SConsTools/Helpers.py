@@ -41,7 +41,8 @@ def addInstanceMethodToEnv( env, function ):
     addedMethodFlag = "ADDED_METHOD_%s" % methodName
 
     def methodWrapper( self, *args, **kwargs ):
-        if not self.has_key( addedMethodFlag ):
+#        if not self.has_key( addedMethodFlag ):
+        if addedMethodFlag not in self:
             raise AttributeError(
                 "%s instance has no attribute '%s'" % ( envClass.__name__,
                                                         methodName )

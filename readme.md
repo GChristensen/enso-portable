@@ -14,9 +14,6 @@ Available for free on [virtual machines](https://developer.microsoft.com/en-us/w
 **Signing Python**
 
 1. Install Enso to `C:\Program Files\Enso`
-
-NOTE: installing Enso to `Program Fies` is experimental and is not tested thoroughly.
-
 2. Launch Visual Studio Developer Command Prompt *as Administrator*.
 3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
 4. Execute the following command to create a self-issued digital certificate:
@@ -114,11 +111,8 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 22.06.2021 (v.0.7.0)
-* Migrated to x86_64 platform, which allows to bypass some shortcut-related operating system bugs inherent 
-  to 32-bit applications on 64-bit Windows. v0.6.1 is the last 32-bit version of the application.
-* Updated Enso Retreat to version 0.6.
-* Enso now can properly work with elevated processes when digitally signed. See the readme file for more details.
+##### 06.10.2021 (v.0.8.0)
+* Migrated to Python 3.10.
 
 #### Contributors
 

@@ -98,7 +98,7 @@ def swigBuilderGenerator( source, target, env, for_signature ):
     # Read the environment's CPPPATH and turn that into the Swig
     # include path.
 
-    if env.has_key( "CPPPATH" ):
+    if "CPPPATH" in env :
         for includeDirName in env["CPPPATH"]:
             # Expand out those variables and "#" characters.
             includeDirName = env.Dir( env.subst(includeDirName) ).path
@@ -185,7 +185,7 @@ def generate( env ):
     addInstanceMethodToEnv( env, buildSwigExtension )
 
 def exists( env ):
-    if env.has_key( "SWIG" ):
+    if "SWIG" in env:
         return 1
     else:
         return 0

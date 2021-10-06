@@ -177,7 +177,7 @@ class Httpd(threading.Thread):
 
     def __init__(self, app):
         threading.Thread.__init__(self)
-        self.srv = make_server(HOST, PORT, app)
+        self.srv = make_server(HOST, PORT, app, True)
         self.ctx = app.app_context()
         self.ctx.push()
 
