@@ -1,7 +1,7 @@
 # Configuration settings for Enso.
 
 # Enso version for use in UI
-ENSO_VERSION = "0.8.0"
+ENSO_VERSION = "0.9.0"
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
@@ -15,6 +15,10 @@ APPEAR_OVER_TASKBAR = True
 
 # Load Windows Universal Platform Apps
 LOAD_UWP_APPS = True
+
+# Take the current keyboard layout into account
+# May not work if a console window is in the foreground
+LOCALIZED_INPUT = True
 
 # Check if all known command files are changed upon each invocation of the command line
 # Only changes in commands entered through WebUI are tracked by default

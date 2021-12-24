@@ -241,21 +241,31 @@ class Quasimode:
                 # The user has pressed the Num Lock key.
                 self._numLockNow = not self._numLockNow
             elif keyCode in ALLOWED_KEYCODES:
-                # The user has typed a valid key to add to the userText.y
+                # The user has typed a valid key to add to the userText.
                 self.__addUserChar( keyCode )
             else:
                 # The user has pressed a key that is not valid.
                 pass
 
+    def __getShifftedChar( self, keyCode ):
+        if not (keyCode + 1000) in ALLOWED_KEYCODES or not GetKeyState(input.KEYCODE_SHIFT) < 0:
+            shift = 0
+        else:
+            shift = 1000
+
+        return ALLOWED_KEYCODES[keyCode + shift]
 
     def __addUserChar( self, keyCode ):
         """
         Adds the character corresponding to keyCode to the user text.
         """
-
         # Is the Shift key currently pressed? If it is, then allow
         # entering symbols such as "(" by pressing Shift + 9.
-        newCharacter = ALLOWED_KEYCODES[keyCode + (0 if not (keyCode+1000) in ALLOWED_KEYCODES or not GetKeyState(input.KEYCODE_SHIFT) < 0 else 1000)]
+        if config.LOCALIZED_INPUT:
+            newCharacter = ContextUtils.translateKey(keyCode)
+        else:
+            newCharacter = self.__getShifftedChar(keyCode)
+
         oldUserText = self.__suggestionList.getUserText()
         self.__suggestionList.setUserText( oldUserText + newCharacter )
 

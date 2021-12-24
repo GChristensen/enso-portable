@@ -111,8 +111,12 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 06.10.2021 (v.0.8.0)
-* Migrated to Python 3.10.
+##### 24.12.2021 (v.0.9.0)
+
+* Added experimental support of internationalized command input. Non-latin characters such as спасибо are allowed when
+  the current input language is not English. Set LOCALIZED_INPUT = False in the settings configuration block to disable
+  this feature. Due to limitations of Windows, it will not work when a console window is in the foreground. Deadkeys are
+  not supported.
 
 #### Contributors
 

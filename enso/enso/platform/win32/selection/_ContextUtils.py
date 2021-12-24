@@ -40,6 +40,7 @@
 import win32api
 import win32con
 import win32gui
+import win32process
 import win32clipboard
 import ctypes
 import pywintypes
@@ -358,6 +359,39 @@ def tapKey( keyCode ):
     
     _keyboardEvent( keyCode, KEYEVENTF_KEYDOWN )
     _keyboardEvent( keyCode, KEYEVENTF_KEYUP )
+
+
+_ToUnicodeEx = ctypes.windll.user32.ToUnicodeEx
+_ToUnicodeEx.argtypes = [ctypes.c_uint,ctypes.c_uint,ctypes.POINTER(ctypes.c_char),ctypes.POINTER(ctypes.c_wchar),
+                         ctypes.c_int,ctypes.c_uint,ctypes.c_void_p]
+_ToUnicodeEx.restype = ctypes.c_int
+
+
+def to_ctypes_char_buffer(bytes):
+    ba = bytearray(bytes)
+    ba_len = len(ba)
+    buffer = (ctypes.c_char * ba_len).from_buffer(ba)
+    return buffer
+
+
+def translateKey( keyCode ):
+    dwCurrentThread = win32api.GetCurrentThreadId()
+    dwFGThread, _ = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
+    ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwFGThread, 1)
+
+    b = ctypes.create_unicode_buffer(5)
+
+    try:
+        hkl = win32api.GetKeyboardLayout(dwFGThread)
+        sc = win32api.MapVirtualKey(keyCode, 0, hkl)
+        kbst = win32api.GetKeyboardState()
+        kbst_buff = to_ctypes_char_buffer(kbst)
+
+        _ToUnicodeEx(keyCode, sc, kbst_buff, b, 5, 0, hkl)
+    finally:
+        ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwFGThread, 0)
+
+    return b.value
 
 
 def typeSequence( keys ):
