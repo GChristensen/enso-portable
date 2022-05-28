@@ -191,7 +191,11 @@ _installKeyboardHook( void )
     if ( keyHookDLL )
     {
         FARPROC hookFunction = GetProcAddress( keyHookDLL,
+#if defined(_M_X64) || defined(__amd64__)
                                                "KH_KeyHookProc" );
+#else
+                                               "_KH_KeyHookProc@12" );
+#endif
 
         if ( hookFunction )
         {
@@ -239,8 +243,11 @@ _installMouseHook( void )
     if ( keyHookDLL )
     {
         FARPROC mouseHookFunction = GetProcAddress( keyHookDLL,
+#if defined(_M_X64) || defined(__amd64__)
                                                     "KH_MouseHookProc" );
-
+#else
+                                                    "_KH_MouseHookProc@12" );
+#endif
         if ( mouseHookFunction )
         {
             /* Set up the global keyhook. */
