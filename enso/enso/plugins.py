@@ -60,7 +60,7 @@
 
 import logging
 
-import enso.config
+from . import config
 
 
 # ----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ def _init():
     registered plugins.
     """
 
-    for moduleName in enso.config.PLUGINS:
+    for moduleName in config.PLUGINS:
         try:
             # Import the module; most of this code was taken from the
             # Python Library Reference documentation for __import__().

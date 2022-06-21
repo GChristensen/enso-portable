@@ -33,53 +33,60 @@
 # ----------------------------------------------------------------------------
 
 import os, threading, logging
-from enso import config
-
-def run_tasks():
-    class Tasks(threading.Thread):
-        def run(self):
-            tasks_file = os.path.join(config.ENSO_USER_DIR, "tasks.py")
-            if os.path.exists(tasks_file):
-                try:
-                    logging.info( "Executing tasks" )
-                    contents = open( tasks_file, "r" ).read()
-                    compiled = compile( contents + "\n", tasks_file, "exec" )
-                    exec(compiled, {}, {})
-                except Exception as e:
-                    from enso.contrib.scriptotron.tracebacks import TracebackCommand
-                    logging.exception("Error executing tasks file")
-                    TracebackCommand.setTracebackInfo()
-
-    tasks = Tasks()
-    tasks.setDaemon(True)
-    tasks.start()
-
+from . import config
 
 def run():
     """
     Initializes and runs Enso.
     """
 
-    from enso.events import EventManager
-    from enso.quasimode import Quasimode
-    from enso import plugins, webui
-    from enso.quasimode import layout
-
-    # Set color theme before quasimode is loaded to capture font styles
-    layout.setColorTheme(config.COLOR_THEME)
+    from . import messages, plugins, webui
+    from .events import EventManager
+    from .quasimode import layout, Quasimode
 
     eventManager = EventManager.get()
     Quasimode.install( eventManager )
     plugins.install( eventManager )
+
     def initEnso():
         msgXml = config.OPENING_MSG_XML
         if msgXml is not None and not config.ENSO_IS_QUIET:
             messages.displayMessage( msgXml )
 
-        run_tasks()
+        runTasks()
 
     if config.ENABLE_WEB_UI:
-        webui.start(eventManager)
+        webui.start()
 
     eventManager.registerResponder( initEnso, "init" )
-    eventManager.run()
+
+    try:
+        eventManager.run()
+    except KeyboardInterrupt:
+        webui.stop()
+    except Exception as e:
+        logging.error(e)
+        webui.stop()
+
+    if not config.ENSO_IS_QUIET:
+        messages.displayMessage(config.CLOSING_MSG_XML)
+
+
+def runTasks():
+    class Tasks(threading.Thread):
+        def run(self):
+            tasksFilePath = os.path.join(config.ENSO_USER_DIR, "tasks.py")
+
+            if os.path.exists(tasksFilePath):
+                try:
+                    with open( tasksFilePath, "r" ) as tasksFile:
+                        contents = tasksFile.read()
+                        compiled = compile( contents + "\n", tasksFilePath, "exec" )
+                    exec(compiled, {}, {})
+                except Exception:
+                    from .contrib.scriptotron.tracebacks import TracebackCommand
+                    TracebackCommand.setTracebackInfo()
+
+    tasks = Tasks()
+    tasks.daemon = True
+    tasks.start()

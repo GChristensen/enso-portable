@@ -1,25 +1,6 @@
-function saveTasks(callback) {
-    var customscripts = editor.getSession().getValue();
-    try {
-        // save
-        $.post("/api/enso/write_tasks", {code: customscripts});
+$(initPage)
 
-        // download link
-        var a = document.getElementById("download");
-        var file = new Blob([customscripts], {type: "application/python"});
-        a.href = URL.createObjectURL(file);
-        a.download = "tasks.py";
-    }
-    catch (e) {
-        console.error(e);
-    }
-
-    if (callback && typeof callback === "function")
-        callback();
-}
-
-$(() => {
-
+function initPage() {
     var tasks_help = `# Tasks is a block of code executed in a separate thread on Enso start.
 # You may use your favorite scheduling library to schedule tasks here.`;
 
@@ -121,4 +102,24 @@ $(() => {
     // editor.on("change", delayedSave);
 
     //editor.focus();
-});
+}
+
+function saveTasks(callback) {
+    var customscripts = editor.getSession().getValue();
+    try {
+        // save
+        $.post("/api/enso/write_tasks", {code: customscripts});
+
+        // download link
+        var a = document.getElementById("download");
+        var file = new Blob([customscripts], {type: "application/python"});
+        a.href = URL.createObjectURL(file);
+        a.download = "tasks.py";
+    }
+    catch (e) {
+        console.error(e);
+    }
+
+    if (callback && typeof callback === "function")
+        callback();
+}

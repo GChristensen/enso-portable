@@ -45,11 +45,11 @@ def cmd_mpc(ensoapi, action):
     <br>Issue 'mpc enable' to make it available."""
     if action == "enable":
         config.MPC_ENABLED = True
-        config.store_value("MPC_ENABLED", True)
+        config.storeValue("MPC_ENABLED", True)
         cmd_mpc.valid_args = ["disable", "randomize"] + get_mpc_commands()
     elif action == "disable":
         config.MPC_ENABLED = False
-        config.store_value("MPC_ENABLED", False)
+        config.storeValue("MPC_ENABLED", False)
         cmd_mpc.valid_args = ["enable"]
     elif action == "randomize":
         mpc_randomize()

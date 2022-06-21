@@ -64,7 +64,7 @@ def get_enso_get_config(key):
 
 @app.route('/api/enso/set/config/<key>/<value>')
 def get_enso_set_config(key, value):
-    config.store_value(key.upper(), value)
+    config.storeValue(key.upper(), value)
     return ""
 
 @app.route('/api/enso/get/config_dir')
@@ -149,7 +149,7 @@ def get_enso_commands_disable(command):
     if command not in config.DISABLED_COMMANDS:
         config.DISABLED_COMMANDS += [command]
         config.COMMAND_STATE_CHANGED = True
-        config.store_value("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
+        config.storeValue("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
     return ""
 
 @app.route('/api/enso/commands/enable/<command>')
@@ -157,7 +157,7 @@ def get_enso_commands_enable(command):
     if command in config.DISABLED_COMMANDS:
         config.DISABLED_COMMANDS.remove(command)
         config.COMMAND_STATE_CHANGED = True
-        config.store_value("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
+        config.storeValue("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
     return ""
 
 @app.route('/api/enso/write_tasks', methods=["POST"])
@@ -187,16 +187,20 @@ class Httpd(threading.Thread):
     def shutdown(self):
         self.srv.shutdown()
 
+
 def displayMessage(msg):
     enso.messages.displayMessage("<p>%s</p>" % msg)
 
+
 httpd = None
 
-def start(eventManager):
+
+def start():
     global httpd
     httpd = Httpd(app)
-    httpd.setDaemon(True)
+    httpd.daemon = True
     httpd.start()
+
 
 def stop():
     global httpd

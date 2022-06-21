@@ -1,52 +1,6 @@
+$(initPage)
 
-function insertExampleStub() {
-    var stubs = {
-        'insertsimplecommandstub':
-`def cmd_my_command(ensoapi):
-    """My command description"""
-    ensoapi.display_message("Hello world!")`,
-
-  'insertvarargsstub':
-`def cmd_my_command(ensoapi, argument):
-    """My command description"""
-    ensoapi.display_message(argument)`,
-
-        'insertboundargsstub':
-`def cmd_my_command(ensoapi, argument):
-    """My command description"""
-    ensoapi.display_message(argument)
-
-cmd_my_command.valid_args = ["arg1", "arg2"]`
-    };
-
-    var stub = stubs[this.id];
-    editor.session.insert(editor.getCursorPosition(), stub);
-
-    editor.focus();
-    return false;
-}
-
-function saveScripts(callback) {
-    var customscripts = editor.getSession().getValue();
-    try {
-        // save
-        $.post("/api/enso/commands/write_category/" + scriptNamespace, {code: customscripts});
-
-        // download link
-        var a = document.getElementById("download");
-        var file = new Blob([customscripts], {type: "application/python"});
-        a.href = URL.createObjectURL(file);
-        a.download = scriptNamespace + ".py";
-    }
-    catch (e) {
-        console.error(e);
-    }
-
-    if (callback && typeof callback === "function")
-        callback();
-}
-
-$(() => {
+function initPage() {
     lastNamespace = localStorage.getItem("lastNamespace");
 
     scriptNamespace =  window.location.search
@@ -191,6 +145,7 @@ $(() => {
     function delayedSave() {
         if (timeout)
             clearTimeout(timeout);
+
         timeout = setTimeout(function () {
             saveScripts();
             timeout = null;
@@ -200,4 +155,52 @@ $(() => {
     editor.on("change", delayedSave);
 
     editor.focus();
-});
+}
+
+
+function insertExampleStub() {
+    var stubs = {
+        'insertsimplecommandstub':
+            `def cmd_my_command(ensoapi):
+    """My command description"""
+    ensoapi.display_message("Hello world!")`,
+
+        'insertvarargsstub':
+            `def cmd_my_command(ensoapi, argument):
+    """My command description"""
+    ensoapi.display_message(argument)`,
+
+        'insertboundargsstub':
+            `def cmd_my_command(ensoapi, argument):
+    """My command description"""
+    ensoapi.display_message(argument)
+
+cmd_my_command.valid_args = ["arg1", "arg2"]`
+    };
+
+    var stub = stubs[this.id];
+    editor.session.insert(editor.getCursorPosition(), stub);
+
+    editor.focus();
+    return false;
+}
+
+function saveScripts(callback) {
+    var customscripts = editor.getSession().getValue();
+    try {
+        // save
+        $.post("/api/enso/commands/write_category/" + scriptNamespace, {code: customscripts});
+
+        // download link
+        var a = document.getElementById("download");
+        var file = new Blob([customscripts], {type: "application/python"});
+        a.href = URL.createObjectURL(file);
+        a.download = scriptNamespace + ".py";
+    }
+    catch (e) {
+        console.error(e);
+    }
+
+    if (callback && typeof callback === "function")
+        callback();
+}

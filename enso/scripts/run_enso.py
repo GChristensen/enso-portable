@@ -28,21 +28,26 @@ sys.path.append(config.ENSO_DIR)
 sys.path.append(os.path.join(config.ENSO_DIR, "lib"))
 sys.path.append(os.path.join(config.ENSO_USER_DIR, "lib"))
 
+
 def tray_on_enso_quit(systray):
     if not retreat.is_locked():
         EventManager.get().stop()
     else:
         displayMessage(config.BLOCKED_BY_RETREAT_MSG)
 
+
 def tray_on_enso_about(systray):
     displayMessage(config.ABOUT_BOX_XML)
+
 
 def tray_on_enso_settings(systray, get_state = False):
     if not get_state:
         os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")
 
+
 def tray_on_enso_help(systray):
     pass
+
 
 def tray_on_enso_exec_at_startup(systray, get_state = False):
     startup_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_STARTUP, 0, 0)
@@ -94,6 +99,7 @@ def tray_on_enso_restart(systray, get_state = False):
         else:
             displayMessage(config.BLOCKED_BY_RETREAT_MSG)
 
+
 def systray(enso_config):
     """ Tray-icon handling code. This have to be executed in its own thread
     """
@@ -130,6 +136,8 @@ def process_options(argv):
                       default=True, help="Do not show splash window")
     parser.add_option("-c", "--no-console", action="store_false", dest="show_console",
                       default=True, help="Hide console window")
+    parser.add_option("-r", "--redirect-stdout", action="store_true", dest="redirect_stdout",
+                      default=False, help="Hide console window")
     parser.add_option("-t", "--no-tray", action="store_false", dest="show_tray_icon",
                       default=True, help="Hide tray icon")
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
@@ -139,60 +147,7 @@ def process_options(argv):
     return opts, args
 
 
-def load_rc_config(ensorcPath):
-    if os.path.exists( ensorcPath ):
-        try:
-            logging.info( "Loading '%s'." % ensorcPath )
-            contents = open( ensorcPath, "r" ).read()
-            compiledContents = compile( contents + "\n", ensorcPath, "exec" )
-            allLocals = {}
-            exec(compiledContents, {}, allLocals)
-            for k, v in allLocals.items():
-                setattr(config, k, v)
-        except Exception as e:
-            logging.exception("Error reading init file")
-
-
-def main(argv = None):
-    opts, args = process_options(argv)
-    config.ENSO_IS_QUIET = opts.quiet
-
-    loglevel = {
-        'CRITICAL' : logging.CRITICAL,
-        'ERROR' : logging.ERROR,
-        'INFO' : logging.INFO,
-        'WARNING' : logging.WARNING,
-        'DEBUG' : logging.DEBUG
-        }[opts.loglevel]
-
-    if opts.show_console:
-        print("Showing console")
-        logging.basicConfig( level = loglevel )
-    else:
-        user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
-        print("Redirection output to: " + user_log)
-
-        logging.basicConfig(filename=user_log, level=loglevel)
-        user_log_file = open(user_log, "wb", 0)
-
-        class log():
-            def __init__(self):
-                self.file = user_log_file
-
-            def write(self, what):
-                self.file.write(what.encode())
-                self.file.flush()
-
-            def __getattr__(self, attr):
-                return getattr(self.file, attr)
-
-        sys.stdout = log()
-        sys.stderr = log()
-
-    if loglevel == logging.DEBUG:
-        print(opts)
-        print(args)
-
+def configure_init_files():
     if not os.path.isdir(config.ENSO_USER_DIR):
         os.makedirs(config.ENSO_USER_DIR)
 
@@ -218,6 +173,70 @@ def main(argv = None):
     # legacy ensorc, currently undocumented
     load_rc_config(os.path.join(config.HOME_DIR, ".ensorc"))
 
+
+def load_rc_config(ensorcPath):
+    if os.path.exists( ensorcPath ):
+        try:
+            #logging.info( "Loading '%s'." % ensorcPath )
+            contents = open( ensorcPath, "r" ).read()
+            compiledContents = compile( contents + "\n", ensorcPath, "exec" )
+            allLocals = {}
+            exec(compiledContents, {}, allLocals)
+            for k, v in allLocals.items():
+                setattr(config, k, v)
+        except Exception as e:
+            logging.exception("Error reading init file")
+
+
+def configure_logging_(args, opts):
+    loglevel = {
+        'CRITICAL': logging.CRITICAL,
+        'ERROR': logging.ERROR,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'DEBUG': logging.DEBUG
+    }[opts.loglevel]
+
+    if opts.show_console:
+        print("Showing console")
+        logging.basicConfig(level=loglevel)
+    else:
+        user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
+        print("Redirection output to: " + user_log)
+
+        logging.basicConfig(filename=user_log, level=loglevel, force=True)
+        logging.debug("test")
+
+    if opts.redirect_stdout:
+        user_log_file = open(user_log + ".stdout", "wb", 0)
+
+        class log():
+            def __init__(self):
+                self.file = user_log_file
+
+            def write(self, what):
+                self.file.write(what.encode())
+                self.file.flush()
+
+            def __getattr__(self, attr):
+                return getattr(self.file, attr)
+
+        sys.stdout = log()
+        sys.stderr = log()
+
+    if loglevel == logging.DEBUG:
+        print(opts)
+        print(args)
+
+
+def main(argv = None):
+    opts, args = process_options(argv)
+    config.ENSO_IS_QUIET = opts.quiet
+
+    configure_logging_(args, opts)
+
+    configure_init_files()
+
     if opts.show_tray_icon:
         # Execute tray-icon code in a separate thread
         threading.Thread(target = systray, args = (config,)).start()
@@ -227,15 +246,14 @@ def main(argv = None):
     enso.run()
 
     config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
-    if not config.ENSO_IS_QUIET:
-        displayMessage("<p>Closing Enso...</p><caption>Enso</caption>")
 
     win32gui.PostMessage(config.SYSTRAY_ICON.hwnd, win32con.WM_COMMAND, config.SYSTRAY_ICON.CMD_FINALIZE, 0)
 
     retreat.stop()
 
+    logging.shutdown()
+
     time.sleep(1)
-    os._exit(0)
 
     return 0
 

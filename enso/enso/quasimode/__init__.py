@@ -56,6 +56,9 @@ from win32api import GetKeyState
 from enso.events import EventManager
 from win32con import VK_CAPITAL
 
+from . import layout
+
+from enso import providers
 from enso import messages
 from enso import config
 from enso import input
@@ -69,11 +72,6 @@ from enso.quasimode.window import TheQuasimodeWindow
 # key codes to character strings.
 from enso.quasimode.charmaps import STANDARD_ALLOWED_KEYCODES \
     as ALLOWED_KEYCODES
-
-# Import functions to simulate keypresses so that we can sync the
-# Num Lock state when entering and exiting quasimode.
-from enso.platform.win32.selection import _ContextUtils \
-    as ContextUtils
 
 
 # ----------------------------------------------------------------------------
@@ -109,6 +107,9 @@ class Quasimode:
         """
         Initialize the quasimode.
         """
+
+        selectionModule = providers.getInterface("selection")
+        self.__contextUtils = selectionModule._ContextUtils
 
         self.__cmdManager = commandManager
 
@@ -168,6 +169,10 @@ class Quasimode:
         self.__isModal = config.IS_QUASIMODE_MODAL
 
         self.__eventMgr.setModality( self.__isModal )
+
+        # To capture font styles, it is necessary to set color theme
+        # before the quasimode is loaded
+        layout.setColorTheme(config.COLOR_THEME)
 
     def setQuasimodeKeyByName( self, function_name, key_name ):
         # Sets the quasimode to use the given key (key_name must be a
@@ -261,8 +266,8 @@ class Quasimode:
         """
         # Is the Shift key currently pressed? If it is, then allow
         # entering symbols such as "(" by pressing Shift + 9.
-        if config.LOCALIZED_INPUT:
-            newCharacter = ContextUtils.translateKey(keyCode)
+        if config.LOCALIZED_INPUT and self.__contextUtils:
+            newCharacter = self.__contextUtils.translateKey(keyCode)
         else:
             newCharacter = self.__getShifftedChar(keyCode)
 
@@ -376,8 +381,8 @@ class Quasimode:
         self.__suggestionList.clearState()
 
         # Sync the Num Lock state
-        if self._numLockStart != self._numLockNow:
-            ContextUtils.tapKey( input.KEYCODE_NUMLOCK )
+        if self.__contextUtils and self._numLockStart != self._numLockNow:
+            self.__contextUtils.tapKey( input.KEYCODE_NUMLOCK )
 
 
     def __executeCommand( self, cmd, cmdName ):
