@@ -4,10 +4,9 @@
 import pprint
 from collections.abc import Callable
 
-# 3rd party imports
-import requests
+from urllib import request, parse
 
-# from  import command_mapping
+# 3rd party imports
 from mpcapi import commands
 
 
@@ -39,7 +38,9 @@ class MpcAPI():
         """
         post_data = {"path": path}
         print("_posting browser", post_data)
-        requests.get(self.url("browser.html"), params=post_data)
+
+        with request.urlopen(self.url("browser.html")):
+            pass
 
     def _post_command(self, command_id):
         """
@@ -52,7 +53,10 @@ class MpcAPI():
 
         print("_posting command", post_data)
 
-        requests.post(self.url("command.html"), data=post_data)
+        data = parse.urlencode(post_data).encode()
+        req = request.Request(self.url("command.html"), data=data)
+        with request.urlopen(req):
+            pass
 
     def methods(self):
         pprint.pprint(dir(self))

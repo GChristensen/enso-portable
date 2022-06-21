@@ -51,7 +51,6 @@ under /enso/python to use `/enso/debug.bat`, `/enso/run-enso.exe` or `/enso/enso
 
 * [pywin32](https://github.com/mhammond/pywin32)
 * [flask](http://flask.pocoo.org/)
-* [requests](http://docs.python-requests.org/en/master/)
 
 #### Building platform code
 

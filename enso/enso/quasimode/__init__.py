@@ -109,7 +109,7 @@ class Quasimode:
         """
 
         selectionModule = providers.getInterface("selection")
-        self.__contextUtils = selectionModule._ContextUtils
+        self.__contextUtils = getattr(selectionModule, "_ContextUtils", None)
 
         self.__cmdManager = commandManager
 
