@@ -66,6 +66,7 @@ def run():
         webui.stop()
     except Exception as e:
         logging.error(e)
+        print(e)
         webui.stop()
 
     if not config.ENSO_IS_QUIET:

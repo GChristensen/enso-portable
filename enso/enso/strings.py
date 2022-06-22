@@ -1,5 +1,5 @@
 # Enso version for use in UI
-ENSO_VERSION = "0.9.0"
+ENSO_VERSION = "1.0"
 
 # The message displayed when the user types some text that is not a command.
 BAD_COMMAND_MSG = "<p><command>%s</command> is not a command.</p>" \

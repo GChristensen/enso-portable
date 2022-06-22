@@ -8,8 +8,6 @@ import win32con
 import win32gui
 import winerror
 
-from inspect import getargspec
-
 
 class SysTrayIcon(object):
 
@@ -215,7 +213,7 @@ class SysTrayIcon(object):
     def add_menu_item(self, text, func):
         assert len(text) > 0
         assert callable(func)
-        assert len(getargspec(func)[0]) == 2 and getargspec(func)[0][1] == 'get_state', "Second function argument must be 'get_state'"
+        #assert len(getargspec(func)[0]) == 2 and getargspec(func)[0][1] == 'get_state', "Second function argument must be 'get_state'"
         self.custom_menu_items[self.free_menu_id] = { 'id':self.free_menu_id, 'text':text, 'func':func }
         self.free_menu_id += 1
 

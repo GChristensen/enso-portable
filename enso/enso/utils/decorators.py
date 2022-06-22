@@ -45,6 +45,7 @@
 import inspect
 import sys
 
+from inspect import Signature
 
 # ----------------------------------------------------------------------------
 # Functionality
@@ -79,13 +80,8 @@ def finalizeWrapper( origFunc, wrappedFunc, decoratorName ):
         return origFunc
 
     # Get a prettified representation of the argument list.
-    args, varargs, varkw, defaults = inspect.getargspec( origFunc )
-    argspec = inspect.formatargspec(
-        args,
-        varargs,
-        varkw,
-        defaults
-        )
+    sig = inspect.signature(origFunc)
+    argspec = str(sig)
 
     callspec = "%s%s" % ( origFunc.__name__, argspec )
 

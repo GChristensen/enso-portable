@@ -1,7 +1,7 @@
 Unicode True
 
 !define APPNAME "Enso Open-Source"
-!define VERSION "0.9.0"
+!define VERSION "1.0"
 
 !include LogicLib.nsh
 
@@ -123,6 +123,7 @@ create_junction:
 without_junction:
     SetOutPath "$INSTDIR\lib"
     File enso\lib\SendKeys.py
+    File enso\lib\telnetlib.py
 
     SetOutPath "$INSTDIR\commands"
     File enso\commands\calc.py
