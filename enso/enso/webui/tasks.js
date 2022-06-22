@@ -19,6 +19,7 @@ function initPage() {
         $.ajax({
             url: "/api/enso/read_tasks",
             type: 'GET',
+            headers: makeEnsoAuthHeader(),
             success: function(data) {
                 if (data) {
                     data = data.trim();
@@ -108,7 +109,7 @@ function saveTasks(callback) {
     var customscripts = editor.getSession().getValue();
     try {
         // save
-        $.post("/api/enso/write_tasks", {code: customscripts});
+        ensoPost("/api/enso/write_tasks", {code: customscripts});
 
         // download link
         var a = document.getElementById("download");

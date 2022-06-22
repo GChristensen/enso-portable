@@ -24,18 +24,18 @@ function initPage() {
     });
     $(window).resize();
 
-    // $.get("/api/enso/get/config/TRACK_COMMAND_CHANGES", function (data) {
+    // ensoGet("/api/enso/get/config/TRACK_COMMAND_CHANGES", function (data) {
     //     if (data === "True")
     //         $("#track-changes").prop("checked", true);
     // });
     //
     // $("#track-changes").change(function () {
     //     var track_changes = $("#track-changes").prop("checked");
-    //     $.get("/api/enso/set/config/TRACK_COMMAND_CHANGES/" + (track_changes? "True": "False"));
+    //     ensoGet("/api/enso/set/config/TRACK_COMMAND_CHANGES/" + (track_changes? "True": "False"));
     // });
 
     function editNamespaceScripts(namespace) {
-        $.get("/api/enso/commands/read_category/" + namespace, function (data) {
+        ensoGet("/api/enso/commands/read_category/" + namespace, function (data) {
             if (data)
                 editor.setValue(data, -1);
             else
@@ -94,7 +94,7 @@ function initPage() {
     $("#delete-namespace").click(() => {
         if (scriptNamespace !== "user")
             if (confirm("Do you really want to delete \"" + scriptNamespace + "\"?")) {
-                $.get("/api/enso/commands/delete_category/" + scriptNamespace, function (data) {
+                ensoGet("/api/enso/commands/delete_category/" + scriptNamespace, function (data) {
                     $('option:selected', $("#script-namespaces")).remove();
                     scriptNamespace = $("#script-namespaces").val();
                     editNamespaceScripts(scriptNamespace);
@@ -128,7 +128,7 @@ function initPage() {
     $("#insertboundargsstub").click(insertExampleStub);
 
     // load scrtips
-    $.getJSON("/api/enso/get/user_command_categories", function (data) {
+    ensoGetJSON("/api/enso/get/user_command_categories", function (data) {
         for (let n of data)
             if (n !== "user")
                 $("#script-namespaces").append($("<option></option>")
@@ -189,7 +189,7 @@ function saveScripts(callback) {
     var customscripts = editor.getSession().getValue();
     try {
         // save
-        $.post("/api/enso/commands/write_category/" + scriptNamespace, {code: customscripts});
+        ensoPost("/api/enso/commands/write_category/" + scriptNamespace, {code: customscripts});
 
         // download link
         var a = document.getElementById("download");

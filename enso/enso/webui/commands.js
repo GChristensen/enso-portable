@@ -61,9 +61,9 @@ function fillTableRowForCmd(row, cmd, className) {
         .bind("change", (e) => {
             cmd.disabled = !e.target.checked;
             if (cmd.disabled)
-                $.get("/api/enso/commands/disable/" + name);
+                ensoGet("/api/enso/commands/disable/" + name);
             else
-                $.get("/api/enso/commands/enable/" + name);
+                ensoGet("/api/enso/commands/enable/" + name);
         })
         [cmd.disabled ? "removeAttr" : "attr"]("checked", "checked"));
 
@@ -121,7 +121,7 @@ function insertNamespace(namespace, subtext, commands, table) {
 function buildTable() {
     let table = jQuery("#commands-and-feeds-table");
 
-    $.getJSON("/api/enso/get/commands", function (data) {
+    ensoGetJSON("/api/enso/get/commands", function (data) {
 
         let commands = data;
         let commandCount = data.length;

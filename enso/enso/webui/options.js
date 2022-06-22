@@ -3,14 +3,14 @@ $(onDocumentLoad);
 
 function onDocumentLoad() {
 
-    $.get("/api/enso/version", function (data) {
+    ensoGet("/api/enso/version", function (data) {
         $("#enso-version").text(data);
     });
-    $.get("/api/python/version", function (data) {
+    ensoGet("/api/python/version", function (data) {
         $("#python-version").text(data);
     });
 
-    $.getJSON("/api/enso/color_themes", function (data) {
+    ensoGetJSON("/api/enso/color_themes", function (data) {
 
         var $themeSelect = $("#theme-select");
 
@@ -25,15 +25,15 @@ function onDocumentLoad() {
 
         $themeSelect.change(() => {
           let theme = $themeSelect.find(":selected").val();
-          $.get("/api/enso/set/config/COLOR_THEME/" + theme);
+          ensoGet("/api/enso/set/config/COLOR_THEME/" + theme);
         });
     });
 
-    $.get("/api/retreat/installed", function (data) {
+    ensoGet("/api/retreat/installed", function (data) {
         if (data) {
             $("#retreat-settings").css("visibility", "visible");
 
-            $.get("/api/enso/get/config/RETREAT_DISABLE", function (data) {
+            ensoGet("/api/enso/get/config/RETREAT_DISABLE", function (data) {
                 if (data !== "True")
                     $("#retreat-enable").prop("checked", true);
                 else
@@ -42,33 +42,33 @@ function onDocumentLoad() {
 
             $("#retreat-enable").change(function () {
                 var retreat_disable = !$("#retreat-enable").prop("checked");
-                $.get("/api/enso/set/config/RETREAT_DISABLE/" + (retreat_disable? "True": "False"));
+                ensoGet("/api/enso/set/config/RETREAT_DISABLE/" + (retreat_disable? "True": "False"));
                 $("#retreat-show-icon").prop("disabled", retreat_disable);
             });
 
-            $.get("/api/enso/get/config/RETREAT_SHOW_ICON", function (data) {
+            ensoGet("/api/enso/get/config/RETREAT_SHOW_ICON", function (data) {
                 $("#retreat-show-icon").prop("checked", data !== "False");
             });
 
             $("#retreat-show-icon").change(function () {
-                $.get("/api/enso/set/config/RETREAT_SHOW_ICON/"
+                ensoGet("/api/enso/set/config/RETREAT_SHOW_ICON/"
                     + ($("#retreat-show-icon").prop("checked")? "True": "False"));
             });
 
             // $("#retreat-show-options").click(function(event) {
             //     event.preventDefault();
-            //     $.get("/api/retreat/show_options");
+            //     ensoGet("/api/retreat/show_options");
             // });
         }
     });
 
-    $.get("/api/enso/get/config_dir", function (data) {
+    ensoGet("/api/enso/get/config_dir", function (data) {
         $("#enso-user-config").val(data);
     });
 
     $("#open-in-explorer").click(function(event) {
         event.preventDefault();
-        $.get("/api/enso/open/config_dir");
+        ensoGet("/api/enso/open/config_dir");
     });
 
 
@@ -84,6 +84,7 @@ function onDocumentLoad() {
     $.ajax({
         url: '/api/enso/get/ensorc',
         type: 'GET',
+        headers: makeEnsoAuthHeader(),
         success: function(data) {
             if (data) {
                 data = data.trim();
@@ -110,6 +111,7 @@ function onDocumentLoad() {
         //if (ensorc !== ensorc_help) {
             $.ajax({
                 url: '/api/enso/set/ensorc',
+                headers: makeEnsoAuthHeader(),
                 type: 'POST',
                 data: {ensorc: ensorc}});
             //if (!ensorc)
