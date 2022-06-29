@@ -17,4 +17,4 @@ __pycache__
 .idea
 .local
 enso-open-source-*.exe
-/enso/python*/
+/enso/python*
