@@ -384,6 +384,7 @@ def translateKey( keyCode ):
     try:
         hkl = win32api.GetKeyboardLayout(dwFGThread)
         sc = win32api.MapVirtualKey(keyCode, 0, hkl)
+        win32api.GetKeyState(win32con.VK_SHIFT) # shift state is delayed otherwise. magic!
         kbst = win32api.GetKeyboardState()
         kbst_buff = to_ctypes_char_buffer(kbst)
 

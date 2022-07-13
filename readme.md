@@ -110,12 +110,11 @@ Of course, you may construct dictionaries in various ways.
 #### Change log
 [full changelog](changelog.md)
 
-##### 24.12.2021 (v.0.9.0)
+##### 14.07.2022 (v.0.9.1)
 
-* Added experimental support of internationalized command input. Non-latin characters such as спасибо are allowed when
-  the current input language is not English. Set LOCALIZED_INPUT = False in the settings configuration block to disable
-  this feature. Due to limitations of Windows, it will not work when a console window is in the foreground. Deadkeys are
-  not supported.
+* Sped up `learn as open` and `unlearn as open` commands.
+* Fixed delayed Shift key state when localized input is enabled.
+* Fixed web-search commands.
 
 #### Contributors
 

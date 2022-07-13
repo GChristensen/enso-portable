@@ -123,7 +123,6 @@ create_junction:
 without_junction:
     SetOutPath "$INSTDIR\lib"
     File enso\lib\SendKeys.py
-    File enso\lib\telnetlib.py
 
     SetOutPath "$INSTDIR\commands"
     File enso\commands\calc.py

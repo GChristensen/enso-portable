@@ -20,7 +20,7 @@ cmd_guid.valid_args = ["lowercase", "uppercase", "numeric"]
 
 random.seed()
 
-boundsParser = re.compile(r"(?:from ?(\d+))? ?(?:to ?(\d+))?")
+boundsParser = re.compile(r"(?:\s*from\s+?(\d+))?\s+?(?:to\s+?(\d+))?")
 
 def cmd_random(ensoapi, from_num_to_num = ""):
     """Replaces selected text with a random number"""

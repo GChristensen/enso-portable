@@ -157,9 +157,10 @@ def cmd_learn_as_open(ensoapi, name):
     if is_url(file):
         shortcut = PyInternetShortcut()
 
+        file_path = file_path + ".url"
         shortcut.SetURL(file)
         shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
-            file_path + ".url", 0 )
+            file_path, 0 )
     else:
         shortcut = PyShellLink()
 
@@ -167,12 +168,13 @@ def cmd_learn_as_open(ensoapi, name):
         shortcut.SetWorkingDirectory(os.path.dirname(file))
         shortcut.SetIconLocation(file, 0)
 
+        file_path = file_path + ".lnk"
         shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
-            file_path + ".lnk", 0 )
+            file_path, 0 )
 
     #time.sleep(0.5)
     global shortcuts_map
-    shortcuts_map = Shortcuts.get().refreshShortcuts()
+    Shortcuts.get().add_shortcut(file_path)
     cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
     cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
     cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
@@ -186,17 +188,22 @@ def cmd_unlearn_open(ensoapi, name):
     file_path = os.path.join(LEARN_AS_DIR, name)
     if os.path.isfile(file_path + ".lnk"):
         sl = PyShellLink()
-        sl.load(file_path + ".lnk")
+
+        file_path = file_path + ".lnk"
+        sl.load(file_path)
         unlearn_open_undo.append([name, sl])
-        os.remove(file_path + ".lnk")
+        os.remove(file_path)
     elif os.path.isfile(file_path + ".url"):
         sl = PyInternetShortcut()
-        sl.load(file_path + ".url")
+
+        file_path = file_path + ".url"
+        sl.load(file_path)
         unlearn_open_undo.append([name, sl])
-        os.remove(file_path + ".url")
+        os.remove(file_path)
 
     global shortcuts_map
-    shortcuts_map = Shortcuts.get().refreshShortcuts()
+
+    Shortcuts.get().remove_shortcut(name.lower())
     cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
     cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
     cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]

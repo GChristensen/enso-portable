@@ -188,7 +188,7 @@ def load_rc_config(ensorcPath):
             logging.exception("Error reading init file")
 
 
-def configure_logging_(args, opts):
+def configure_logging(args, opts):
     loglevel = {
         'CRITICAL': logging.CRITICAL,
         'ERROR': logging.ERROR,
@@ -233,7 +233,7 @@ def main(argv = None):
     opts, args = process_options(argv)
     config.ENSO_IS_QUIET = opts.quiet
 
-    configure_logging_(args, opts)
+    configure_logging(args, opts)
 
     configure_init_files()
 
