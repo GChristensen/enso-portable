@@ -535,23 +535,34 @@ class Shortcuts:
                 for filename in filenames:
                     if ignored.search(filename):
                         continue
-                    name, ext = os.path.splitext(filename)
-                    if not ext.lower() in (".lnk", ".url"):
-                        continue
-
-                    shortcut_type = SHORTCUT_TYPE_DOCUMENT
-                    shortcut_path = ""
-
-                    if ext.lower() == ".lnk":
-                        shortcut_path = os.path.join(dirpath, filename)
-                        sl.load(shortcut_path)
-                        shortcut_type = sl.get_type()
-                    elif ext.lower() == ".url":
-                        shortcut_path = os.path.join(dirpath, filename)
-                        shortcut_type = SHORTCUT_TYPE_URL
-
-                    shortcuts.append((shortcut_type, name.lower(), shortcut_path))
+                    self._add_shortcut(dirpath, filename, shortcuts, sl)
         return shortcuts
+
+    def _add_shortcut(self, dirpath, filename, shortcuts, sl):
+        name, ext = os.path.splitext(filename)
+        if not ext.lower() in (".lnk", ".url"):
+            return False
+        shortcut_type = SHORTCUT_TYPE_DOCUMENT
+        shortcut_path = ""
+        if ext.lower() == ".lnk":
+            shortcut_path = os.path.join(dirpath, filename)
+            sl.load(shortcut_path)
+            shortcut_type = sl.get_type()
+        elif ext.lower() == ".url":
+            shortcut_path = os.path.join(dirpath, filename)
+            shortcut_type = SHORTCUT_TYPE_URL
+        shortcuts.append((shortcut_type, name.lower(), shortcut_path))
+        return True
+
+    def add_shortcut(self, filename):
+        shortcuts = []
+        sl = PyShellLink()
+        dirpath, filename = os.path.split(filename)
+        self._add_shortcut(dirpath, filename, shortcuts, sl)
+        self._shortcuts_map[shortcuts[0][1]] = shortcuts[0]
+
+    def remove_shortcut(self, name):
+        del self._shortcuts_map[name]
 
     def _get_universal_windows_apps(self):
         shortcuts = []

@@ -7,6 +7,7 @@ import platform
 import re
 import xml.sax.saxutils
 import logging
+import json
 
 from urllib.parse import urlparse, urlunparse
 
@@ -22,7 +23,7 @@ class ThreadedFunc(threading.Thread):
         threading.Thread.__init__(self)
         self.__success = False
         self.__retval = None
-        self.setDaemon(True)
+        self.daemon = True
         self.start()
 
     def run(self):
@@ -33,12 +34,12 @@ class ThreadedFunc(threading.Thread):
         self.__success = True
 
     def wasSuccessful(self):
-        if self.isAlive():
+        if self.is_alive():
             raise Exception( "Thread not finished" )
         return self.__success
 
     def getRetval(self):
-        if self.isAlive():
+        if self.is_alive():
             raise Exception( "Thread not finished" )
         return self.__retval
 
@@ -233,7 +234,7 @@ def cmd_is_down(ensoapi, url = None):
         get_selection_thread = ThreadedFunc(
             target = ensoapi.get_selection
         )
-        while get_selection_thread.isAlive():
+        while get_selection_thread.is_alive():
             yield
         if get_selection_thread.wasSuccessful():
             seldict = get_selection_thread.getRetval()
@@ -253,28 +254,38 @@ def cmd_is_down(ensoapi, url = None):
     netloc = parsed_url.netloc
     if netloc.endswith(":80"):
         netloc = netloc[:-3]
-    base_url = scheme + "://" + netloc
+    #base_url = scheme + "://" + netloc
+    base_url = netloc
 
     print(base_url)
 
-    query_url = "http://downforeveryoneorjustme.com/%s" % urllib.parse.quote_plus(base_url)
+    query_url = "https://api-prod.downfor.cloud/httpcheck/%s" % urllib.parse.quote_plus(base_url)
     t = ThreadedFunc(
         target = get_html,
         args = (ensoapi, query_url))
 
-    while t.isAlive():
+    while t.is_alive():
         yield
 
     if t.wasSuccessful():
-        html = t.getRetval()
-        if html.find("It's just you") > -1:
-            displayMessage("<p>Site <command>%s</command> is online</p>" % base_url)
-        elif html.find("doesn't look like a site") > -1:
-            displayMessage("<p>Site <command>%s</command> is unknown!</p>" % base_url)
-        elif html.find("It's not just you") > -1:
+        result = json.loads(t.getRetval())
+        print(result)
+        if result["isDown"]:
             displayMessage("<p>Site <command>%s</command> is down!</p>" % base_url)
-        else:    
-            print(html)
+        else:
+            displayMessage("<p>Site <command>%s</command> is online</p>" % base_url)
+    else:
+        displayMessage("<p>Site <command>%s</command> is unknown!</p>" % base_url)
+
+        # html = t.getRetval()
+        # if html.find("It's just you") > -1:
+        #     displayMessage("<p>Site <command>%s</command> is online</p>" % base_url)
+        # elif html.find("doesn't look like a site") > -1:
+        #     displayMessage("<p>Site <command>%s</command> is unknown!</p>" % base_url)
+        # elif html.find("It's not just you") > -1:
+        #     displayMessage("<p>Site <command>%s</command> is down!</p>" % base_url)
+        # else:
+        #     print(html)
 
 
 def cmd_url(ensoapi, parameter = None):
@@ -322,7 +333,7 @@ def cmd_what_is_my_ip(ensoapi):
     
     import re
     thread = ThreadedFunc(make_get_url_func("http://checkip.dyndns.com/"))
-    while thread.isAlive():
+    while thread.is_alive():
         yield
     matches = []
     ip = re.search("Address: ([^<]+)", thread.getRetval()).group(1)

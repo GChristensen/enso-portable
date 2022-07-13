@@ -57,7 +57,7 @@
 
     <h1><a id="user-content-configuring-enso" class="anchor" aria-hidden="true" href="#configuring-enso"></a>Configuring Enso</h1>
 
-    <p>'Custom Initialization' block at the Enso <a href="/options.html">settings</a> page allows to specify any
+    <p>'Custom Initialization' block at the Enso <a href="/options.html">settings</a> page allows specifying any
         Python code needed to initialize Enso. By using it, you may override variables from config.py or provide
         values required by some commands. You can access variables declared at this block in your own commands through
         the 'config' module. For example, you can obtain <code>MY_VARIABLE</code> defined at the configuration block:
@@ -93,7 +93,7 @@
         write and test code with minimal interruptions to their train of
         thought.</p>
     <p>One may wonder why the <code>ensoapi</code> object has to be explicitly
-        passed-in rather than being imported.  The reasons for this are
+        passed-in rather than imported.  The reasons for this are
         manifold: firstly, importing a specific module, e.g. <code>enso.api</code>,
         would tie the command to a particular implementation of the Enso
         API.  Yet it should be possible for the command to run in different
@@ -121,12 +121,16 @@
 <span class="pl-s">    providing you with a hearty salutation at a moment's notice.</span>
 <span class="pl-s">    <span class="pl-pds">"""</span></span>
 
-    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Hello World!<span class="pl-pds">"</span></span>)</pre></div>
-    <h2><a id="user-content-interacting-with-the-current-selection" class="anchor" aria-hidden="true" href="#interacting-with-the-current-selection"></a>Interacting with The Current Selection</h2>
-    <p>To obtain the current selection, use <code>ensoapi.get_selection()</code>.
-        This method returns a <em>selection dictionary</em>, or seldict for short.  A
-        seldict is simply a dictionary that maps a data format identifier to
-        selection data in that format.</p>
+    ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Hello World!<span
+                class="pl-pds">"</span></span>)</pre>
+    </div>
+    <h2><a id="user-content-interacting-with-the-current-selection" class="anchor"
+           aria-hidden="true" href="#interacting-with-the-current-selection"></a>Interacting with
+        The Current Selection</h2>
+    <p>Interacting with the selection is the primary method to get values in and out of Enso
+        commands. To obtain the current selection, use <code>ensoapi.get_selection()</code>. This
+        method returns a <em>selection dictionary</em>, or seldict for short. A seldict is simply a
+        dictionary that maps a data format identifier to selection data in that format.</p>
     <p>Some valid data formats in a seldict are:</p>
     <ul>
         <li><code>text</code>: Plain unicode text of the current selection.</li>
@@ -211,7 +215,7 @@
     <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
         using 'enso install' and 'enso uninstall' commands respectively.<br>
         If you need to import some code that is not installable as a Python module,
-        place it under the 'lib' folder at your Enso configuration directory (available at the Enso <a href="/options.html">settings</a> page).
+        place it under the 'lib' folder in your Enso configuration directory (available on the Enso <a href="/options.html">settings</a> page).
         <br>
         Python's standard <code>import</code> statement can be used from command
         scripts. But the disadvantage of doing this with evolving
@@ -219,16 +223,21 @@
         if their contents change.</p>
 
     <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
-    <p>Mediaprobes allow to create commands that automatically pass items found in filesystem (or listed
+    <p>Mediaprobes allow to create commands that automatically pass items found in the filesystem (or listed
         in a dictionary) to the specified program. Let's assume that
-        you have a directory named 'd:/tv-shows', which contains subdirectories: 'columbo', 'the octopus' and 'inspector gadget'.
+        you have a directory named 'd:/tv-shows', which contains subdirectories: 'columbo', 'the octopus', and 'inspector gadget'.
         Let's create a command named 'show' that has the names of all subdirectories
-        under 'd:/tv-shows' as arguments (the argument will be named "series") and opens the given directory (or file) in Media Player Classic.</p>
-    <div class="highlight highlight-source-python"><pre><span class="pl-c"><span class="pl-c">#</span> place the following into command editor</span>
+        under 'd:/tv-shows' as suggestions for its argument (the argument will be named "series") and opens the given directory (or file) in Media Player Classic.</p>
+    <div class="highlight highlight-source-python"><pre><span class="pl-c"><span class="pl-c">#</span> place the following into the command editor</span>
 
 <span class="pl-k">from</span> enso.user <span class="pl-k">import</span> mediaprobe
 
-cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-s"><span class="pl-pds">"</span>series<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>d:/tv-shows<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to MPC-HC&gt;<span class="pl-pds">"</span></span>)</pre></div>
+cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-s"><span
+                class="pl-pds">"</span>series<span class="pl-pds">"</span></span>, <span
+                class="pl-s"><span class="pl-pds">"</span>d:/tv-shows<span
+                class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to MPC-HC&gt;<span
+                class="pl-pds">"</span></span>)</pre>
+    </div>
     <p>That's all. The command will have the following additional arguments:</p>
     <ul>
         <li>what - lists available arguments.</li>
@@ -236,7 +245,8 @@ cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-
         <li>prev - open the previous show in the player.</li>
         <li>all - pass 'd:/tv-shows' to the player.</li>
     </ul>
-    <p><code>mediaprobe.dictionary_probe</code> allows to create probe commands based on a dictionary:</p>
+    <p><code>mediaprobe.dictionary_probe</code> allows to create probe commands based on a
+        dictionary:</p>
     <div class="highlight highlight-source-python"><pre>what_to_watch <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>formula 1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula 1 stream&gt;<span class="pl-pds">"</span></span>,
                  <span class="pl-s"><span class="pl-pds">"</span>formula e<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula e stream&gt;<span class="pl-pds">"</span></span>}
 cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
