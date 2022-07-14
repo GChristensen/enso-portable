@@ -1,4 +1,4 @@
-## Enso Open-Source
+## Enso Launcher (Open-Source)
 
 A feature-rich descendant of Enso Community Edition (Microsoft Windows only). 
 
