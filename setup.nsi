@@ -1,15 +1,16 @@
 Unicode True
 
-!define APPNAME "Enso Open-Source"
+!define DIRNAME "Enso Launcher"
+!define APPNAME "Enso Launcher (OSS)"
 !define VERSION "1.0"
 
 !include LogicLib.nsh
 
-!define APPNAMEANDVERSION "Enso Open-Source ${VERSION}"
+!define APPNAMEANDVERSION "${APPNAME} ${VERSION}"
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
-InstallDir "$APPDATA\Enso"
+InstallDir "$APPDATA\${DIRNAME}"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
 OutFile "enso-open-source-${VERSION}-x86_64.exe"
 
@@ -46,6 +47,79 @@ SetCompressor LZMA
 ; Set languages (first is default language)
 !insertmacro MUI_LANGUAGE "English"
 #!insertmacro MUI_RESERVEFILE_LANGDLL
+
+!define StrLoc "!insertmacro StrLoc"
+ 
+!macro StrLoc ResultVar String SubString StartPoint
+  Push "${String}"
+  Push "${SubString}"
+  Push "${StartPoint}"
+  Call StrLoc
+  Pop "${ResultVar}"
+!macroend
+ 
+Function StrLoc
+/*After this point:
+  ------------------------------------------
+   $R0 = StartPoint (input)
+   $R1 = SubString (input)
+   $R2 = String (input)
+   $R3 = SubStringLen (temp)
+   $R4 = StrLen (temp)
+   $R5 = StartCharPos (temp)
+   $R6 = TempStr (temp)*/
+ 
+  ;Get input from user
+  Exch $R0
+  Exch
+  Exch $R1
+  Exch 2
+  Exch $R2
+  Push $R3
+  Push $R4
+  Push $R5
+  Push $R6
+ 
+  ;Get "String" and "SubString" length
+  StrLen $R3 $R1
+  StrLen $R4 $R2
+  ;Start "StartCharPos" counter
+  StrCpy $R5 0
+ 
+  ;Loop until "SubString" is found or "String" reaches its end
+  ${Do}
+    ;Remove everything before and after the searched part ("TempStr")
+    StrCpy $R6 $R2 $R3 $R5
+ 
+    ;Compare "TempStr" with "SubString"
+    ${If} $R6 == $R1
+      ${If} $R0 == `<`
+        IntOp $R6 $R3 + $R5
+        IntOp $R0 $R4 - $R6
+      ${Else}
+        StrCpy $R0 $R5
+      ${EndIf}
+      ${ExitDo}
+    ${EndIf}
+    ;If not "SubString", this could be "String"'s end
+    ${If} $R5 >= $R4
+      StrCpy $R0 ``
+      ${ExitDo}
+    ${EndIf}
+    ;If not, continue the loop
+    IntOp $R5 $R5 + 1
+  ${Loop}
+ 
+  ;Return output to user
+  Pop $R6
+  Pop $R5
+  Pop $R4
+  Pop $R3
+  Pop $R2
+  Exch
+  Pop $R1
+  Exch $R0
+FunctionEnd
 
 !define CreateJunction "!insertmacro CreateJunction"
 
@@ -99,8 +173,67 @@ FunctionEnd
   Pop $0
 !macroend
 
-Section "Enso Open-Source" Section_enso
+!macro UninstallExisting exitcode uninstcommand
+    Push `${uninstcommand}`
+    Call UninstallExisting
+    Pop ${exitcode}
+!macroend
+Function UninstallExisting
+    Exch $1 ; uninstcommand
+    Push $2 ; Uninstaller
+    Push $3 ; Len
+    StrCpy $3 ""
+    StrCpy $2 $1 1
+    StrCmp $2 '"' qloop sloop
+    sloop:
+        StrCpy $2 $1 1 $3
+        IntOp $3 $3 + 1
+        StrCmp $2 "" +2
+        StrCmp $2 ' ' 0 sloop
+        IntOp $3 $3 - 1
+        Goto run
+    qloop:
+        StrCmp $3 "" 0 +2
+        StrCpy $1 $1 "" 1 ; Remove initial quote
+        IntOp $3 $3 + 1
+        StrCpy $2 $1 1 $3
+        StrCmp $2 "" +2
+        StrCmp $2 '"' 0 qloop
+    run:
+        StrCpy $2 $1 $3 ; Path to uninstaller
+        StrCpy $1 161 ; ERROR_BAD_PATHNAME
+        GetFullPathName $3 "$2\.." ; $InstDir
+        #IfFileExists "$2" 0 +4
+        #ExecWait '"$2" /S _?=$3' $1 ; This assumes the existing uninstaller is a NSIS uninstaller, other uninstallers don't support /S nor _?=
+        RMDir /r "$3"
+        #IntCmp $1 0 "" +2 +2 ; Don't delete the installer if it was aborted
+        #Delete "$2" ; Delete the uninstaller
+        #RMDir "$3" ; Try to delete $InstDir
+        #RMDir "$3\.." ; (Optional) Try to delete the parent of $InstDir
+    #Pop $3
+    #Pop $2
+    #Exch $1 ; exitcode
+    StrCpy $1 0
+    Exch $1
+FunctionEnd
 
+Var uninstallString
+Section "Enso Launcher (OSS)" Section_enso
+    ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString"
+
+    ${If} $0 != ""
+        StrCpy $uninstallString $0
+    ${EndIf}
+
+    ${If} $uninstallString != ""
+    ${AndIf} ${Cmd} `MessageBox MB_YESNO|MB_ICONQUESTION "Uninstall previous version?" /SD IDYES IDYES`
+        !insertmacro UninstallExisting $uninstallString '"$uninstallString"'
+        ${If} $1 <> 0
+            MessageBox MB_YESNO|MB_ICONSTOP "Failed to uninstall, continue anyway?" /SD IDYES IDYES +2
+                Abort
+        ${EndIf}
+    ${EndIf}
+    
 	; Set Section properties
 	SetOverwrite on
 
@@ -115,7 +248,9 @@ Section "Enso Open-Source" Section_enso
     File enso\debug.bat
     File enso\run-enso.exe
 
-    StrCmp "$INSTDIR" "C:\Program Files\Enso" create_junction without_junction
+    StrCpy $0 0
+    ${StrLoc} $1 "$INSTDIR" "C:\Program Files\" ">"
+    StrCmp $0 $1 create_junction without_junction
 
 create_junction:
     ${CreateJunction} "$INSTDIR\python\Lib\site-packages\enso" "$INSTDIR\enso" $9

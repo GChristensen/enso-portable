@@ -109,7 +109,7 @@ def systray(enso_config):
 
     enso_config.SYSTRAY_ICON = SysTrayIcon(
             enso_icon,
-            "Enso Open-Source",
+            "Enso Launcher (OSS)",
             None,
             on_quit = tray_on_enso_quit)
 
@@ -199,16 +199,17 @@ def configure_logging(args, opts):
     }[opts.loglevel]
 
     if opts.show_console:
-        print("Showing console")
+        print("Logging to console")
         logging.basicConfig(level=loglevel, force=True)
     else:
         user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
-        print("Redirection output to: " + user_log)
+        print("Redirecting log output to: " + user_log)
 
         logging.basicConfig(filename=user_log, level=loglevel, force=True)
         logging.debug("test")
 
     if opts.redirect_stdout:
+        print("Redirecting stdout output to: " + user_log)
         user_log_file = open(user_log + ".stdout", "wb", 0)
 
         class log():
