@@ -116,10 +116,12 @@ def systray(enso_config):
     enso_config.SYSTRAY_ICON.on_about = tray_on_enso_about
     enso_config.SYSTRAY_ICON.on_doubleclick = tray_on_enso_about
     enso_config.SYSTRAY_ICON.add_menu_item("&Restart", tray_on_enso_restart)
+
     if config.ENABLE_WEB_UI:
         enso_config.SYSTRAY_ICON.add_menu_item("&Settings", tray_on_enso_settings)
     if not config.ENSO_EXECUTABLE.endswith("run-enso.exe"):
         enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", tray_on_enso_exec_at_startup)
+
     enso_config.SYSTRAY_ICON.main_thread()
 
 
@@ -129,11 +131,10 @@ def process_options(argv):
     parser = OptionParser(usage=usageStr, version="%prog " + version)
     #parser.add_option("-l", "--log", action="store", dest="logfile", type="string",
     #                  help="log output into auto-rotated log-file", metavar="FILE")
-    #TODO: Implement more command line args
     parser.add_option("-l", "--log-level", action="store", dest="loglevel",
                       default="ERROR", help="logging level (CRITICAL, ERROR, INFO, WARNING, DEBUG)")
-    parser.add_option("-n", "--no-splash", action="store_false", dest="show_splash",
-                      default=True, help="Do not show splash window")
+    #parser.add_option("-n", "--no-splash", action="store_false", dest="show_splash",
+    #                  default=True, help="Do not show splash window")
     parser.add_option("-c", "--no-console", action="store_false", dest="show_console",
                       default=True, help="Hide console window")
     parser.add_option("-r", "--redirect-stdout", action="store_true", dest="redirect_stdout",
@@ -177,7 +178,7 @@ def configure_init_files():
 def load_rc_config(ensorcPath):
     if os.path.exists( ensorcPath ):
         try:
-            #logging.info( "Loading '%s'." % ensorcPath )
+            logging.info( "Loading '%s'." % ensorcPath )
             contents = open( ensorcPath, "r" ).read()
             compiledContents = compile( contents + "\n", ensorcPath, "exec" )
             allLocals = {}
@@ -199,7 +200,7 @@ def configure_logging(args, opts):
 
     if opts.show_console:
         print("Showing console")
-        logging.basicConfig(level=loglevel)
+        logging.basicConfig(level=loglevel, force=True)
     else:
         user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
         print("Redirection output to: " + user_log)
@@ -223,10 +224,6 @@ def configure_logging(args, opts):
 
         sys.stdout = log()
         sys.stderr = log()
-
-    if loglevel == logging.DEBUG:
-        print(opts)
-        print(args)
 
 
 def main(argv = None):

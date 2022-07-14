@@ -145,24 +145,26 @@ class GoCommand(CommandObject):
     def __call__(self, ensoapi, window = None):
         if window is None:
             return None
+
         logging.debug("Go to window '%s'" % window)
+
         for hwnd, title in self.windows:
             title = xml.sax.saxutils.escape(title).lower()
+
             if title == window:
                 try:
                     dwCurrentThread = win32api.GetCurrentThreadId()
-
-                    [dwFGThread, _] = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
-#                    [dwTGThread, _] = win32process.GetWindowThreadProcessId(hwnd)
-
+                    dwFGWindow = win32gui.GetForegroundWindow()
+                    [dwFGThread, _] = win32process.GetWindowThreadProcessId(dwFGWindow)
                     ctypes.windll.user32.AttachThreadInput(dwCurrentThread, dwFGThread, 1)
+
                     try:
                         if win32gui.IsIconic(hwnd):
                             win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
 
-                        win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-                        win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-                        win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
 
                         try:
                             win32gui.SetForegroundWindow(hwnd)
@@ -170,12 +172,12 @@ class GoCommand(CommandObject):
                             print(e)
 
                         try:
-                            win32gui.SetActiveWindow(hwnd);
-                        except Exception as e: 
+                            win32gui.SetFocus(hwnd)
+                        except Exception as e:
                             print(e)
 
                         try:
-                            win32gui.SetFocus(hwnd);
+                            win32gui.SetActiveWindow(hwnd)
                         except Exception as e: 
                             print(e)
 
