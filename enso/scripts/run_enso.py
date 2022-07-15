@@ -109,7 +109,7 @@ def systray(enso_config):
 
     enso_config.SYSTRAY_ICON = SysTrayIcon(
             enso_icon,
-            "Enso Launcher (OSS)",
+            "Enso Open-Source",
             None,
             on_quit = tray_on_enso_quit)
 

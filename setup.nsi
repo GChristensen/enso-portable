@@ -1,7 +1,7 @@
 Unicode True
 
 !define DIRNAME "Enso Launcher"
-!define APPNAME "Enso Launcher (OSS)"
+!define APPNAME "Enso Open-Source"
 !define VERSION "1.0"
 
 !include LogicLib.nsh
@@ -218,7 +218,7 @@ Function UninstallExisting
 FunctionEnd
 
 Var uninstallString
-Section "Enso Launcher (OSS)" Section_enso
+Section "${APPNAME}" Section_enso
     ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString"
 
     ${If} $0 != ""
