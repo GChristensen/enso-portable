@@ -10,6 +10,9 @@
     <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
+
+    <link rel="stylesheet" href="/css/gh-pages.css"/>
+    <script src="/js/gh-pages.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="wrapper">
@@ -17,7 +20,7 @@
         <h1><a href="{{ "/" | absolute_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
 
         {% if site.logo %}
-        <img src="{{site.logo | relative_url}}" alt="Logo" />
+        <img src="{{site.logo | relative_url}}" style="height: 128px; width: 128px;" alt="Logo" />
         {% endif %}
 
         <p>{{ site.description | default: site.github.project_tagline }}</p>
@@ -43,121 +46,7 @@
         {% endif %}
     </header>
     <section>
-
-        <h1>Enso Launcher Open-Source</h1>
-
-        <p><img height="16px" width="16px" src="/images/download.png" alt="Download"/> <img height="16px" width="16px" src="/images/windows.png" alt="Firefox"/>
-            <a id="app-link" href="#">Download</a>
-            :: <img height="16px" width="16px" src="/images/youtube.png" alt="Youtube" style="max-width:100%;">
-            <a href="https://youtu.be/QFXBp2vuEEA" target="_blank">Video Manual</a>
-        </p>
-
-        <script>
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    var release = JSON.parse(this.responseText);
-                    var link = document.getElementById("app-link");
-                    link.href = release.assets[0].browser_download_url;
-                }
-            };
-            xhr.open('GET', 'https://api.github.com/repos/gchristensen/enso-portable/releases/latest');
-            xhr.send();
-
-            function watch() {
-                document.getElementById('placeholder').style.display='none';
-                document.getElementById('webm').style.display='block';
-                var video = document.querySelector('#webm video');
-                video.play();
-                setTimeout(function () {
-                    document.getElementById('webm').style.display = 'none';
-                    document.getElementById('placeholder').style.display = 'block';
-                }, 30000);
-            }
-
-            setTimeout(function() {
-                if (navigator.userAgent.search("Chrome") >= 0
-                    || navigator.userAgent.search("Firefox") >= 0) {
-
-                    watch();
-                }
-            }, 1000);
-        </script>
-
-        <div id="placeholder" style="display: block;">
-            <div style="position: relative; display: table;" onclick="watch()">
-                <!--img title="Watch on Youtube" style="cursor: pointer;" src="/enso-portable/screen.jpg" alt="screen" /-->
-                <img style="cursor: pointer;" src="/enso-portable/media/screen.jpg" alt="screen"/>
-                <div style="position: absolute; right: 10px; bottom: 10px; color: white; font-weight: bold; cursor: pointer;" onclick="watch()"
-                ><img src="/images/play_video.png" style="vertical-align: middle; cursor: pointer;"></div>
-            </div>
-        </div>
-
-        <div id="webm" style="display: none;">
-            <video src="/enso-portable/media/enso.webm" width="100%" type="video/webm" muted />
-        </div>
-
-        <!--p style="display: none" id="videoman"></p-->
-
-        <p>SEE ALSO: <a href="https://gchristensen.github.io/ishell/" target="_blank">iShell</a>,
-            <a href="https://gchristensen.github.io/rho-emacs/" target="_blank">&rho;Emacs</a></p>
-        <h4>Description</h4>
-        <p style="text-align: justify;">Enso Launcher allows to launch programs found in the Windows Start menu (or picked manually using
-            the <b>learn as open</b> command) and perform many other operations with a transparent overlay command line triggered by the CAPSLOCK key.
-            It is possible to create your own commands in Python programming language.
-        </p>
-        <p style="text-align: justify;">
-            Find more information on command authoring in the tutorial available at Enso setting pages.
-        </p>
-        
-        <h4>System Requirements</h4>
-        <p>Windows 8 or above (64-bit).</p>
-
-        <h4>History</h4>
-
-        <p style="text-align: justify;">At first there was a proprietary closed-source
-            <a href="https://web.archive.org/web/20140701081042/http://humanized.com/" rel="nofollow">Enso Launcher</a> from Humanized.
-            This version was extensible by many programming languages, but one day it went open
-            (<a href="https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page" rel="nofollow"
-            >Enso Community Edition</a>)
-            and became extensible only in Python. By some reasons it has also ceased.</p>
-        <p>At the moment <b>Enso Open-Source</b> is the most feature-rich descendant of <b>Enso Community Edition</b>.</p>
-
-        <h4>Additional features not found in the original Enso</h4>
-        <ul>
-            <li>Python 3 support.</li>
-            <li>Option pages with a built-in command editor.</li>
-            <li>Ability to disable commands.</li>
-            <li>It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).</li>
-            <li>Mediaprobes (templates for automatic command generation from file-system).</li>
-            <li>Ability to restart using tray menu or 'enso restart' command.</li>
-            <li><a href="https://gchristensen.github.io/retreat">Enso Retreat</a> - a break reminder utility.</li>
-        </ul>
-
-        <h4>Automate daily routine with Python</h4>
-
-        <p style="text-align: justify;">
-            Install anything from <a href="http://pypi.org" target="_blank">PyPI</a> by issuing
-            <span style="font-name: 'Lucida Console', monspace; font-style: italic">enso install &lt;package name&gt;</span> and create commands that
-            will empower your workflow. See an <a href="https://gchristensen.github.io/posts/custom-enso-commands/">example</a>.
-        </p>
-
-        <p><img src="/enso-portable/media/command-editor.png"></p>
-
-        <h4>Try "Enso" for your browser</h4>
-
-        <p style="text-align: justify;">
-            <a href="https://gchristensen.github.io/ishell/">iShell Extension</a> is a browser add-on that allows to perform tasks and manipulate
-            web-page data by utilizing a natural language interface powered by JavaScript-based commands.
-        </p>
-
-        <h4>Known issues</h4>
-        <ul>
-            <li style="text-align: justify;">The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state if it's wrong).
-                This problem could be mitigated by digitally signing the bundled Python binary. See the project <a href="https://github.com/GChristensen/enso-portable" target="_blank">GitHub page</a> for more details.</li>
-            <li style="text-align: justify;">Some security tools may consider <b>run-enso.exe</b> as a potentially unwanted program. These are false-positive claims, since the launcher uses API needed to run other programs.</li>
-        </ul>
-
+        {{ content }}
     </section>
     <footer>
     </footer>
