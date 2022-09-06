@@ -244,6 +244,7 @@ control_panel_applets = [i[:3] for i in (
 ) if len(i) < 4 or i[3]]
 #print control_panel_applets
 
+
 class _PyShortcut():
     def __init__( self, base ):
         self._base = base
@@ -315,6 +316,7 @@ class PyInternetShortcut(_PyShortcut):
             shell.IID_IUniformResourceLocator
         )
         _PyShortcut.__init__(self, base)
+
 
 class AppXPackage(object):
     """Represents a windows app package
@@ -444,6 +446,7 @@ class AppX(object):
         self.description = description
         self.icon_path = icon_path
 
+
 ignored = re.compile("(uninstall|read ?me|faq|f.a.q|help)", re.IGNORECASE)
 
 """
@@ -516,13 +519,13 @@ class Shortcuts:
     _instance = None
 
     def __init__( self ):
-        self._shortcuts_map = {}
+        self._shortcut_map = {}
 
     @classmethod
     def get( cls ):
         if not cls._instance:
             cls._instance = Shortcuts()
-            cls._instance.refreshShortcuts()
+            cls._instance.refresh_shortcuts()
 
         return cls._instance
 
@@ -535,15 +538,19 @@ class Shortcuts:
                 for filename in filenames:
                     if ignored.search(filename):
                         continue
-                    self._add_shortcut(dirpath, filename, shortcuts, sl)
+                    shortcut = self._create_shortcut_ref(dirpath, filename, sl)
+                    if shortcut:
+                        shortcuts.append(shortcut)
+
         return shortcuts
 
-    def _add_shortcut(self, dirpath, filename, shortcuts, sl):
+    def _create_shortcut_ref(self, dirpath, filename, sl):
         name, ext = os.path.splitext(filename)
         if not ext.lower() in (".lnk", ".url"):
-            return False
+            return None
         shortcut_type = SHORTCUT_TYPE_DOCUMENT
         shortcut_path = ""
+
         if ext.lower() == ".lnk":
             shortcut_path = os.path.join(dirpath, filename)
             sl.load(shortcut_path)
@@ -551,18 +558,8 @@ class Shortcuts:
         elif ext.lower() == ".url":
             shortcut_path = os.path.join(dirpath, filename)
             shortcut_type = SHORTCUT_TYPE_URL
-        shortcuts.append((shortcut_type, name.lower(), shortcut_path))
-        return True
 
-    def add_shortcut(self, filename):
-        shortcuts = []
-        sl = PyShellLink()
-        dirpath, filename = os.path.split(filename)
-        self._add_shortcut(dirpath, filename, shortcuts, sl)
-        self._shortcuts_map[shortcuts[0][1]] = shortcuts[0]
-
-    def remove_shortcut(self, name):
-        del self._shortcuts_map[name]
+        return shortcut_type, name.lower(), shortcut_path
 
     def _get_universal_windows_apps(self):
         shortcuts = []
@@ -607,15 +604,14 @@ class Shortcuts:
 
     def _reload_shortcuts_map(self):
         desktop_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOPDIRECTORY, 0, 0)
+        start_menu_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_STARTMENU, 0, 0)
+        common_start_menu_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_STARTMENU, 0, 0)
+        #control_panel = shell.SHGetFolderPath(0, shellcon.CSIDL_CONTROLS, 0, 0)
         quick_launch_dir = os.path.join(
             shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0),
             "Microsoft",
             "Internet Explorer",
             "Quick Launch")
-        start_menu_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_STARTMENU, 0, 0)
-        common_start_menu_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_STARTMENU, 0, 0)
-        #control_panel = shell.SHGetFolderPath(0, shellcon.CSIDL_CONTROLS, 0, 0)
-
 
         shortcuts = self._get_shortcuts(LEARN_AS_DIR) + \
                     self._get_shortcuts(desktop_dir) + \
@@ -629,11 +625,21 @@ class Shortcuts:
 
         return dict((s[1], s) for s in shortcuts)
 
-    def getShortcuts(self):
-        return self._shortcuts_map
+    def add_shortcut(self, filename):
+        sl = PyShellLink()
+        dirpath, filename = os.path.split(filename)
+        shortcut = self._create_shortcut_ref(dirpath, filename, sl)
+        self._shortcut_map[shortcut[1]] = shortcut
 
-    def refreshShortcuts(self):
-        self._shortcuts_map = self._reload_shortcuts_map()
-        return self._shortcuts_map
+    def remove_shortcut(self, name):
+        if name in self._shortcut_map:
+            del self._shortcut_map[name]
+
+    def get_shortcuts(self):
+        return self._shortcut_map
+
+    def refresh_shortcuts(self):
+        self._shortcut_map = self._reload_shortcuts_map()
+        return self._shortcut_map
 
 

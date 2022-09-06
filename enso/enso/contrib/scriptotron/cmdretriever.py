@@ -51,9 +51,9 @@ def _getCommandInfoFromFunc( func, funcName, cmdName,
         category = func.category
 
     if isinstance( func, types.FunctionType ):
-        args, _, _, argDefaults = inspect.getargspec( func )
+        args, _, _, argDefaults, *_ = inspect.getfullargspec( func )
     else:
-        args, _, _, argDefaults = inspect.getargspec( func.__call__ )
+        args, _, _, argDefaults, *_ = inspect.getfullargspec( func.__call__ )
         args = args[1:]
 
     isArgRequired = False

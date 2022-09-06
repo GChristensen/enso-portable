@@ -180,8 +180,8 @@ class Quasimode:
         # input module) for the given function ( which should be one of
         # the KEYCODE_QUASIMODE_START/END/CANCEL constants also defined
         # in input.)
-        key_code = getattr( input, key_name )
-        assert( key_code, "Undefined quasimode key in config file." )
+        key_code = getattr( input, key_name, None )
+        #assert( key_code, "Undefined quasimode key in config file." )
         self.__eventMgr.setQuasimodeKeycode( function_name, key_code )
 
     def getQuasimodeKey( self ):
@@ -267,7 +267,7 @@ class Quasimode:
         # Is the Shift key currently pressed? If it is, then allow
         # entering symbols such as "(" by pressing Shift + 9.
         if config.LOCALIZED_INPUT and self.__contextUtils:
-            newCharacter = self.__contextUtils.translateKey(keyCode)
+            newCharacter = self.__contextUtils.translateKey(keyCode).lower()
         else:
             newCharacter = self.__getShifftedChar(keyCode)
 

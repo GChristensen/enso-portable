@@ -1,4 +1,4 @@
-## Enso Open-Source
+## Enso Launcher (Open-Source)
 
 A feature-rich descendant of Enso Community Edition (Microsoft Windows only). 
 
@@ -13,7 +13,7 @@ Available for free on [virtual machines](https://developer.microsoft.com/en-us/w
 
 **Signing Python**
 
-1. Install Enso to `C:\Program Files\Enso`
+1. Install Enso to `C:\Program Files`
 2. Launch Visual Studio Developer Command Prompt *as Administrator*.
 3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
 4. Execute the following command to create a self-issued digital certificate:
@@ -34,7 +34,7 @@ open and select `Trusted Root Certificate Authorities/Certificates`, and choose 
 
 NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. 
 Because Enso is a modeless application, it needs this option to get input when elevated processes are in the foreground.
-This version of Python is launched only if it is properly signed and Enso is installed at `C:\Program Files\Enso`. 
+This version of Python is launched only if it is properly signed and Enso is installed at `C:\Program Files`. 
 
 #### Bringing the source snapshot back to life
 

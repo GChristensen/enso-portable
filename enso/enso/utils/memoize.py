@@ -41,6 +41,7 @@
 # ----------------------------------------------------------------------------
 
 import inspect
+from inspect import Signature, Parameter
 
 from enso.utils.decorators import finalizeWrapper
 
@@ -139,15 +140,10 @@ def _generateArgWrapper( function, wrappedFunction ):
       1
     """
 
-    args, varargs, varkw, defaults = inspect.getargspec( function )
-
-    assert varkw == None, "Memoized functions cannot take ** arguments."
-
-    argspecString = inspect.formatargspec( args, varargs, None, defaults )
-    argspecStringNoDefaults = inspect.formatargspec( args,
-                                                     varargs,
-                                                     None,
-                                                     None )
+    sig = inspect.signature(function)
+    sigNoDefault = sig.replace(parameters=[p.replace(default=Parameter.empty) for p in sig.parameters.values()])
+    argspecString = str(sig)
+    argspecStringNoDefaults = str(sigNoDefault)
 
     codeString = "\n".join( [
         "def argWrapperGenerator( wrappedFunction ):",

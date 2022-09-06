@@ -9,7 +9,7 @@ import logging
 
 unlearn_open_undo = []
 
-shortcuts_map = Shortcuts.get().getShortcuts()
+shortcuts_map = Shortcuts.get().get_shortcuts()
 
 def displayMessage(msg):
     import enso.messages

@@ -38,7 +38,7 @@ def cmd_enso(ensoapi, action):
         else:
             displayMessage(config.BLOCKED_BY_RETREAT_MSG)
     elif action == 'refresh':
-        Shortcuts.get().refreshShortcuts()
+        Shortcuts.get().refresh_shortcuts()
         ScriptTracker.get()._reloadPyScripts()
         displayMessage(config.REFRESHING_MSG_XML)
     elif action == 'settings':

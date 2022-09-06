@@ -137,7 +137,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	SetEnvironmentVariable(_T("PYTHONPATH"), python_path);
 
-	bool programFiles = !_tcsicmp(exec_dir, _T("C:\\Program Files\\Enso\\"));
+	TCHAR* program_files = _T("C:\\Program Files\\");
+	bool programFiles = !_tcsnicmp(exec_dir, program_files, _tcslen(program_files));
 	bool showWarning = false;
 
 	if (programFiles) {
