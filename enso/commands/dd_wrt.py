@@ -33,12 +33,12 @@ def cmd_switch_wireless(ensoapi):
     tn.read_all()
 
 def cmd_wake(ensoapi, machine):
-    """Wake a workstation with a magic packet sent to a given MAC-address
+    """Wake a machine with a magic packet sent to a given MAC-address
 Requires the following variables at the custom initialization block:<br>
 DD_WRT_HOST = "dd-wrt router ip" #default: "192.168.1.1"<br>
 DD_WRT_USER = "dd-wrt user" #default: "root"<br>
 DD_WRT_PASSWORD = "my_dd_wrt_password"<br>
-DD_WRT_MACHINES = {'server': "AA:BB:CC:DD:EE:FF", 'gateway': "AA:BB:CC:DD:EE:FE"}
+DD_WRT_MACHINES = {'server': "AA:BB:CC:DD:EE:FF"} # machine MACs
 """
     tn = Telnet(HOST, 23)
     tn.read_until(b"login: ")

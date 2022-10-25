@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>About iShell</title>
+    <meta charset="utf-8">
+    <meta name="enso-token" content="%%ENSO_TOKEN%%">
+    <link href="images/enso-16.png" rel="icon"/>
+    <link rel="stylesheet" type="text/css" media="all" href="options.css"/>
+
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            text-align: justify;
+        }
+
+        h1 {
+            color: #66bb00;
+            border-top: none;
+            margin-top: 60px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: auto;
+            border-top: none
+        }
+
+        p {
+            font-size: 11pt;
+        }
+
+        #about-container {
+            width: 875px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .about-link {
+            font-size: 12pt;
+        }
+
+        #about-version-panel {
+            margin-top: 15px;
+        }
+
+        #about-changes-header {
+            flex: 0;
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        #about-changes {
+            margin: auto;
+            flex: 1;
+            width: 100%;
+            overflow-y: scroll;
+            font-size: 12pt;
+        }
+
+        #donation-links {
+            font-size: 12pt;
+            width: max-content;
+            margin: auto;
+        }
+
+        #about-changes * {
+            font-size: 12pt;
+        }
+
+        .change-date {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .change-info {
+            padding-left: 20px;
+        }
+
+    </style>
+
+    <script src="lib/jquery.min.js"></script>
+    <script src="enso.js"></script>
+    <script src="about.js"></script>
+</head>
+<body dir="ltr">
+<div id="about-container">
+
+<div class="head"><span class="large">Enso: </span>About</div>
+<div id="nav-container">
+    <ul id="nav">
+        <li><a href="options.html">Settings</a></li>
+        <li><a href="commands.html">Your Commands</a></li>
+        <li><a href="cmenu.html">Context Menu</a></li>
+        <li><a href="edit.html">Command Editor</a></li>
+        <li><a href="API.html">API Reference</a></li>
+        <li><a href="tutorial.html">Tutorial</a></li>
+        <li class="selected"><a href="about.html">About</a></li>
+    </ul>
+</div>
+
+<br clear="all"/>
+
+<div id="about-version-panel">
+    <div style="text-align: center">
+        <img id="enso-logo" src="images/logo.png" height="145"/>
+        <h1 style="font-size: 24pt; margin: 10px">Enso Launcher (Open-Source)</h1>
+        <h2 id="about-version">Version: </h2>
+        <div class="about-links">
+            <img width="16px" height="16px" src="images/enso-16.png" style="margin-bottom: -2px;"/>
+            <a class="about-link" href="https://gchristensen.github.io/enso-portable/" target="_blank">Homepage</a>
+            | <img width="16px" height="16px" src="icons/github.ico" style="margin-bottom: -2px;"/>
+            <a class="about-link" href="https://github.com/GChristensen/enso-portable/" target="_blank">GitHub</a>
+        </div>
+        <div class="about-links" style="margin-top: 20px;">
+            <div id="donation-links">
+                Donate:
+                <img width="16px" height="16px" src="icons/patreon.png" style="margin-bottom: -2px;"/>
+                <a class="about-link donation-link" href="https://patreon.com/gchristnsn" target="_blank">Patreon</a>
+                | <img width="16px" height="16px" src="icons/bitcoin.png" style="margin-bottom: -2px;"/>
+                <a class="about-link donation-link" href="bitcoin:bc1qvamez2h9x4y8txkjlzz8v3yuglmh7tq5wf5afg" target="_blank">Bitcoin</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="about-changes-header">
+    <h2>Changes</h2>
+</div>
+<div id="about-changes"></div>
+
+</div>
+</body>
+</html>

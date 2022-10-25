@@ -1,4 +1,4 @@
-import threading, uuid, platform, logging, os, random, string, json
+import threading, uuid, platform, logging, os, random, string, json, mimetypes
 import enso.messages
 
 import enso
@@ -40,6 +40,7 @@ def my_static(filename):
     if filename.endswith(".html"):
         return inject_enso_token(filename)
     else:
+        print(mimetypes.guess_type(filename))
         return send_from_directory("webui", filename)
 
 
@@ -114,7 +115,7 @@ def get_enso_set_config(key, value):
 @app.route('/api/enso/get/config_dir')
 @requires_auth
 def get_enso_get_config_dir():
-    return config.ENSO_USER_DIR
+    return config.ENSO_USER_DIR.replace("\\", "/")
 
 
 @app.route('/api/enso/open/config_dir')

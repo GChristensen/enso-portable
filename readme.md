@@ -30,27 +30,18 @@ open and select `Trusted Root Certificate Authorities/Certificates`, and choose 
 
 6. Issue the command below to sign the Python binary:
 
-`SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso\python\pythonu.exe"`
+`SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso Launcher\python\pythonu.exe"`
 
 NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. 
 Because Enso is a modeless application, it needs this option to get input when elevated processes are in the foreground.
 This version of Python is launched only if it is properly signed and Enso is installed at `C:\Program Files`. 
 
-#### Bringing the source snapshot back to life
-
-Enso source snapshot does not contain a Python interpreter and can not be run as is. 
-If you have Python installed at your system, you may launch Enso by executing
-the following command at the repository root: 
-<pre>
-python enso/scripts/run_enso.py -l INFO
-</pre>
-You need to place a Python interpreter (with all required dependencies preinstalled)
-under /enso/python to use `/enso/debug.bat`, `/enso/run-enso.exe` or `/enso/enso-portable.exe`. 
-
 #### Required dependencies
 
+The Python interpreter used to run Enso Launcher requires the following dependencies:
+
 * [pywin32](https://github.com/mhammond/pywin32)
-* [flask](http://flask.pocoo.org/)
+* [flask](https://flask.palletsprojects.com/)
 
 #### Building platform code
 
@@ -77,7 +68,7 @@ Media Player Classic.
 
 from enso.user import mediaprobe
 
-cmd_show = mediaprobe.directory_probe("series", "d:/tv-shows", "<absolute path to MPC-HC>")
+cmd_show = mediaprobe.directory_probe("show", "d:/tv-shows", "<absolute path to MPC-HC>")
 ```
 That's all. The command will have the following additional arguments:
 
@@ -106,15 +97,6 @@ cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 ```
 
 Of course, you may construct dictionaries in various ways.
-
-#### Change log
-[full changelog](changelog.md)
-
-##### 14.07.2022 (v.0.9.1)
-
-* Sped up `learn as open` and `unlearn as open` commands.
-* Fixed delayed Shift key state when localized input is enabled.
-* Fixed web-search commands.
 
 #### Contributors
 

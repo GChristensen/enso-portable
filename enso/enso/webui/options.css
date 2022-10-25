@@ -66,7 +66,11 @@ li {
   list-style-image:none;
   list-style-position:outside;
   list-style-type:none;
-  width: 144px;
+  width: 124px;
+}
+
+#nav li:last-of-type {
+  width: 120px;
 }
 
 #nav a {
@@ -299,10 +303,6 @@ div#editor-div iframe {
   border: 1px black solid !important; clear: both; margin: 1em auto;
 }
 
-/* Using FreakCERS's CSS from
- * http://users.skumleren.net/cers/examples/ubiquitybutton.html
- */
-
 ul.button-list {
   list-style: none;
 }
@@ -314,7 +314,7 @@ ul.button-list li {
 ul a.button {
   border: 1px #aaa solid;
   border-radius: 12px;
-  background: #ddd url('chrome://ubiquity/skin/buttons/grad.png') 0 0 repeat-x;
+  background: #ddd url('http://') 0 0 repeat-x;
   display: block;
   float: left;
   padding: 0 2em;

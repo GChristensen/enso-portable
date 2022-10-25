@@ -1,8 +1,7 @@
 $(initPage)
 
 function initPage() {
-    var tasks_help = `# Tasks is a block of code executed in a separate thread on Enso start.
-# You may use your favorite scheduling library to schedule tasks here.`;
+    var tasks_help = `# Tasks is a block of code executed in a separate thread on Enso start.`;
 
     editor = ace.edit("code");
     editor.setTheme("ace/theme/monokai");
