@@ -40,7 +40,6 @@ def my_static(filename):
     if filename.endswith(".html"):
         return inject_enso_token(filename)
     else:
-        print(mimetypes.guess_type(filename))
         return send_from_directory("webui", filename)
 
 
