@@ -98,6 +98,11 @@ cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 
 Of course, you may construct dictionaries in various ways.
 
+#### License
+
+This fork of Enso Launcher combines code under BSD and MPL licenses. Currently the only MPL-licensed part is the 
+markup of the settings UI pages. It is possible to disable web-based option pages in the config.py if necessary.
+
 #### Contributors
 
 * [Brian Peiris](https://github.com/brianpeiris)
