@@ -110,6 +110,10 @@ class InputManager(object):
 
     def onInit(self):
         return _InputManager.InputManager_onInit(self)
+
+    def leaveQuasimode(self):
+        print("leaving")
+        return _InputManager.InputManager_leaveQuasimode(self)
     def __disown__(self):
         self.this.disown()
         _InputManager.disown_InputManager(self)

@@ -42,6 +42,9 @@ QUASIMODE_MAX_SUGGESTIONS = 10
 # auto-completion mechanism engages.
 QUASIMODE_MIN_AUTOCOMPLETE_CHARS = 1
 
+# Do not enter the quasimode if an RDP window is in the foreground
+QUASIMODE_BYPASS_OVER_RDP = True
+
 # Enso color theme
 COLOR_THEME = "green"
 

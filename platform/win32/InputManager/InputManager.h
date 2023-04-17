@@ -323,6 +323,10 @@ public:
     virtual void
     onInit() {};
 
+
+    void
+    leaveQuasimode();
+
 #ifndef SWIG
 private:
 

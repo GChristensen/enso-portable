@@ -207,9 +207,13 @@ class Quasimode:
 
         if eventType == input.EVENT_KEY_QUASIMODE:
             if keyCode == input.KEYCODE_QUASIMODE_START:
-                #assert not self._inQuasimode
                 if not self._inQuasimode:
-                    self.__quasimodeBegin()
+                    if self.__canEnterQuasimode():
+                        self.__quasimodeBegin()
+                    else:
+                        # a hack to turn off the quasimode state in the hook
+                        self.__eventMgr.leaveQuasimode()
+                        pass
             elif keyCode == input.KEYCODE_QUASIMODE_END:
                 #assert self._inQuasimode
                 if self._inQuasimode:
@@ -446,3 +450,15 @@ class Quasimode:
             caption = ""
 
         return caption
+
+    def __canEnterQuasimode(self):
+        result = True
+
+        if self.__contextUtils:
+            if config.QUASIMODE_BYPASS_OVER_RDP:
+                foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
+
+                if foregroundClass == "TscShellContainerClass":
+                    result = False
+
+        return result

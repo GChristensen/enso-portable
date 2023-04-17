@@ -581,6 +581,16 @@ _keyEventProcessFunction( int event_type,
  * Public Module Functions
  * **************************************************************************/
 
+void leaveQuasimode() {
+    _inQuasimode = FALSE;
+
+    int errorCode = PostThreadMessage( _keyThreadId,
+                                   WM_USER_KEYPRESS,
+                                   EVENT_KEY_QUASIMODE,
+                                   KEYCODE_QUASIMODE_END );
+    _handlePostThreadMessageError( errorCode, __LINE__ );
+}
+
 /* ------------------------------------------------------------------------
  * Sets the Quasimode keycode.
  * ........................................................................

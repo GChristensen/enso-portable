@@ -480,3 +480,10 @@ InputManager::setModality( int isModal )
 {
     ::setModality( isModal );
 }
+
+
+void
+InputManager::leaveQuasimode()
+{
+    ::leaveQuasimode();
+}

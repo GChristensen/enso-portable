@@ -149,6 +149,8 @@ initHookHandlers( void );
 void
 shutdownHookHandlers( void );
 
+void leaveQuasimode();
+
 #ifdef __cplusplus
 };
 #endif
