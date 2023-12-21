@@ -27,6 +27,7 @@ SHORTCUT_TYPE_FOLDER = 'f'
 SHORTCUT_TYPE_URL = 'u'
 SHORTCUT_TYPE_DOCUMENT = 'd'
 SHORTCUT_TYPE_CONTROL_PANEL = 'c'
+SHORTCUT_TYPE_WINUTIL = 'w'
 
 def _cpl_exists(cpl_name):
     return (
@@ -136,30 +137,6 @@ control_panel_applets = [i[:3] for i in (
     (SHORTCUT_TYPE_CONTROL_PANEL,
      "system properties (control panel)",
      "rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,0"),
-    (SHORTCUT_TYPE_CONTROL_PANEL,
-     "device manager (control panel)",
-     #"rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,1"
-     "devmgmt.msc"),
-    (SHORTCUT_TYPE_CONTROL_PANEL,
-     "disk management (control panel)",
-     "diskmgmt.msc"),
-    (SHORTCUT_TYPE_CONTROL_PANEL,
-     "scanners and cameras (control panel)",
-     "control.exe sticpl.cpl"),
-    (SHORTCUT_TYPE_CONTROL_PANEL,
-     "removable storage (control panel)",
-     "ntmsmgr.msc"),
-
-    #dfrg.msc Disk defrag
-    #eventvwr.msc Event viewer
-    #eventvwr.exe \\computername View the Event Log at a remote computer
-    #fsmgmt.msc Shared folders
-    #gpedit.msc Group policies
-    #lusrmgr.msc Local users and groups
-    #perfmon.msc Performance monitor
-    #rsop.msc Resultant set of policies
-    #secpol.msc Local security settings
-    #services.msc Various Services
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
      "hardware profiles (control panel)",
@@ -244,6 +221,47 @@ control_panel_applets = [i[:3] for i in (
 ) if len(i) < 4 or i[3]]
 #print control_panel_applets
 
+winutils_commands = [
+    [SHORTCUT_TYPE_WINUTIL,
+     "regedit",
+     "regedit.exe"],
+    [SHORTCUT_TYPE_WINUTIL,
+     "msconfig",
+     "msconfig.exe"],
+    [SHORTCUT_TYPE_WINUTIL,
+    "services [control panel]",
+    "services.msc"],
+    [SHORTCUT_TYPE_WINUTIL,
+     "group policy editor [control panel]",
+     "gpedit.msc"],
+    [SHORTCUT_TYPE_WINUTIL,
+     "certificates [control panel]",
+     "certmgr.msc"],
+    [SHORTCUT_TYPE_WINUTIL,
+     "local users and groups [control panel]",
+     "lusrmgr.msc"],
+    [SHORTCUT_TYPE_CONTROL_PANEL,
+     "device manager [control panel]",
+     #"rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,,1"
+     "devmgmt.msc"],
+    [SHORTCUT_TYPE_CONTROL_PANEL,
+     "disk management [control panel]",
+     "diskmgmt.msc"],
+    [SHORTCUT_TYPE_CONTROL_PANEL,
+     "scanners and cameras [control panel]",
+     "control.exe sticpl.cpl"],
+    [SHORTCUT_TYPE_CONTROL_PANEL,
+     "removable storage [control panel]",
+     "ntmsmgr.msc"],
+    [SHORTCUT_TYPE_CONTROL_PANEL,
+     "shared folders [control panel]",
+     "fsmgmt.msc"],
+    #dfrg.msc Disk defrag
+    #perfmon.msc Performance monitor
+    #rsop.msc Resultant set of policies
+    #secpol.msc Local security settings
+    #services.msc Various Services
+]
 
 class _PyShortcut():
     def __init__( self, base ):
@@ -620,6 +638,8 @@ class Shortcuts:
                     self._get_shortcuts(common_start_menu_dir) + \
                     self._get_universal_windows_apps() + \
                     control_panel_applets
+
+        shortcuts += winutils_commands
 
         shortcuts = [s for s in shortcuts if not (s[1] == "microsoft edge" and s[0] != SHORTCUT_TYPE_EXECUTABLE)]
 

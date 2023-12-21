@@ -2,6 +2,7 @@ import os
 import re
 import time
 import random
+import logging
 import subprocess
 
 COMMON_ARGS = ['what', 'prev', 'next', 'all']
@@ -37,7 +38,7 @@ def open_player(cmd, api, basedir, cat, player, findfirst=False):
         else:
             item = cmd.arg2dir[cat]
 
-    if findfirst:
+    if findfirst and os.path.exists(item):
         items = os.listdir(item)
         for i in items:
             path = os.path.join(item, i)
@@ -81,15 +82,20 @@ def {0}(ensoapi, {1}):
 
 
 def collect_descendants(directory):
-    pattern = re.compile("(^\d+\.? ?)?(.*)")
-    dirs = os.listdir(directory)
-    args = [pattern.match(name)[2] for name in dirs]
-    arg2dir = {}
+    pattern = re.compile(r"(^\d+\.? ?)?(.*)")
+    try:
+        if os.path.exists(directory):
+            dirs = os.listdir(directory)
+            args = [pattern.match(name)[2] for name in dirs]
+            arg2dir = {}
 
-    for i, val in enumerate(dirs):
-        arg2dir[args[i]] = os.path.join(directory, dirs[i])
+            for i, val in enumerate(dirs):
+                arg2dir[args[i]] = os.path.join(directory, dirs[i])
 
-    return arg2dir
+            return arg2dir
+    except Exception as e:
+        logging.exception(e)
+        return {}
 
 
 def directory_probe(category, directory, player="", additional=None):
@@ -98,10 +104,10 @@ def directory_probe(category, directory, player="", additional=None):
 
     dictionary = collect_descendants(directory)
 
-    if additional:
+    if dictionary and additional:
         dictionary.update(additional)
 
-    return dictionary_probe(category, dictionary, player, directory)
+        return dictionary_probe(category, dictionary, player, directory)
 
 
 def findfirst_probe(category, dictionary, player=""):

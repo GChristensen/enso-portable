@@ -1,5 +1,5 @@
 # Enso version for use in UI
-ENSO_VERSION = "1.0"
+ENSO_VERSION = "1.1"
 
 # The message displayed when the user types some text that is not a command.
 BAD_COMMAND_MSG = "<p><command>%s</command> is not a command.</p>" \
@@ -41,7 +41,7 @@ ABOUT_BOX_XML = "<p><command>Enso Launcher</command> " + ENSO_VERSION + "</p>" \
                 "<caption>Based on Enso Community Edition</caption><p> </p>" \
                 "<p>Copyright &#169; 2008 <command>Humanized, Inc.</command></p>" \
                 "<p>Copyright &#169; 2008-2009 <command>Enso Community</command></p>" \
-                "<p>Copyright &#169; 2011-2022 <command>g/christensen</command></p>" \
+                "<p>Copyright &#169; 2011-2023 <command>g/christensen</command></p>" \
                 "<p> </p><caption>Hit the <command>CapsLock</command> key to invoke Enso</caption>"
 
 

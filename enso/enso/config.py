@@ -15,11 +15,17 @@ LOCALIZED_INPUT = True
 # Only changes in commands entered through WebUI are tracked by default
 TRACK_COMMAND_CHANGES = False
 
+# Enable commands for common Windows utilities, such as regedit, services, etc.4
+ENABLE_WINUTILS = False
+
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
 
 # Whether the Quasimode is actually modal ("sticky").
 IS_QUASIMODE_MODAL = True
+
+# Do not enter the quasimode if an RDP window is in the foreground
+QUASIMODE_BYPASS_TO_RDP = False
 
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
@@ -41,9 +47,6 @@ QUASIMODE_MAX_SUGGESTIONS = 10
 # The minimum number of characters the user must type before the
 # auto-completion mechanism engages.
 QUASIMODE_MIN_AUTOCOMPLETE_CHARS = 1
-
-# Do not enter the quasimode if an RDP window is in the foreground
-QUASIMODE_BYPASS_OVER_RDP = True
 
 # Enso color theme
 COLOR_THEME = "green"

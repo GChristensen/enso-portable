@@ -455,7 +455,7 @@ class Quasimode:
         result = True
 
         if self.__contextUtils:
-            if config.QUASIMODE_BYPASS_OVER_RDP:
+            if config.QUASIMODE_BYPASS_TO_RDP:
                 foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
 
                 if foregroundClass == "TscShellContainerClass":

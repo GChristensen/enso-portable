@@ -51,8 +51,8 @@ def cmd_calculate(ensoapi, expression = None):
 
     whitelist = '|'.join(
         # oprators, digits
-        [' ', '\.', ',', '\-', '\+', '/', '\\', '\*', '\^', '\*\*', '\(', '\)', '%', '\d+']
-        + ['abs', 'chr\([0-9]+\)', 'hex\([0-9]+\)', 'mod']
+        [' ', r'\.', ',', r'\-', r'\+', '/', '\\', r'\*', r'\^', r'\*\*', r'\(', r'\)', '%', r'\d+']
+        + ['abs', r'chr\([0-9]+\)', r'hex\([0-9]+\)', 'mod']
         # functions of math module (ex. __xxx__)
         + math_funcs)
 

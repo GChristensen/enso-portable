@@ -92,8 +92,8 @@ class HtmlClipboardFormat:
 
     # These regexps find the character offsets of the fragment strings (see
     # below) from the HTML clipboard format header.
-    START_RE = "StartFragment:(\d+)"
-    END_RE = "EndFragment:(\d+)"
+    START_RE = r"StartFragment:(\d+)"
+    END_RE = r"EndFragment:(\d+)"
 
     # The Clipboard HTML format uses the following comment strings to mark
     # the beginning and end of the text fragment which represents the user's

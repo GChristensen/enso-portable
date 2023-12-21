@@ -512,3 +512,8 @@ class ClipboardUnopenableError( Exception ):
     """
     
     pass
+
+
+SM_REMOTESESSION = 0x1000
+def isRemoteSession():
+    return win32api.GetSystemMetrics(SM_REMOTESESSION)
