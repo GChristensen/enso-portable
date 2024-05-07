@@ -454,11 +454,14 @@ class Quasimode:
     def __canEnterQuasimode(self):
         result = True
 
-        if self.__contextUtils:
-            if config.QUASIMODE_BYPASS_TO_RDP:
-                foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
+        try:
+            if self.__contextUtils:
+                if config.QUASIMODE_BYPASS_TO_RDP:
+                    foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
 
-                if foregroundClass == "TscShellContainerClass":
-                    result = False
+                    if foregroundClass == "TscShellContainerClass":
+                        result = False
+        except:
+            pass
 
         return result

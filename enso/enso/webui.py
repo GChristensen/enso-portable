@@ -29,8 +29,8 @@ app.logger.disabled = True
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        #if not request.authorization or request.authorization["password"] != AUTH_TOKEN:
-        #    return abort(401)
+        if config.ENABLE_WEB_UI_CSRF and not request.authorization or request.authorization["password"] != AUTH_TOKEN:
+            return abort(401)
         return f(*args, **kwargs)
     return decorated
 

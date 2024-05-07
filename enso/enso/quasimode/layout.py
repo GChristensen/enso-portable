@@ -40,6 +40,7 @@
 # Imports
 # ----------------------------------------------------------------------------
 
+from enso import config
 from enso import graphics
 from enso.graphics import xmltextlayout
 from enso.utils.xml_tools import escape_xml
@@ -126,7 +127,7 @@ def _newLineStyleRegistry():
     styles = xmltextlayout.StyleRegistry()
     styles.add( 
         "document",
-        font_family = "Gentium",
+        font_family = config.UI_FONT,
         font_style = "normal",
         max_lines = "1",
         )

@@ -198,8 +198,24 @@
 
     <span class="pl-k">def</span> <span class="pl-c1">__call__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">ensoapi</span>, <span class="pl-smi">candidate</span>):
       ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>You voted for: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span> <span class="pl-k">%</span> candidate)
-
   cmd_vote_for <span class="pl-k">=</span> VoteCommand([<span class="pl-s"><span class="pl-pds">"</span>barack obama<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>john mccain<span class="pl-pds">"</span></span>])</pre></div>
+
+    <h2><a id="user-content-multiline-messages" class="anchor" aria-hidden="true" href="#multiline-messages"></a>Multiline messages</h2>
+    <p>Messages displayed with <code></code>ensoapi.display_message()</code> can contain only one line.
+        If you need to display more than one line in your message, use the <code>displayMessage</code> function:</p>
+
+    <div class="highlight highlight-source-python">
+            <pre>
+  from enso.messages import displayMessage
+
+  MESSAGE_TEXT_XML = "&lt;p&gt;&lt;command&gt;Colored text&lt;/command&gt; white text.&lt;/p&gt;" \
+                     "&lt;p&gt;Another line entirely in white.&lt;/p&gt;" \
+                     "&lt;caption&gt;Small right-aligned caption&lt;/caption&gt;"
+
+  displayMessage(MESSAGE_TEXT_XML)
+            </pre>
+    </div>
+    
     <h2><a id="user-content-command-updating" class="anchor" aria-hidden="true" href="#command-updating"></a>Command Updating</h2>
     <p>Some commands may need to do processing while not being executed; for
         instance, an <code>open</code> command that allows the user to open an
@@ -216,7 +232,8 @@
     <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
         using 'enso install' and 'enso uninstall' commands respectively.<br>
         If you need to import some code that is not installable as a Python module,
-        place it under the 'lib' folder in your Enso configuration directory (available on the Enso <a href="/options.html">settings</a> page).
+        place it under the 'lib' folder in your Enso configuration directory.
+        Its path could be found on the Enso <a href="/options.html">settings</a> page.
         <br>
         Python's standard <code>import</code> statement can be used from command
         scripts. But the disadvantage of doing this with evolving

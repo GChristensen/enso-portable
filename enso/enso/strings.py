@@ -1,5 +1,5 @@
 # Enso version for use in UI
-ENSO_VERSION = "1.1"
+ENSO_VERSION = "1.1.1"
 
 # The message displayed when the user types some text that is not a command.
 BAD_COMMAND_MSG = "<p><command>%s</command> is not a command.</p>" \
@@ -29,7 +29,7 @@ OPENING_MSG_XML = "<p><command>Enso</command> is loaded!</p>"
 # Message XML for the Splash message shown when Enso is refreshed.
 REFRESHING_MSG_XML = "<p><command>Enso</command> is refreshed!</p>"
 
-CLOSING_MSG_XML = "<p>Closing Enso...</p><caption>Enso</caption>"
+CLOSING_MSG_XML = "<p>Closing <command>Enso...</command></p>"
 
 # Message XML displayed when the mouse hovers over a mini message.
 MINI_MSG_HELP_XML = "<p>The <command>hide mini messages</command>" \

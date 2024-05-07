@@ -20,6 +20,8 @@ ENABLE_WINUTILS = False
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
+# Enable CSRF protection
+ENABLE_WEB_UI_CSRF = False
 
 # Whether the Quasimode is actually modal ("sticky").
 IS_QUASIMODE_MODAL = True
@@ -48,8 +50,11 @@ QUASIMODE_MAX_SUGGESTIONS = 10
 # auto-completion mechanism engages.
 QUASIMODE_MIN_AUTOCOMPLETE_CHARS = 1
 
-# Enso color theme
+# Enso color themes
 COLOR_THEME = "green"
+
+# Enso display font
+UI_FONT = "Arial"
 
 # List of default platforms supported by Enso; platforms are specific
 # types of providers that provide a suite of platform-specific
@@ -75,6 +80,12 @@ PLUGINS = ["enso.contrib.scriptotron",
 # If set to False, no locale is forced.dddasdfasdf
 PLUGIN_GOOGLE_USE_DEFAULT_LOCALE = True
 
+RETREAT_DISABLE = False
+
+RETREAT_SHOW_ICON = True
+
+DEBUG = False
+
 import os
 
 ENSO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -99,10 +110,6 @@ if not os.path.exists(ENSO_EXECUTABLE):
     ENSO_EXECUTABLE = os.path.join(ENSO_DIR, "enso-portable.exe")
 
 CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
-
-RETREAT_DISABLE = False
-
-RETREAT_SHOW_ICON = True
 
 DISABLED_COMMANDS = []
 COMMAND_STATE_CHANGED = False

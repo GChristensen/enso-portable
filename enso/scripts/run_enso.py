@@ -143,6 +143,8 @@ def process_options(argv):
                       default=True, help="Hide tray icon")
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
                       help="No information windows are shown on startup/shutdown")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
+                      help="Debug mode")
 
     opts, args = parser.parse_args(argv)
     return opts, args
@@ -198,17 +200,18 @@ def configure_logging(args, opts):
         'DEBUG': logging.DEBUG
     }[opts.loglevel]
 
+    user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
+
     if opts.show_console:
         print("Logging to console")
         logging.basicConfig(level=loglevel, force=True)
     else:
-        user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
         print("Redirecting log output to: " + user_log)
 
         logging.basicConfig(filename=user_log, level=loglevel, force=True)
         logging.debug("test")
 
-    if opts.redirect_stdout:
+    if not opts.debug or opts.redirect_stdout:
         print("Redirecting stdout output to: " + user_log)
         user_log_file = open(user_log + ".stdout", "wb", 0)
 
@@ -230,6 +233,7 @@ def configure_logging(args, opts):
 def main(argv = None):
     opts, args = process_options(argv)
     config.ENSO_IS_QUIET = opts.quiet
+    config.DEBUG = opts.debug
 
     configure_logging(args, opts)
 

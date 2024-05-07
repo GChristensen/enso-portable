@@ -2,7 +2,7 @@ Unicode True
 
 !define DIRNAME "Enso Launcher"
 !define APPNAME "Enso Open-Source"
-!define VERSION "1.1"
+!define VERSION "1.1.1"
 
 !include LogicLib.nsh
 

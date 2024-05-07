@@ -42,6 +42,7 @@
 
 import logging
 
+from enso import config
 from enso import graphics
 from enso.graphics import xmltextlayout
 from enso.graphics.measurement import inchesToPoints
@@ -430,7 +431,7 @@ _styles.add(
     "document",
     margin_top = "0.0pt",
     margin_bottom = "0.0pt",
-    font_family = "Gentium",
+    font_family = config.UI_FONT,
     font_style = "normal",
     max_lines = "0",
     ellipsify = "false",

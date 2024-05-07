@@ -64,3 +64,16 @@ def cmd_wan_reconnect(ensoapi):
     tn.write(b"killall -HUP pppd\n")
     tn.write(b"exit\n")
     tn.read_all()
+
+
+def cmd_restart_router(ensoapi):
+    """Reboot dd-wrt"""
+    tn = Telnet(HOST, 23)
+    tn.read_until(b"login: ")
+    tn.write(USER + b"\n")
+    tn.read_until(b"Password: ")
+    tn.write(PASSWORD + b"\n")
+
+    tn.write(b"reboot\n")
+    tn.write(b"exit\n")
+    tn.read_all()
