@@ -102,9 +102,9 @@ def directory_probe(category, directory, player="", additional=None):
     """Sends directory entries found in the 'directory' to 'player',
     makes command arguments from the directory entries."""
 
-    dictionary = collect_descendants(directory)
+    dictionary = collect_descendants(directory) or {}
 
-    if dictionary and additional:
+    if additional:
         dictionary.update(additional)
 
         return dictionary_probe(category, dictionary, player, directory)

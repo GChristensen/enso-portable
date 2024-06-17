@@ -11,9 +11,11 @@ unlearn_open_undo = []
 
 shortcuts_map = Shortcuts.get().get_shortcuts()
 
-def displayMessage(msg):
+
+def displayMessage(msg, foreground = False):
     import enso.messages
-    enso.messages.displayMessage("<p>%s</p>" % msg)
+    enso.messages.displayMessage("<p>%s</p>" % msg, foreground)
+
 
 def expand_path_variables(file_path):
     re_env = re.compile(r'%\w+%')
@@ -27,13 +29,13 @@ def expand_path_variables(file_path):
 def cmd_open(ensoapi, target):
     """ Continue typing to open an application or document """
 
-    displayMessage("Opening <command>%s</command>..." % target)
-
     try:
         global shortcuts_map
         shortcut_type, shortuct_id, file_path = shortcuts_map[target]
         file_path = os.path.normpath(expand_path_variables(file_path))
         logging.info("Executing '%s'" % file_path)
+
+        displayMessage("Opening <command>%s</command>..." % target, foreground=True)
 
         if shortcut_type == SHORTCUT_TYPE_CONTROL_PANEL:
             if " " in file_path:
@@ -87,7 +89,7 @@ def cmd_open_with(ensoapi, application):
         ensoapi.display_message("No file or folder is selected")
         return
 
-    displayMessage("Opening <command>%s</command>..." % application)
+    displayMessage("Opening <command>%s</command>..." % application, foreground=True)
 
     #print file, application
     global shortcuts_map
@@ -107,6 +109,7 @@ def cmd_open_with(ensoapi, application):
             win32con.SW_SHOWDEFAULT)
     except Exception as e:
         logging.error(e)
+
 
 cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
 
@@ -222,8 +225,11 @@ def cmd_undo_unlearn(ensoapi):
     else:
         ensoapi.display_message("There is nothing to undo")
 
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+
+
 
 # vim:set ff=unix tabstop=4 shiftwidth=4 expandtab:

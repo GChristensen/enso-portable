@@ -144,7 +144,7 @@ class PrimaryMsgWind( MessageWindow ):
 
         # Set the current primary message, and draw it.
         self.__msg = message
-        self.__drawMessage()
+        self.__drawMessage(message.isForeground())
 
         # Now, set a time-responder to wait for a bit, so that the
         # user doesn't accidentally clear the message before it registers
@@ -240,7 +240,7 @@ class PrimaryMsgWind( MessageWindow ):
         if self.__waiting:
             self.__evtManager.removeResponder( self.waitTick )
 
-    def __drawMessage( self ):
+    def __drawMessage( self, foreground = False ):
         """
         Draws the current message to the underlying Cario context.
         """
@@ -272,7 +272,7 @@ class PrimaryMsgWind( MessageWindow ):
         # Set the window opacity (which can be left at 0 by the animation)
         self._wind.setOpacity( 255 )
         # Show and update the window.
-        self.show()
+        self.show(foreground)
 
 
     def __isOneLineMsg( self, msgDoc, capDoc ):

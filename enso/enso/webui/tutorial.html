@@ -181,7 +181,7 @@
     t <span class="pl-k">=</span> threading.Thread(<span class="pl-v">target</span> <span class="pl-k">=</span> do_something)
     t.start()
     ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Please wait...<span class="pl-pds">"</span></span>)
-    <span class="pl-k">while</span> t.isAlive():
+    <span class="pl-k">while</span> t.is_alive():
       <span class="pl-k">yield</span>
     ensoapi.display_message(<span class="pl-s"><span class="pl-pds">"</span>Done!<span class="pl-pds">"</span></span>)</pre></div>
     <p>Returning control back to Enso is highly encouraged - without it, your
@@ -228,6 +228,19 @@
         with the command execution call itself, <code>on_quasimode_start()</code> may
         use <code>yield</code> to relegate control back to Enso when it knows that some
         operation will take a while to finish.</p>
+
+    <pre>
+from enso.messages import displayMessage
+
+def cmd_test(ensoapi):
+    ensoapi.display_message("demo")
+
+def my_func():
+    displayMessage("&lt;p&gt;On quasimode start&lt;/p&gt;")
+
+cmd_test.on_quasimode_start = my_func
+    </pre>
+
     <h2><a id="user-content-including-other-files" class="anchor" aria-hidden="true" href="#including-other-files"></a>Including Other Files</h2>
     <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
         using 'enso install' and 'enso uninstall' commands respectively.<br>

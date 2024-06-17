@@ -143,7 +143,7 @@ class MessageWindow:
         self._wind.update()
 
         
-    def show( self ):
+    def show( self, foreground = False ):
         """
         Sets the underlying TransparentWindow's size to the stored
         "current size" variable, essentially re-correlating the actual
@@ -153,6 +153,11 @@ class MessageWindow:
         
         self.setSize( *self.getSize() )
         self._wind.update()
+
+        # this to fix the bug in the 'open' command, when for some reason
+        # the message window is not foreground
+        if foreground:
+            self._wind.setForeground()
 
 
     def clearWindow( self ):

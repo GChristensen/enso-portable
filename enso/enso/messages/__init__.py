@@ -177,7 +177,8 @@ class Message:
                   primaryXml = None,
                   miniXml = None,
                   isPrimary = False,
-                  isMini = False ):
+                  isMini = False,
+                  isForeground = False):
         """
         Initializes the message object. Subclasses should be careful
         to call this if they override the constructor.
@@ -199,10 +200,12 @@ class Message:
 
         self.__isPrimary = isPrimary
         self.__isMini = isMini
+        self.__isForeground = isForeground
 
         self.__fullXml = fullXml
         self.__primaryXml = primaryXml
         self.__miniXml = miniXml
+
         
 
     def isPrimary( self ):
@@ -221,6 +224,9 @@ class Message:
         """
         
         return self.__isMini
+
+    def isForeground(self):
+        return self.__isForeground
 
     def getFullXml( self ):
         """
@@ -418,7 +424,7 @@ class MessageManager:
 # Convenience functions
 # ----------------------------------------------------------------------------
 
-def displayMessage( msgXml ):
+def displayMessage( msgXml, foreground = False ):
     """
     Displays a simple primary message that has no mini message.
     """
@@ -427,6 +433,7 @@ def displayMessage( msgXml ):
         isPrimary = True,
         isMini = False,
         fullXml = msgXml,
+        isForeground=foreground
         )
 
     MessageManager.get().newMessage( msg )

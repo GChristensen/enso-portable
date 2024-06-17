@@ -15,9 +15,6 @@ LOCALIZED_INPUT = True
 # Only changes in commands entered through WebUI are tracked by default
 TRACK_COMMAND_CHANGES = False
 
-# Enable commands for common Windows utilities, such as regedit, services, etc.4
-ENABLE_WINUTILS = False
-
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
 # Enable CSRF protection
