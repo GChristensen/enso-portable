@@ -301,7 +301,7 @@ public:
     int
     getMaxHeight( void );
 
-    int getHandle();
+    long long getHandle();
 
 #ifndef SWIG
 private:

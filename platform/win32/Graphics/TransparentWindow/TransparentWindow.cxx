@@ -649,6 +649,6 @@ _getDesktopOffset( int *left,
     *top = rectWorkArea.top;
 }
 
-int TransparentWindow::getHandle() {
-    return (int)_window;
+long long TransparentWindow::getHandle() {
+    return (long long)_window;
 }
