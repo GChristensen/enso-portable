@@ -652,3 +652,21 @@ _getDesktopOffset( int *left,
 long long TransparentWindow::getHandle() {
     return (long long)_window;
 }
+
+void TransparentWindow::setForeground() {
+    DWORD dwCurrentThread = GetCurrentThreadId();
+    HWND dwFGWindow = GetForegroundWindow();
+    DWORD dwFGThread = GetWindowThreadProcessId(dwFGWindow, NULL);
+
+    AttachThreadInput(dwCurrentThread, dwFGThread, TRUE);
+
+    SetWindowPos(_window, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(_window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(_window, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+
+    SetForegroundWindow(_window);
+    SetFocus(_window);
+    SetActiveWindow(_window);
+
+    AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
+}

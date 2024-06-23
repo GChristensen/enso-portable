@@ -302,6 +302,7 @@ public:
     getMaxHeight( void );
 
     long long getHandle();
+    void setForeground();
 
 #ifndef SWIG
 private:
