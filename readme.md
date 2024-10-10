@@ -8,8 +8,10 @@ This is a development page. Please visit the main site at: https://gchristensen.
 
 **Prerequisites**
 
+Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a [standalone package.
 * Installed [Microsoft Visual Studio](https://visualstudio.microsoft.com) with Windows Platform SDK.
-Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft.
+Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a
+[standalone package](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/).
 
 **Signing Python**
 
@@ -18,7 +20,7 @@ Available for free on [virtual machines](https://developer.microsoft.com/en-us/w
 3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
 4. Execute the following command to create a self-issued digital certificate:
 
-`makecert -r -pe -n "CN=Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
+`makecert -r -pe -n "CN=Enso Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
 
 5. Import the certificate to the trusted root store with the following command:
 
@@ -40,8 +42,12 @@ This version of Python is launched only if it is properly signed and Enso is ins
 
 The Python interpreter used to run Enso Launcher requires the following dependencies:
 
-* [pywin32](https://github.com/mhammond/pywin32)
-* [flask](https://flask.palletsprojects.com/)
+* pywin32
+* flask
+
+Additional modules included into the distribution:
+* requests
+* pyserial
 
 #### Building platform code
 
