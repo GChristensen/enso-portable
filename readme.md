@@ -44,11 +44,7 @@ The Python interpreter used to run Enso Launcher requires the following dependen
 
 * pywin32
 * flask
-
-Additional modules included into the distribution:
-* requests
-* pyserial
-
+ 
 #### Building platform code
 
 Follow the [platform build instructions](platform/README.win32) and use the makefile 

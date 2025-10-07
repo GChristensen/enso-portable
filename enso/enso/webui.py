@@ -21,9 +21,13 @@ static_dir = os.path.join(webui_dir, "webui")
 
 app = Flask(__name__, static_url_path='', static_folder=None)
 
+#app.debug = True
+
+config.WEBUI_APP = app
+
 log = logging.getLogger('werkzeug')
-log.disabled = True
-app.logger.disabled = True
+log.disabled = True # False
+app.logger.disabled = True # False
 
 
 def requires_auth(f):
@@ -246,7 +250,8 @@ class Httpd(threading.Thread):
 
     def __init__(self, app):
         threading.Thread.__init__(self)
-        self.srv = make_server(HOST, PORT, app, True)
+        server_host = getattr(config, "WEBUI_HOST", None) or HOST
+        self.srv = make_server(server_host, PORT, app, True)
         self.ctx = app.app_context()
         self.ctx.push()
 

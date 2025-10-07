@@ -23,11 +23,11 @@ from enso.messages import displayMessage
 from enso.events import EventManager
 from enso.platform.win32.taskbar import SysTrayIcon
 from enso.contrib import retreat
+from enso.user import import_package_by_path
 
 sys.path.append(config.ENSO_DIR)
 sys.path.append(os.path.join(config.ENSO_DIR, "lib"))
 sys.path.append(os.path.join(config.ENSO_USER_DIR, "lib"))
-
 
 def tray_on_enso_quit(systray):
     if not retreat.is_locked():
@@ -201,19 +201,10 @@ def configure_logging(args, opts):
     }[opts.loglevel]
 
     user_log = os.path.join(config.ENSO_USER_DIR, "enso.log")
-
-    if opts.show_console:
-        print("Logging to console")
-        logging.basicConfig(level=loglevel, force=True)
-    else:
-        print("Redirecting log output to: " + user_log)
-
-        logging.basicConfig(filename=user_log, level=loglevel, force=True)
-        logging.debug("test")
+    user_log_stdout = user_log + ".stdout"
 
     if not opts.debug or opts.redirect_stdout:
-        print("Redirecting stdout output to: " + user_log)
-        user_log_file = open(user_log + ".stdout", "wb", 0)
+        user_log_file = open(user_log_stdout, "wb", 0)
 
         class log():
             def __init__(self):
@@ -229,6 +220,15 @@ def configure_logging(args, opts):
         sys.stdout = log()
         sys.stderr = log()
 
+        print("Redirecting stdout output to: " + user_log_stdout)
+
+    if opts.show_console:
+        print("Logging to console")
+        logging.basicConfig(level=loglevel, force=True)
+    else:
+        print("Redirecting log output to: " + user_log)
+        logging.basicConfig(filename=user_log, level=loglevel, force=True)
+
 
 def main(argv = None):
     opts, args = process_options(argv)
@@ -243,6 +243,9 @@ def main(argv = None):
         # Execute tray-icon code in a separate thread
         threading.Thread(target = systray, args = (config,)).start()
 
+    user_lib_index = os.path.join(config.ENSO_USER_DIR, "lib")
+    import_package_by_path(user_lib_index)
+ 
     retreat.start()
 
     enso.run()
