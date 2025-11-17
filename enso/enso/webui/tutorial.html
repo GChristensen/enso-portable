@@ -245,8 +245,11 @@ cmd_test.on_quasimode_start = my_func
     <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
         using 'enso install' and 'enso uninstall' commands respectively.<br>
         If you need to import some code that is not installable as a Python module,
-        place it under the 'lib' folder in your Enso configuration directory.
-        Its path could be found on the Enso <a href="/options.html">settings</a> page.
+        place it under the 'lib' folder in your Enso configuration directory. The 'lib' directory is added to Enso <code>PYTHONPATH</code>.
+        The path of the Enso configuration folder could be found on the Enso <a href="/options.html">settings</a> page.
+        <br>
+        If there is an __init__.py file in the 'lib' directory it will be imported as a module before Enso initialization.
+        This may be used to create complex Enso-based applications, for example, using Flask Blueprints.
         <br>
         Python's standard <code>import</code> statement can be used from command
         scripts. But the disadvantage of doing this with evolving
