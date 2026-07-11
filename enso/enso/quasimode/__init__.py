@@ -52,9 +52,7 @@ import weakref
 import logging
 import traceback
 
-from win32api import GetKeyState
 from enso.events import EventManager
-from win32con import VK_CAPITAL
 
 from . import layout
 
@@ -257,7 +255,7 @@ class Quasimode:
                 pass
 
     def __getShifftedChar( self, keyCode ):
-        if not (keyCode + 1000) in ALLOWED_KEYCODES or not GetKeyState(input.KEYCODE_SHIFT) < 0:
+        if not (keyCode + 1000) in ALLOWED_KEYCODES or not input.getKeyState(input.KEYCODE_SHIFT) < 0:
             shift = 0
         else:
             shift = 1000
@@ -320,7 +318,7 @@ class Quasimode:
         self._inQuasimode = True
         self.__needsRedraw = True
 
-        self._numLockStart = GetKeyState(input.KEYCODE_NUMLOCK)
+        self._numLockStart = input.getKeyState(input.KEYCODE_NUMLOCK)
         self._numLockNow = self._numLockStart
 
         # Postcondition

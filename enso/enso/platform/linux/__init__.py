@@ -30,7 +30,9 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 import sys
+import logging
 
 import enso.platform
 
@@ -40,11 +42,14 @@ platforms = [
     "freebsd",
     "netbsd",
 ]
-if not True in map (lambda s: sys.platform.startswith (s), platforms):
+if not any (sys.platform.startswith (s) for s in platforms):
     raise enso.platform.PlatformUnsupportedError()
 
 def provideInterface (name):
     '''Plug into Enso core'''
+    if name in ("input", "graphics") and not os.environ.get ("DISPLAY"):
+        logging.error ("DISPLAY is not set; Enso requires an X11 session "
+                       "(on Wayland, log into an X11 session instead).")
     if name == "input":
         import enso.platform.linux.input
         return enso.platform.linux.input

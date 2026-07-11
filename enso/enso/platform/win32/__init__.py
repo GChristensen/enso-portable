@@ -29,15 +29,20 @@
 
 import os
 import sys
+
+import enso.platform
+
+# This check must come before any pywin32 imports, so that on other
+# platforms this module raises the PlatformUnsupportedError that the
+# provider machinery expects instead of a ModuleNotFoundError.
+if not sys.platform.startswith("win"):
+    raise enso.platform.PlatformUnsupportedError()
+
 import time
 import atexit
 import win32event
-import enso.platform
 import enso.config
 from enso.messages import displayMessage
-
-if not sys.platform.startswith("win"):
-    raise enso.platform.PlatformUnsupportedError()
 
 # Hack the PATH so we can load dlls from the enso.platform.win32 directory
 # Our path must be at the beginning, otherwise libcairo-2.dll from other

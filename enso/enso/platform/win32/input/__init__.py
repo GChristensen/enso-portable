@@ -3,3 +3,5 @@
 from .InputManager import *
 
 from .CharMaps import STANDARD_ALLOWED_KEYCODES as CASE_INSENSITIVE_KEYCODE_MAP
+
+from win32api import GetKeyState as getKeyState

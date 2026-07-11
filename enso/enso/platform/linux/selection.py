@@ -1,139 +1,70 @@
 """
-Author : Guillaume "iXce" Seguin
-Email  : guillaume@segu.in
+X11 implementation of the Enso "selection" provider (text only).
 
+Based on the original Enso Linux port:
 Copyright (C) 2008, Guillaume Seguin <guillaume@segu.in>.
-All rights reserved.
+Rewritten for Python 3 / PyGObject.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-  1. Redistributions of source code must retain the above copyright
-     notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in the
-     documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of Enso nor the names of its contributors may
-     be used to endorse or promote products derived from this
-     software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+get() reads the PRIMARY selection (the text currently highlighted).
+set() puts the text on both CLIPBOARD and PRIMARY, then synthesizes a
+Ctrl+V key press via XTEST so the focused application pastes it.
 """
 
-from time import sleep, time, clock
+import logging
+import time
 
-import Xlib
-import Xlib.ext.xtest
-from enso.platform.linux.utils import *
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk
 
-GET_TIMEOUT = 1.5
-PASTE_STATE = Xlib.X.ShiftMask
-PASTE_KEY = "^V"
+from Xlib import X
+from Xlib.ext import xtest
 
-def get_clipboard_text_cb (clipboard, text, userdata):
-    '''Callback for clipboard fetch handling'''
-    global selection_text
-    selection_text = text
+from enso.platform.linux import utils
 
-def get_focussed_window (display):
-    '''Get the currently focussed window'''
-    input_focus = display.get_input_focus ()
-    window = Xlib.X.NONE
-    if input_focus != None and input_focus.focus:
-        window = input_focus.focus
-    return window
+# Delay between claiming the clipboard and synthesizing the paste, so
+# the target application sees the new clipboard owner.
+_PASTE_DELAY = 0.05
 
-def make_key (keycode, state, window, display):
-    '''Build a data dict for a KeyPress/KeyRelease event'''
-    root = display.screen ().root
-    event_data = {
-        "time": int (time ()),
-        "root": root,
-        "window": window,
-        "same_screen": True,
-        "child": Xlib.X.NONE,
-        "root_x": 0,
-        "root_y": 0,
-        "event_x": 0,
-        "event_y": 0,
-        "state": state,
-        "detail": keycode,
-                 }
-    return event_data
 
-def fake_key_up (key, window, display):
-    '''Fake a keyboard press event'''
-    event = Xlib.protocol.event.KeyPress (**key)
-    window.send_event (event, propagate = True)
-    display.sync ()
+def get():
+    """Returns a dictionary with the current selection, or {}."""
+    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_PRIMARY)
+    text = clipboard.wait_for_text()
+    if text:
+        return {"text": text}
+    return {}
 
-def fake_key_down (key, window, display):
-    '''Fake a keyboard release event'''
-    event = Xlib.protocol.event.KeyRelease (**key)
-    window.send_event (event, propagate = True)
-    display.sync ()
 
-def fake_key_updown (key, window, display):
-    '''Fake a keyboard press/release events pair'''
-    fake_key_up (key, window, display)
-    fake_key_down (key, window, display)
-
-def fake_paste (display = None):
-    '''Fake a "paste" keyboard event'''
-    if not display:
-        display = get_display ()
-    window = get_focussed_window (display)
-    state = PASTE_STATE
-    k = PASTE_KEY
-    ctrl = False
-    if k.startswith("^"):
-      k = k[1:]
-      ctrl = True
-    keycode = get_keycode (key = k, display = display)
-    key = make_key (keycode, state, window, display)
-    ctrl_keycode = get_keycode (key = "Control_L", display = display)
-    ctrl_key = make_key (ctrl_keycode, state, window, display)
-    if ctrl: Xlib.ext.xtest.fake_input(display, Xlib.X.KeyPress, ctrl_keycode)
-    Xlib.ext.xtest.fake_input(display, Xlib.X.KeyPress, keycode)
-    Xlib.ext.xtest.fake_input(display, Xlib.X.KeyRelease, keycode)
-    Xlib.ext.xtest.fake_input(display, Xlib.X.KeyRelease, ctrl_keycode)
+def _fake_paste():
+    display = utils.get_display()
+    control = utils.get_keycode("Control_L", display)
+    v_key = utils.get_keycode("v", display)
+    if not control or not v_key:
+        logging.warning("Couldn't resolve Ctrl+V keycodes for pasting.")
+        return
+    xtest.fake_input(display, X.KeyPress, control)
+    xtest.fake_input(display, X.KeyPress, v_key)
+    xtest.fake_input(display, X.KeyRelease, v_key)
+    xtest.fake_input(display, X.KeyRelease, control)
     display.sync()
 
-def get ():
-    '''Fetch text from X PRIMARY selection'''
-    global selection_text
-    selection_text = None
-    clipboard = gtk.clipboard_get (selection = "PRIMARY")
-    clipboard.request_text (get_clipboard_text_cb)
-    # Iterate until we actually received something, or we timed out waiting
-    start = clock ()
-    while not selection_text and (clock () - start) < GET_TIMEOUT:
-        gtk.main_iteration (False)
-    if not selection_text:
-        selection_text = ""
-    selection = {
-                    "text": selection_text,
-                }
-    return selection
 
-def set (seldict):
-    '''Paste data into X CLIPBOARD selection'''
-    if seldict.has_key ("text"):
-        clipboard = gtk.clipboard_get (selection = "CLIPBOARD")
-        clipboard.set_text (seldict["text"])
-        primary = gtk.clipboard_get (selection = "PRIMARY")
-        primary.set_text (seldict["text"])
-        fake_paste()
-        return True
-    return False
+def set(seldict):
+    """Pastes the text of the given selection dictionary, if any."""
+    text = seldict.get("text")
+    if not text:
+        return False
 
+    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+    clipboard.set_text(text, -1)
+    # Let a clipboard manager (e.g. klipper) take over the contents so
+    # they survive after Enso's claim is replaced.
+    clipboard.store()
+
+    primary = Gtk.Clipboard.get(Gdk.SELECTION_PRIMARY)
+    primary.set_text(text, -1)
+
+    time.sleep(_PASTE_DELAY)
+    _fake_paste()
+    return True

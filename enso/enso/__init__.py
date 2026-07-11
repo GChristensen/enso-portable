@@ -40,9 +40,15 @@ def run():
     Initializes and runs Enso.
     """
 
-    from . import messages, plugins, webui
+    from . import messages, plugins
     from .events import EventManager
     from .quasimode import layout, Quasimode
+
+    try:
+        from . import webui
+    except ImportError:
+        webui = None
+        logging.warning( "Web UI is unavailable (flask is not installed)." )
 
     eventManager = EventManager.get()
     Quasimode.install( eventManager )
@@ -55,7 +61,7 @@ def run():
 
         runTasks()
 
-    if config.ENABLE_WEB_UI:
+    if config.ENABLE_WEB_UI and webui:
         webui.start()
 
     eventManager.registerResponder( initEnso, "init" )
@@ -63,10 +69,12 @@ def run():
     try:
         eventManager.run()
     except KeyboardInterrupt:
-        webui.stop()
+        if webui:
+            webui.stop()
     except Exception as e:
         logging.error(e)
-        webui.stop()
+        if webui:
+            webui.stop()
 
     if not config.ENSO_IS_QUIET:
         messages.displayMessage(config.CLOSING_MSG_XML)

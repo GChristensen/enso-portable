@@ -48,7 +48,12 @@ import urllib.request, urllib.parse, urllib.error
 import atexit
 import logging
 
-from enso import config, webui
+from enso import config
+
+try:
+    from enso import webui
+except ImportError:
+    webui = None
 from enso.commands import CommandManager, CommandObject
 from enso.contrib.scriptotron.tracebacks import safetyNetted
 
@@ -170,8 +175,8 @@ class HelpCommand( CommandObject ):
 
     @safetyNetted
     def run( self ):
-        if config.ENABLE_WEB_UI:
-            os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
+        if config.ENABLE_WEB_UI and webui:
+            webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
         else:
             self.__htmlHelp.view()
 
