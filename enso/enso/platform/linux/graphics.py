@@ -101,6 +101,8 @@ class TransparentWindow(object):
 
         def update(self):
             if self.__surface:
+                if not self.get_mapped():
+                    self.show_all()
                 self.queue_draw()
 
         def makeCairoSurface(self):
@@ -108,7 +110,6 @@ class TransparentWindow(object):
                 self.__surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                                     self.__maxWidth,
                                                     self.__maxHeight)
-                self.show_all()
             return self.__surface
 
         def setOpacity(self, opacity):

@@ -343,6 +343,8 @@ class InputManager(object):
         self.__qmKeycodes = [KEYCODE_CAPITAL, KEYCODE_RETURN, KEYCODE_ESCAPE]
         self.__isModal = False
         self.__keyListener = None
+        self.__lastMousePos = None
+        self.__lastMouseButtons = 0
 
     # ------------------------------------------------------------------
     # Main loop
@@ -382,11 +384,31 @@ class InputManager(object):
         # A tick handler exception must not kill the timeout source:
         # returning a falsy value would remove it permanently.
         try:
+            if self.__mouseEventsEnabled:
+                self.__pollMouse()
             self.onTick(TICK_INTERVAL_MS)
         except Exception:
             logging.error("Exception in timer event handler:\n%s"
                           % traceback.format_exc())
         return GLib.SOURCE_CONTINUE
+
+    def __pollMouse(self):
+        # X11 has no lightweight global mouse hook comparable to
+        # win32's; poll the pointer on the same tick that already
+        # drives onTick(), which is cheap since query_pointer() is a
+        # single round-trip and only happens while something (e.g. a
+        # message window) actually asked to be notified of movement.
+        pointer = utils.get_display().screen().root.query_pointer()
+        pos = (pointer.root_x, pointer.root_y)
+        buttonMask = pointer.mask & (X.Button1Mask | X.Button2Mask |
+                                     X.Button3Mask | X.Button4Mask |
+                                     X.Button5Mask)
+        if self.__lastMousePos is not None and pos != self.__lastMousePos:
+            self.onMouseMove(*pos)
+        self.__lastMousePos = pos
+        if buttonMask and not self.__lastMouseButtons:
+            self.onSomeMouseButton()
+        self.__lastMouseButtons = buttonMask
 
     def _dispatchKeyEvent(self, info):
         """Delivers a key listener event on the GTK main thread."""
@@ -416,9 +438,13 @@ class InputManager(object):
     # ------------------------------------------------------------------
 
     def enableMouseEvents(self, isEnabled):
-        # Mouse events are not implemented on X11; the overlays are
-        # click-through, so there is nothing to track.
         self.__mouseEventsEnabled = isEnabled
+        if isEnabled:
+            # Forget any previously observed position/buttons so the
+            # next poll only records a baseline instead of comparing
+            # against stale state and firing a spurious dismissal.
+            self.__lastMousePos = None
+            self.__lastMouseButtons = 0
 
     def getQuasimodeKeycode(self, quasimodeKeycode):
         return self.__qmKeycodes[quasimodeKeycode]

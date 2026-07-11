@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile enso/platform/linux/input.py)"
+    ]
+  }
+}

@@ -29,8 +29,11 @@ Optional:
 From a checkout of this repository:
 
 ```
-python3 enso/scripts/run_enso_linux.py -l INFO
+python3 enso/scripts/run_enso.py -l INFO
 ```
+
+(This is the same launcher script used on Windows; it detects the OS at
+runtime and behaves accordingly.)
 
 Hold **Caps Lock** and type a command name (e.g. `help`), then release.
 While Enso runs, the Caps Lock toggle is disabled via `xmodmap` and
