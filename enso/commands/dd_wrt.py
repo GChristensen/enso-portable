@@ -40,16 +40,13 @@ DD_WRT_USER = "dd-wrt user" #default: "root"<br>
 DD_WRT_PASSWORD = "my_dd_wrt_password"<br>
 DD_WRT_MACHINES = {'server': "AA:BB:CC:DD:EE:FF"} # machine MACs
 """
-    tn = Telnet(HOST, 23)
-    tn.read_until(b"login: ")
-    tn.write(USER + b"\n")
-    tn.read_until(b"Password: ")
-    tn.write(PASSWORD + b"\n")
-
-    tn.write(b"/usr/sbin/wol -i 192.168.1.255 -p 9 "
-             + MACHINES[machine].encode('ascii', 'ignore') + b"\n")
-    tn.write(b"exit\n")
-    tn.read_all()
+    import socket
+    mac_clean = MACHINES[machine].replace(':', '').replace('-', '').replace('.', '')
+    magic_packet = b'\xff' * 6 + bytes.fromhex(mac_clean) * 16
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.connect((b'192.168.1.255', 9))
+        sock.send(magic_packet)
 
 cmd_wake.valid_args = list(MACHINES.keys())
 
