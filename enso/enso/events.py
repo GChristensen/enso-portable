@@ -172,6 +172,10 @@ class EventManager( input.InputManager ):
         if eventType in ["dismissal","mousemove"]:
             self.enableMouseEvents( True )
 
+        # Switch to fast tick rate when any timer responder registers.
+        if eventType == "timer" and hasattr(self, 'setTickRate'):
+            self.setTickRate(True)
+
         # def wrapper(*args, **kwargs ):
         #     print(eventType)
         #     print(responderFunc)
@@ -187,20 +191,27 @@ class EventManager( input.InputManager ):
         NOTE: Removes responderFunc from responding to ALL types of events.
         """
         
+        removedTypes = []
         for eventType in list(self.__responders.keys()):
             responderList = self.__responders[ eventType ]
             if responderFunc in responderList:
                 logging.debug( "Removed a responder function!" )
                 responderList.remove( responderFunc )
+                removedTypes.append( eventType )
 
-        if eventType in ["dismissal","mousemove"]:
-            # If we're removing our only dismissal responder,
-            # disable mouse events since we only need to know
-            # about them for the purposes of dismissal events.
+        # If we removed a dismissal/mousemove responder, check whether
+        # mouse events are still needed.
+        if any(t in ["dismissal", "mousemove"] for t in removedTypes):
             numMouseResponders = len( self.__responders[ "mousemove" ] )
             numDismissResponders = len( self.__responders[ "dismissal" ] )
-            if (numMouseResponders+numDismissResponders) == 0:
+            if (numMouseResponders + numDismissResponders) == 0:
                 self.enableMouseEvents( False )
+
+        # Switch to slow tick rate when no timer responders remain.
+        if "timer" in removedTypes \
+                and len(self.__responders["timer"]) == 0 \
+                and hasattr(self, 'setTickRate'):
+            self.setTickRate(False)
 
 
     def run( self ):

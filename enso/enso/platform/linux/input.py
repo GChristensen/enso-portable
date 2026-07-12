@@ -34,7 +34,8 @@ from Xlib.error import ConnectionClosedError
 from enso.platform.linux import utils
 
 # Timer tick interval, in milliseconds.
-TICK_INTERVAL_MS = 10
+TICK_INTERVAL_MS_FAST = 10
+TICK_INTERVAL_MS_SLOW = 50
 
 # Event types, matching the win32 InputManager constants.
 EVENT_KEY_UP = 0
@@ -446,6 +447,8 @@ class InputManager(object):
         self.__keyListener = None
         self.__lastMousePos = None
         self.__lastMouseButtons = 0
+        self.__tickIntervalMs = TICK_INTERVAL_MS_SLOW
+        self.__timeoutId = None
 
     # ------------------------------------------------------------------
     # Main loop
@@ -454,7 +457,8 @@ class InputManager(object):
     def run(self):
         logging.info("Entering InputManager.run()")
 
-        timeoutId = GLib.timeout_add(TICK_INTERVAL_MS, self.__onTimer)
+        self.__timeoutId = GLib.timeout_add(self.__tickIntervalMs,
+                                            self.__onTimer)
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
                              self.__onSigint)
 
@@ -469,7 +473,9 @@ class InputManager(object):
         finally:
             self.__keyListener.stop()
             self.__keyListener.join(2.0)
-            GLib.source_remove(timeoutId)
+            if self.__timeoutId:
+                GLib.source_remove(self.__timeoutId)
+                self.__timeoutId = None
 
         logging.info("Exiting InputManager.run()")
 
@@ -487,11 +493,23 @@ class InputManager(object):
         try:
             if self.__mouseEventsEnabled:
                 self.__pollMouse()
-            self.onTick(TICK_INTERVAL_MS)
+            self.onTick(self.__tickIntervalMs)
         except Exception:
             logging.error("Exception in timer event handler:\n%s"
                           % traceback.format_exc())
         return GLib.SOURCE_CONTINUE
+
+    def setTickRate(self, fast):
+        """Switch between fast (10ms) and slow (50ms) tick rates.
+        Called by EventManager when active UI work begins/ends."""
+        desired = TICK_INTERVAL_MS_FAST if fast else TICK_INTERVAL_MS_SLOW
+        if desired == self.__tickIntervalMs:
+            return
+        self.__tickIntervalMs = desired
+        if self.__timeoutId is not None:
+            GLib.source_remove(self.__timeoutId)
+            self.__timeoutId = GLib.timeout_add(desired, self.__onTimer)
+        logging.debug("Tick rate changed to %d ms", desired)
 
     def __pollMouse(self):
         # X11 has no lightweight global mouse hook comparable to
