@@ -21,7 +21,7 @@ binary, so recreating the venv elsewhere means granting them again:
 
 ```
 python3 -m venv ~/.enso/venv
-~/.enso/venv/bin/pip install pyobjc-framework-Cocoa pyobjc-framework-Quartz pycairo
+~/.enso/venv/bin/pip install pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices pycairo
 ```
 
 Optional: `pip install flask` — enables the web UI (settings page).
@@ -87,7 +87,9 @@ the OS at runtime.)
 
 Hold **Caps Lock** and type a command name (e.g. `help`), then release.
 While Enso runs, Caps Lock does not toggle: the event tap consumes the
-key entirely, so the LED and letter case are unaffected.
+key so applications never see it, and the system-level caps toggle
+(which engages in the HID driver regardless) is reset on every press,
+so the LED and letter case stay unaffected.
 
 An Enso icon appears in the menu bar with About/Restart/Quit and a
 "Start at login" toggle (which manages the same LaunchAgent as
@@ -147,6 +149,10 @@ manual Terminal run first; only then does the login launch work.
   first use triggers an Automation permission prompt — grant it once.
 - `go {name}` switches between running applications (not individual
   windows).
+- `close` closes the frontmost window via the Accessibility API
+  (equivalent to clicking the red titlebar button); it needs the
+  `pyobjc-framework-ApplicationServices` package and the Accessibility
+  permission Enso already uses.
 - `open {name}` finds applications from /Applications,
   /System/Applications and ~/Applications.
 

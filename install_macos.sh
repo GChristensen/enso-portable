@@ -37,7 +37,8 @@ python3 -m venv "$VENV_DIR"
 echo "Installing dependencies ..."
 "$VENV_DIR/bin/pip" install --upgrade pip >/dev/null
 "$VENV_DIR/bin/pip" install \
-    pyobjc-framework-Cocoa pyobjc-framework-Quartz pycairo flask
+    pyobjc-framework-Cocoa pyobjc-framework-Quartz \
+    pyobjc-framework-ApplicationServices pycairo flask
 
 echo
 echo "Done. Run Enso manually once to grant the required permissions:"

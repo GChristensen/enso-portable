@@ -12,8 +12,10 @@ The event tap needs the "Input Monitoring" permission (System Settings
 -> Privacy & Security); without it CGEventTapCreate returns None.
 """
 
+import ctypes
 import logging
 import signal
+import time
 import traceback
 
 import objc
@@ -96,6 +98,74 @@ _fillKeymap()
 
 _COMBINED_STATE = Quartz.kCGEventSourceStateCombinedSessionState
 
+# IOKit/hidsystem constants (IOHIDShared.h / IOHIDParameter.h).
+_KIOHID_PARAM_CONNECT_TYPE = 1   # kIOHIDParamConnectType
+_KIOHID_CAPS_LOCK_STATE = 1      # kIOHIDCapsLockState
+
+
+class _CapsLockToggle(object):
+    """Undoes the system caps-lock toggle.
+
+    The event tap consumes the trigger key's events so applications
+    never see them, but the caps-lock toggle engages in the HID driver
+    *upstream* of a session tap: after an odd number of trigger
+    presses the system is left typing ALL CAPS.  A tap cannot prevent
+    that, so the toggle is explicitly cleared through the IOHIDSystem
+    'param' connection instead (the same IOHIDSetModifierLockState
+    call the caps-lock utilities use; no special permission needed)."""
+
+    def __init__(self):
+        self.__iokit = None
+        self.__connect = None
+        try:
+            iokit = ctypes.CDLL(
+                "/System/Library/Frameworks/IOKit.framework/IOKit")
+            iokit.IOServiceMatching.restype = ctypes.c_void_p
+            iokit.IOServiceMatching.argtypes = (ctypes.c_char_p,)
+            # io_service_t/io_connect_t are mach ports: 32-bit even on
+            # 64-bit systems.
+            iokit.IOServiceGetMatchingService.restype = ctypes.c_uint32
+            iokit.IOServiceGetMatchingService.argtypes = (
+                ctypes.c_uint32, ctypes.c_void_p)
+            iokit.IOServiceOpen.restype = ctypes.c_int
+            iokit.IOServiceOpen.argtypes = (
+                ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32,
+                ctypes.POINTER(ctypes.c_uint32))
+            iokit.IOObjectRelease.argtypes = (ctypes.c_uint32,)
+            iokit.IOHIDSetModifierLockState.restype = ctypes.c_int
+            iokit.IOHIDSetModifierLockState.argtypes = (
+                ctypes.c_uint32, ctypes.c_int, ctypes.c_bool)
+
+            service = iokit.IOServiceGetMatchingService(
+                0, iokit.IOServiceMatching(b"IOHIDSystem"))
+            if not service:
+                raise OSError("no IOHIDSystem service")
+            connect = ctypes.c_uint32(0)
+            libc = ctypes.CDLL(None)
+            task = ctypes.c_uint32.in_dll(libc, "mach_task_self_").value
+            err = iokit.IOServiceOpen(service, task,
+                                      _KIOHID_PARAM_CONNECT_TYPE,
+                                      ctypes.byref(connect))
+            iokit.IOObjectRelease(service)
+            if err != 0:
+                raise OSError("IOServiceOpen failed (%#x)" % err)
+            self.__iokit = iokit
+            self.__connect = connect.value
+        except Exception:
+            logging.error(
+                "Couldn't open the IOHIDSystem connection; the "
+                "caps-lock toggle can't be suppressed, so letter case "
+                "will flip on every trigger press:\n%s"
+                % traceback.format_exc())
+
+    def clear(self):
+        if self.__connect is None:
+            return
+        err = self.__iokit.IOHIDSetModifierLockState(
+            self.__connect, _KIOHID_CAPS_LOCK_STATE, False)
+        if err != 0:
+            logging.warning("IOHIDSetModifierLockState failed (%#x)", err)
+
 
 def getKeyState(keyCode):
     """Queries the current keyboard state, with win32 GetKeyState()
@@ -134,6 +204,7 @@ class InputManager(object):
         self.__tap = None
         self.__lastMousePos = None
         self.__lastMouseButtons = 0
+        self.__capsToggle = _CapsLockToggle()
 
     # ------------------------------------------------------------------
     # Main loop
@@ -169,6 +240,12 @@ class InputManager(object):
         Quartz.CFRunLoopAddSource(Quartz.CFRunLoopGetCurrent(), source,
                                   Quartz.kCFRunLoopCommonModes)
         Quartz.CGEventTapEnable(self.__tap, True)
+
+        # Start from a known caps state (it may have been left on by a
+        # press made before Enso started, or by a previous crash).
+        if self.getQuasimodeKeycode(KEYCODE_QUASIMODE_START) \
+                == KEYCODE_CAPITAL:
+            self.__capsToggle.clear()
 
         timerTarget = _Timer.alloc().initWithCallback_(self.__onTimer)
         timer = (Foundation.NSTimer
@@ -256,7 +333,14 @@ class InputManager(object):
         never sees it); returning the event passes it through."""
         if eventType in (Quartz.kCGEventTapDisabledByTimeout,
                          Quartz.kCGEventTapDisabledByUserInput):
-            # macOS disables taps it deems too slow; recover.
+            # macOS disables taps it deems too slow; recover.  Any key
+            # pressed between the disable and this re-enable was lost,
+            # so this matters when diagnosing missed trigger presses.
+            logging.warning(
+                "The keyboard event tap was disabled by macOS (%s); "
+                "re-enabling it.  Keys pressed meanwhile were missed.",
+                "timeout" if eventType == Quartz.kCGEventTapDisabledByTimeout
+                else "user input")
             if self.__tap is not None:
                 Quartz.CGEventTapEnable(self.__tap, True)
             return None
@@ -269,14 +353,33 @@ class InputManager(object):
             if keycode != trigger:
                 return event
             # The trigger is a modifier-type key (CapsLock by default).
-            # Consuming its events entirely means the caps-lock toggle
-            # and LED never engage while Enso runs -- no system state
-            # to patch and restore, unlike the X11 xmodmap approach.
-            pressed = Quartz.CGEventSourceKeyState(_COMBINED_STATE, trigger)
-            if pressed and not self.__capturing:
+            # Consuming its events hides them from applications, but
+            # the caps-lock toggle has already engaged in the HID
+            # driver by the time the tap runs; undo it before it can
+            # affect typing.
+            if trigger == KEYCODE_CAPITAL:
+                self.__capsToggle.clear()
+            # CapsLock is a toggling modifier: macOS delivers a single
+            # flagsChanged per physical press and nothing on release,
+            # and CGEventSourceKeyState (from the session and the HID
+            # source alike) reports the caps toggle state rather than
+            # the physical key, so consulting it here swallowed every
+            # other press.  An event for the trigger keycode therefore
+            # simply means "the trigger was pressed".
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug(
+                    "Trigger flagsChanged: eventFlags=%#x capturing=%s "
+                    "modal=%s",
+                    Quartz.CGEventGetFlags(event),
+                    self.__capturing, self.__currentlyModal)
+            if not self.__capturing:
                 self.__beginCapture()
-            elif not pressed and self.__capturing \
-                    and not self.__currentlyModal:
+            elif not self.__currentlyModal:
+                # With no release events to end on, the non-modal
+                # quasimode ends on the next trigger press instead of
+                # on release (should a keyboard send a release
+                # flagsChanged after all, it ends the capture here the
+                # same way).
                 self.__endCapture("quasimodeEnd")
             return None
 
@@ -310,11 +413,13 @@ class InputManager(object):
         return event
 
     def __beginCapture(self):
+        logging.debug("Quasimode capture begins (modal=%s)", self.__isModal)
         self.__capturing = True
         self.__currentlyModal = self.__isModal
         self.__postEvent("quasimodeStart")
 
     def __endCapture(self, eventName):
+        logging.debug("Quasimode capture ends (%s)", eventName)
         self.__capturing = False
         self.__postEvent(eventName)
 
@@ -323,12 +428,20 @@ class InputManager(object):
         # overlay, which is far too slow for a tap callback (macOS
         # disables taps that stall the event stream).
         AppHelper.callAfter(self._dispatchKeyEvent,
-                            {"event": eventName, "keycode": keycode})
+                            {"event": eventName, "keycode": keycode,
+                             "posted": time.monotonic()})
 
     def _dispatchKeyEvent(self, info):
         """Delivers a tap event from the run loop, outside the tap."""
         try:
             event = info["event"]
+            if event.startswith("quasimode"):
+                # A long tap-to-dispatch delay means the run loop is
+                # busy (slow overlay redraws), which is also what gets
+                # the tap disabled by timeout.
+                logging.debug("Dispatching %s (tap-to-dispatch %.1f ms)",
+                              event,
+                              (time.monotonic() - info["posted"]) * 1000)
             if event == "quasimodeStart":
                 self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
             elif event == "quasimodeEnd":
@@ -377,8 +490,8 @@ class InputManager(object):
         return self.__isModal
 
     def setCapsLockMode(self, capsLockEnabled):
-        # Nothing to do: caps-lock toggling is suppressed inherently by
-        # consuming the trigger events in the tap.
+        # Nothing to do: while CapsLock is the trigger, its toggle is
+        # cleared on every press in the tap handler.
         pass
 
     def leaveQuasimode(self):

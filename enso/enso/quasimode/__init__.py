@@ -216,6 +216,13 @@ class Quasimode:
 
         if eventType == input.EVENT_KEY_QUASIMODE:
             if keyCode == input.KEYCODE_QUASIMODE_START:
+                if self._inQuasimode:
+                    # A start event while already in the quasimode is
+                    # dropped on the floor; if the window isn't visible
+                    # at this point, the state machine is stale and the
+                    # user sees a "dead" trigger key.
+                    logging.warning( "Quasimode start ignored: already "
+                                     "in the quasimode." )
                 if not self._inQuasimode:
                     if self.__canEnterQuasimode():
                         self.__quasimodeBegin()
@@ -233,7 +240,13 @@ class Quasimode:
                 #assert self._inQuasimode
                 if self._inQuasimode:
                     self.__quasimodeEnd()
+                else:
+                    logging.warning( "Quasimode end ignored: not in the "
+                                     "quasimode." )
             elif keyCode == input.KEYCODE_QUASIMODE_CANCEL:
+                if not self._inQuasimode:
+                    logging.warning( "Quasimode cancel arrived while not "
+                                     "in the quasimode; resetting state." )
                 self.__suggestionList.clearState()
                 self.__quasimodeEnd()
 
