@@ -168,6 +168,17 @@ class Quasimode:
 
         self.__eventMgr.setModality( self.__isModal )
 
+        # Bypassing works by un-registering the quasimode key while a
+        # bypassed window (RDP/VMware/NoMachine) is in the foreground:
+        # the keyhook only eats the trigger key when it matches the
+        # registered keycode, and it makes that decision before Enso
+        # gets a say.  Merely refusing to enter the quasimode would
+        # still swallow the key, leaving the remote session without it.
+        self.__isBypassing = False
+        if self.__isBypassEnabled():
+            self.__eventMgr.registerResponder( self.__onBypassTick,
+                                               "timer" )
+
         # To capture font styles, it is necessary to set color theme
         # before the quasimode is loaded
         layout.setColorTheme(config.COLOR_THEME)
@@ -211,7 +222,13 @@ class Quasimode:
                     else:
                         # a hack to turn off the quasimode state in the hook
                         self.__eventMgr.leaveQuasimode()
-                        pass
+                        # The hook ate this keypress before we could see
+                        # that the foreground window is bypassed (the
+                        # window changed since the last poll).  Start
+                        # bypassing and re-send the key, so the very
+                        # first press reaches the remote session too.
+                        self.__startBypassing()
+                        self.__resendQuasimodeKey()
             elif keyCode == input.KEYCODE_QUASIMODE_END:
                 #assert self._inQuasimode
                 if self._inQuasimode:
@@ -449,42 +466,102 @@ class Quasimode:
 
         return caption
 
-    def __canEnterQuasimode(self):
-        result = True
+    def __isBypassEnabled(self):
+        return bool( self.__contextUtils and
+                     ( config.QUASIMODE_BYPASS_TO_RDP or
+                       config.QUASIMODE_BYPASS_TO_VMWARE or
+                       config.QUASIMODE_BYPASS_TO_NOMACHINE ) )
+
+    def __isBypassedWindowInForeground(self):
+        """
+        Whether the foreground window belongs to a remote session or VM
+        that the quasimode key should be passed on to, untouched.
+        """
 
         try:
-            if self.__contextUtils:
-                foregroundClass = None
+            if not self.__isBypassEnabled():
+                return False
 
-                def getForegroundClass():
-                    # Only ask the OS once, and only if some bypass is
-                    # actually enabled.
-                    return self.__contextUtils.getForegroundClassNameUnicode()
+            foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
 
-                if config.QUASIMODE_BYPASS_TO_RDP:
-                    foregroundClass = getForegroundClass()
+            if config.QUASIMODE_BYPASS_TO_RDP:
+                if foregroundClass == "TscShellContainerClass":
+                    return True
 
-                    if foregroundClass == "TscShellContainerClass":
-                        result = False
+            if config.QUASIMODE_BYPASS_TO_VMWARE:
+                if foregroundClass == "VMUIFrame":
+                    return True
 
-                if result and config.QUASIMODE_BYPASS_TO_VMWARE:
-                    if foregroundClass is None:
-                        foregroundClass = getForegroundClass()
-
-                    if foregroundClass == "VMUIFrame":
-                        result = False
-
-                if result and config.QUASIMODE_BYPASS_TO_NOMACHINE:
-                    if foregroundClass is None:
-                        foregroundClass = getForegroundClass()
-
-                    # NoMachine uses a generic Qt window class, so the
-                    # title has to be checked as well.
-                    if foregroundClass == "QWidget":
-                        title = self.__contextUtils.getForegroundWindowTitleUnicode()
-                        if title and "NoMachine" in title:
-                            result = False
+            if config.QUASIMODE_BYPASS_TO_NOMACHINE:
+                # NoMachine uses a generic Qt window class, so the title
+                # has to be checked as well.
+                if foregroundClass == "QWidget":
+                    title = self.__contextUtils.getForegroundWindowTitleUnicode()
+                    if title and "NoMachine" in title:
+                        return True
         except:
             pass
 
-        return result
+        return False
+
+    def __startBypassing(self):
+        if self.__isBypassing:
+            return
+        self.__isBypassing = True
+        logging.debug( "Bypassing the quasimode key to the foreground "
+                       "window." )
+        # No virtual key has code 0, so the hook stops matching -- and
+        # therefore stops eating -- the trigger key.
+        self.__eventMgr.setQuasimodeKeycode(
+            input.KEYCODE_QUASIMODE_START, 0 )
+
+    def __stopBypassing(self):
+        if not self.__isBypassing:
+            return
+        self.__isBypassing = False
+        logging.debug( "Reclaiming the quasimode key." )
+        self.setQuasimodeKeyByName( input.KEYCODE_QUASIMODE_START,
+                                    config.QUASIMODE_START_KEY )
+
+    def __resendQuasimodeKey(self):
+        """
+        Re-sends a quasimode key press that the keyhook ate before we
+        knew the foreground window was bypassed.  Only safe once the
+        key is no longer registered with the hook, or the synthesized
+        press would be eaten in turn.
+        """
+
+        try:
+            keyCode = getattr( input, config.QUASIMODE_START_KEY, None )
+            if keyCode is not None and self.__contextUtils:
+                self.__contextUtils.tapKey( keyCode )
+        except:
+            logging.warn( "Couldn't re-send the quasimode key." )
+
+    def __onBypassTick(self, msPassed):
+        """
+        Registers/unregisters the quasimode key with the keyhook,
+        depending on whether a bypassed window is focused.
+        """
+
+        # The foreground window can't change while we hold the keyboard
+        # in the quasimode, and swapping the trigger key underneath the
+        # hook mid-quasimode would strand it.
+        if self._inQuasimode:
+            return
+
+        # Polled on every tick (rather than on a slower interval), so
+        # that the key is reclaimed before the user can press it after
+        # switching back from a bypassed window.  The two calls this
+        # makes are cheap, and the hook is only touched on a change.
+        isBypassed = self.__isBypassedWindowInForeground()
+        if isBypassed == self.__isBypassing:
+            return
+
+        if isBypassed:
+            self.__startBypassing()
+        else:
+            self.__stopBypassing()
+
+    def __canEnterQuasimode(self):
+        return not self.__isBypassedWindowInForeground()
