@@ -164,7 +164,7 @@ class EventManager( input.InputManager ):
         assert responderFunc not in self.getResponders( eventType )
 
         responderList = self.__responders[ eventType ]
-        logging.debug( "Added a responder function!" )
+
 
         # If this is a dismissal responder and we don't currently have
         # any registered, enable mouse events so we're actually
@@ -195,7 +195,7 @@ class EventManager( input.InputManager ):
         for eventType in list(self.__responders.keys()):
             responderList = self.__responders[ eventType ]
             if responderFunc in responderList:
-                logging.debug( "Removed a responder function!" )
+
                 responderList.remove( responderFunc )
                 removedTypes.append( eventType )
 
@@ -299,8 +299,7 @@ class EventManager( input.InputManager ):
         for func in self.__responders[ "key" ]:
             func( eventType, keyCode )
 
-        # The following message may be used by system tests.
-        logging.debug( "onKeypress: %s, %s" % (eventType, keyCode) )
+
 
     def onMouseMove( self, x, y ):
         """

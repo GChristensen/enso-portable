@@ -285,21 +285,11 @@ class _XKeyListener(threading.Thread):
         # trigger key entirely for a short window after a correction.
         if keycode == trigger \
                 and time.monotonic() < self.__ignoreTriggerUntil:
-            logging.debug("Ignoring phantom trigger event (type=%d, %.0f ms "
-                          "into the ignore window)." % (
-                              event.type,
-                              1000 * (0.2 - (self.__ignoreTriggerUntil
-                                             - time.monotonic()))))
             return
 
         if event.type == X.KeyPress:
             if not self.__capturing:
                 if keycode == trigger:
-                    logging.debug(
-                        "Trigger key press accepted (%.0f ms after the "
-                        "ignore window closed)." % (
-                            1000 * (time.monotonic()
-                                    - self.__ignoreTriggerUntil)))
                     self.__capturing = True
                     self.__currentlyModal = self.__parent.getModality()
                     self.__grabKeyboard()
@@ -399,10 +389,8 @@ class _XKeyListener(threading.Thread):
             if line.startswith("options:"):
                 options = line.split(":", 1)[1].strip()
         if "caps:none" in options.split(","):
-            logging.debug("Caps Lock action already disabled")
             self.__capsLockCleared = True
             return
-        logging.debug("Disabling the Caps Lock action (setxkbmap caps:none)")
         self.__originalXkbOptions = options
         subprocess.run(["setxkbmap", "-option", "caps:none"])
         self.__capsLockCleared = True
@@ -410,7 +398,7 @@ class _XKeyListener(threading.Thread):
 
     def enable_caps_lock(self):
         if self.__capsLockCleared and self.__originalXkbOptions is not None:
-            logging.debug("Restoring the original XKB options")
+
             subprocess.run(["setxkbmap", "-option", ""])
             if self.__originalXkbOptions:
                 subprocess.run(["setxkbmap", "-option",
@@ -509,7 +497,7 @@ class InputManager(object):
         if self.__timeoutId is not None:
             GLib.source_remove(self.__timeoutId)
             self.__timeoutId = GLib.timeout_add(desired, self.__onTimer)
-        logging.debug("Tick rate changed to %d ms", desired)
+
 
     def __pollMouse(self):
         # X11 has no lightweight global mouse hook comparable to

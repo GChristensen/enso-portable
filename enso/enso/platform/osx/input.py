@@ -366,12 +366,7 @@ class InputManager(object):
             # the physical key, so consulting it here swallowed every
             # other press.  An event for the trigger keycode therefore
             # simply means "the trigger was pressed".
-            if logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug(
-                    "Trigger flagsChanged: eventFlags=%#x capturing=%s "
-                    "modal=%s",
-                    Quartz.CGEventGetFlags(event),
-                    self.__capturing, self.__currentlyModal)
+
             if not self.__capturing:
                 self.__beginCapture()
             elif not self.__currentlyModal:
@@ -413,13 +408,13 @@ class InputManager(object):
         return event
 
     def __beginCapture(self):
-        logging.debug("Quasimode capture begins (modal=%s)", self.__isModal)
+
         self.__capturing = True
         self.__currentlyModal = self.__isModal
         self.__postEvent("quasimodeStart")
 
     def __endCapture(self, eventName):
-        logging.debug("Quasimode capture ends (%s)", eventName)
+
         self.__capturing = False
         self.__postEvent(eventName)
 
@@ -435,13 +430,7 @@ class InputManager(object):
         """Delivers a tap event from the run loop, outside the tap."""
         try:
             event = info["event"]
-            if event.startswith("quasimode"):
-                # A long tap-to-dispatch delay means the run loop is
-                # busy (slow overlay redraws), which is also what gets
-                # the tap disabled by timeout.
-                logging.debug("Dispatching %s (tap-to-dispatch %.1f ms)",
-                              event,
-                              (time.monotonic() - info["posted"]) * 1000)
+
             if event == "quasimodeStart":
                 self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
             elif event == "quasimodeEnd":
