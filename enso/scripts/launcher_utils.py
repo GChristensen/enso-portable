@@ -37,6 +37,8 @@ def create_option_parser(version="1.0"):
                       help="No information windows are shown on startup/shutdown")
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       default=False, help="Debug mode")
+    parser.add_option("-t", "--no-tray", action="store_false", dest="show_tray_icon",
+                      default=True, help="Hide tray icon")
     return parser
 
 
@@ -58,6 +60,19 @@ def preflight():
             print("Warning: this looks like a Wayland session. Enso's global "
                   "key grab only sees X11 applications; log into an X11 "
                   "session for reliable operation.", file=sys.stderr)
+    elif sys.platform == "darwin":
+        try:
+            import Quartz
+        except ImportError:
+            sys.exit("Error: PyObjC is not installed. Run: pip install "
+                     "pyobjc-framework-Cocoa pyobjc-framework-Quartz pycairo")
+        if hasattr(Quartz, "CGPreflightListenEventAccess") \
+                and not Quartz.CGPreflightListenEventAccess():
+            print("Warning: the Input Monitoring permission is not granted "
+                  "to this python binary; Enso won't see the quasimode key. "
+                  "Grant it in System Settings -> Privacy & Security -> "
+                  "Input Monitoring (macOS will prompt on first run).",
+                  file=sys.stderr)
 
 
 def platform_bootstrap():
@@ -74,8 +89,6 @@ def add_platform_options(parser):
                           default=True, help="Hide console window")
         parser.add_option("-r", "--redirect-stdout", action="store_true", dest="redirect_stdout",
                           default=False, help="Hide console window")
-        parser.add_option("-t", "--no-tray", action="store_false", dest="show_tray_icon",
-                          default=True, help="Hide tray icon")
 
 
 def configure_basic_logging(loglevel_name, log_file=None):
@@ -132,11 +145,26 @@ def configure_logging(opts):
 
 def start_platform_extras(opts):
     """Starts any OS-specific background integration requested via
-    the CLI options (currently: the Windows tray icon)."""
-    if sys.platform.startswith("win") and opts.show_tray_icon:
-        import threading
-        from enso.platform.win32 import tray
-        threading.Thread(target=tray.run, args=(config,)).start()
+    the CLI options (currently: the tray icon).  A broken tray must
+    never prevent Enso itself from starting."""
+    if not opts.show_tray_icon:
+        return
+    try:
+        if sys.platform.startswith("win"):
+            # The win32 tray pumps its own message loop; the Linux and
+            # macOS trays live on the main loop enso.run() starts.
+            import threading
+            from enso.platform.win32 import tray
+            threading.Thread(target=tray.run, args=(config,)).start()
+        elif sys.platform.startswith("linux"):
+            from enso.platform.linux import tray
+            tray.install(config)
+        elif sys.platform == "darwin":
+            from enso.platform.osx import tray
+            tray.install(config)
+    except Exception:
+        logging.exception("Couldn't start the tray icon; continuing "
+                          "without it.")
 
 
 def stop_platform_extras():
@@ -147,6 +175,12 @@ def stop_platform_extras():
         config.SYSTRAY_ICON.change_tooltip("Closing Enso...")
         win32gui.PostMessage(config.SYSTRAY_ICON.hwnd, win32con.WM_COMMAND,
                              config.SYSTRAY_ICON.CMD_FINALIZE, 0)
+    elif sys.platform == "darwin":
+        try:
+            from enso.platform.osx import tray
+            tray.uninstall()
+        except Exception:
+            pass
 
 
 def platform_shutdown_delay():

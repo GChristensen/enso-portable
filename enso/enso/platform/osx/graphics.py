@@ -1,183 +1,253 @@
-import os
+"""
+Cocoa implementation of the Enso "graphics" provider (TransparentWindow).
+
+Based on the original Enso OS X port:
+Copyright (c) 2008, Humanized, Inc.
+Rewritten for Python 3 / modern PyObjC; renders a pycairo ImageSurface
+into a borderless transparent NSWindow (no Cairo<->Quartz bridge).
+"""
+
+import logging
 import weakref
-import cStringIO
+
+import cairo
 
 import objc
 import AppKit
 import Foundation
-import cairo
+import Quartz
 
-from enso.platform.osx.quartz_cairo_bridge import \
-    cairo_surface_from_NSGraphicsContext
-from enso.platform.osx.utils import sendMsg
+from enso import config
 
+# Max opacity as used in Enso core (converted to [0;1] in this backend).
 MAX_OPACITY = 0xff
 
-class _TransparentWindowView( AppKit.NSView ):
-    def initWithParent_( self, parent ):
-        self = super( _TransparentWindowView, self ).init()
-        if self == None:
+
+def _mainScreenHeight():
+    return AppKit.NSScreen.screens()[0].frame().size.height
+
+
+def _convertY(y, height):
+    """Converts a top-left-origin global y coordinate (as used by Enso
+    core, matching the win32 and X11 conventions) into Cocoa's
+    bottom-left-origin global coordinate space."""
+    return _mainScreenHeight() - y - height
+
+
+class _TransparentWindowView(AppKit.NSView):
+    """View that paints the parent's cairo ImageSurface, cropped to the
+    window's current size."""
+
+    def initWithParent_(self, parent):
+        self = objc.super(_TransparentWindowView, self).init()
+        if self is None:
             return None
-        self.__parent = weakref.ref( parent )
+        self.__parent = weakref.ref(parent)
         return self
 
-    def drawRect_( self, rect ):
+    def isFlipped(self):
+        # A flipped view puts the origin at the top-left, so the window
+        # content maps 1:1 onto Enso's coordinate conventions.
+        return True
+
+    def drawRect_(self, rect):
         parent = self.__parent()
-        if not parent:
+        if parent is None:
             return
-
-        surface = parent._surface
-        if not surface:
+        image = parent._makeCGImage()
+        if image is None:
             return
+        context = AppKit.NSGraphicsContext.currentContext().CGContext()
+        width = Quartz.CGImageGetWidth(image)
+        height = Quartz.CGImageGetHeight(image)
+        # The view is flipped but CGImages are not; flip back locally so
+        # the image is not drawn upside down.
+        Quartz.CGContextSaveGState(context)
+        Quartz.CGContextTranslateCTM(context, 0, height)
+        Quartz.CGContextScaleCTM(context, 1.0, -1.0)
+        Quartz.CGContextDrawImage(
+            context, Quartz.CGRectMake(0, 0, width, height), image)
+        Quartz.CGContextRestoreGState(context)
 
-        context = AppKit.NSGraphicsContext.currentContext()
 
-        # Taken from the OS X Cocoa Drawing Guide section on
-        # "Creating a Flip Transform".
-        frameRect = self.bounds()
-        xform = AppKit.NSAffineTransform.transform()
-        sendMsg( xform,
-                 "translateXBy:", 0.0,
-                 "yBy:", frameRect.size.height )
+class TransparentWindow(object):
+    """TransparentWindow object, delegating to a Cocoa implementation.
 
-        sendMsg( xform,
-                 "scaleXBy:", 1.0,
-                 "yBy:", -1.0 )
+    The indirection exists because Enso core deletes its reference to
+    the TransparentWindow to dispose of it, while Cocoa itself keeps
+    references to the underlying window; destruction must therefore be
+    explicit."""
 
-        xform.concat()
+    class _impl(object):
 
-        parent._imageRep.draw()
+        def __init__(self, x, y, maxWidth, maxHeight):
+            self.__x = x
+            self.__y = y
+            self.__maxWidth = maxWidth
+            self.__maxHeight = maxHeight
+            self.__width = maxWidth
+            self.__height = maxHeight
+            self.__surface = None
+            self.__opacity = MAX_OPACITY
+            self.__shown = False
 
-def _convertY( y, height ):
-    """
-    Flip a y-coordinate to account for the fact that OS X has its
-    origin at the bottom-left of an image instead of the top-left, as
-    Enso expects it to be.
-    """
+            rect = Foundation.NSMakeRect(x, _convertY(y, self.__height),
+                                         self.__width, self.__height)
+            self.__wind = (
+                AppKit.NSWindow.alloc()
+                .initWithContentRect_styleMask_backing_defer_(
+                    rect,
+                    AppKit.NSWindowStyleMaskBorderless,
+                    AppKit.NSBackingStoreBuffered,
+                    False))
+            self.__wind.setBackgroundColor_(AppKit.NSColor.clearColor())
+            self.__wind.setOpaque_(False)
+            self.__wind.setHasShadow_(False)
+            self.__wind.setLevel_(AppKit.NSPopUpMenuWindowLevel)
+            # The overlay must never take mouse input (parity with the
+            # win32 WS_EX_TRANSPARENT style and the X11 empty input
+            # shape).
+            self.__wind.setIgnoresMouseEvents_(True)
+            self.__wind.setCollectionBehavior_(
+                AppKit.NSWindowCollectionBehaviorCanJoinAllSpaces
+                | AppKit.NSWindowCollectionBehaviorStationary)
 
-    screenSize = getDesktopSize()
-    return screenSize[1] - y - height
+            self.__view = (_TransparentWindowView.alloc()
+                           .initWithParent_(self))
+            self.__wind.setContentView_(self.__view)
 
-class TransparentWindow( object ):
-    def __init__( self, x, y, maxWidth, maxHeight ):
-        self.__x = x
-        self.__y = y
-        self.__maxWidth = maxWidth
-        self.__maxHeight = maxHeight
-        self.__width = maxWidth
-        self.__height = maxHeight
-        self._surface = None
-        self.__opacity = 0xff
+        def _makeCGImage(self):
+            """Wraps the current crop of the cairo surface in a CGImage.
+            cairo ARGB32 is premultiplied BGRA in memory on
+            little-endian, which CGImageCreate describes exactly as
+            AlphaPremultipliedFirst | ByteOrder32Little."""
+            if not self.__surface:
+                return None
+            self.__surface.flush()
+            stride = self.__surface.get_stride()
+            provider = Quartz.CGDataProviderCreateWithData(
+                None, bytes(self.__surface.get_data()),
+                stride * self.__maxHeight, None)
+            image = Quartz.CGImageCreate(
+                self.__maxWidth, self.__maxHeight, 8, 32, stride,
+                Quartz.CGColorSpaceCreateDeviceRGB(),
+                (Quartz.kCGImageAlphaPremultipliedFirst
+                 | Quartz.kCGBitmapByteOrder32Little),
+                provider, None, False, Quartz.kCGRenderingIntentDefault)
+            if (self.__width, self.__height) != (self.__maxWidth,
+                                                 self.__maxHeight):
+                image = Quartz.CGImageCreateWithImageInRect(
+                    image, Quartz.CGRectMake(0, 0, self.__width,
+                                             self.__height))
+            return image
 
-        rect = Foundation.NSMakeRect( self.__x,
-                                      _convertY( self.__y, self.__height ),
-                                      self.__width,
-                                      self.__height )
-        style = AppKit.NSBorderlessWindowMask
-        self.__wind = sendMsg(
-            AppKit.NSWindow.alloc(),
-            "initWithContentRect:", rect,
-            "styleMask:", style,
-            "backing:", AppKit.NSBackingStoreBuffered,
-            "defer:", objc.YES
-            )
+        def update(self):
+            if self.__surface:
+                if not self.__shown:
+                    # Never before there is real content to show, and
+                    # never with makeKeyAndOrderFront: the overlay must
+                    # not steal focus.
+                    self.__wind.orderFrontRegardless()
+                    self.__shown = True
+                self.__view.setNeedsDisplay_(True)
 
-        self.__wind.setBackgroundColor_( AppKit.NSColor.clearColor() )
-        self.__view = _TransparentWindowView.alloc().initWithParent_( self )
-        self.__wind.setContentView_( self.__view )
-        self.__wind.setLevel_( AppKit.NSPopUpMenuWindowLevel )
-        self.__wind.setOpaque_( objc.NO )
-        self.__wind.setAlphaValue_( 1.0 )
+        def makeCairoSurface(self):
+            if not self.__surface:
+                self.__surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                                    self.__maxWidth,
+                                                    self.__maxHeight)
+            return self.__surface
 
-    def update( self ):
-        if self._surface:
-            self.__wind.makeKeyAndOrderFront_( objc.nil )
-            self.__view.setNeedsDisplay_( objc.YES )
+        def setOpacity(self, opacity):
+            self.__opacity = opacity
+            self.__wind.setAlphaValue_(opacity / MAX_OPACITY)
 
-    def makeCairoSurface( self ):
-        if not self._surface:
-            self._imageRep = sendMsg(
-                AppKit.NSBitmapImageRep.alloc(),
-                "initWithBitmapDataPlanes:", None,
-                "pixelsWide:", self.__maxWidth,
-                "pixelsHigh:", self.__maxHeight,
-                "bitsPerSample:", 8,
-                "samplesPerPixel:", 4,
-                "hasAlpha:", True,
-                "isPlanar:", False,
-                "colorSpaceName:", AppKit.NSCalibratedRGBColorSpace,
-                "bitmapFormat:", 0,
-                "bytesPerRow:", 4 * self.__maxWidth,
-                "bitsPerPixel:", 32
-                )
+        def getOpacity(self):
+            return self.__opacity
 
-            # This NSGraphicsContext retains the NSBitmapImageRep we
-            # pass it, but for some reason it doesn't release it on
-            # destruction... See this class' __del__() method for how
-            # we deal with this.
-            nsContext = sendMsg(
-                AppKit.NSGraphicsContext,
-                "graphicsContextWithBitmapImageRep:",
-                self._imageRep
-                )
+        def setPosition(self, x, y):
+            self.__x = x
+            self.__y = y
+            self.__wind.setFrameTopLeftPoint_(
+                Foundation.NSPoint(x, _convertY(y, 0)))
 
-            self._surface = cairo_surface_from_NSGraphicsContext(
-                nsContext,
-                self.__maxWidth,
-                self.__maxHeight
-                )
+        def getX(self):
+            return self.__x
 
-        return self._surface
+        def getY(self):
+            return self.__y
 
-    def setOpacity( self, opacity ):
-        self.__opacity = opacity
-        self.__wind.setAlphaValue_( (float(opacity)/MAX_OPACITY) * 1.0 )
+        def setSize(self, width, height):
+            self.__width = width
+            self.__height = height
+            rect = Foundation.NSMakeRect(self.__x,
+                                         _convertY(self.__y, height),
+                                         width, height)
+            self.__wind.setFrame_display_(rect, True)
 
-    def getOpacity( self ):
-        return self.__opacity
+        def getWidth(self):
+            return self.__width
 
-    def setPosition( self, x, y ):
-        self.__x = x
-        self.__y = y
-        topLeft = Foundation.NSPoint( self.__x,
-                                      _convertY( self.__y, self.__height ) )
-        self.__wind.setFrameTopLeftPoint_( topLeft )
+        def getHeight(self):
+            return self.__height
 
-    def getX( self ):
-        return self.__x
+        def getMaxWidth(self):
+            return self.__maxWidth
 
-    def getY( self ):
-        return self.__y
+        def getMaxHeight(self):
+            return self.__maxHeight
 
-    def setSize( self, width, height ):
-        self.__width = width
-        self.__height = height
-        rect = Foundation.NSMakeRect( self.__x,
-                                      _convertY( self.__y, self.__height ),
-                                      self.__width,
-                                      self.__height )
-        self.__wind.setFrame_display_( rect, objc.YES )
+        def setForeground(self):
+            self.__wind.orderFrontRegardless()
 
-    def getWidth( self ):
-        return self.__width
+        def finish(self):
+            if self.__surface:
+                self.__surface.finish()
+                self.__surface = None
+            if self.__wind is not None:
+                self.__wind.orderOut_(None)
+                self.__wind = None
+                self.__view = None
 
-    def getHeight( self ):
-        return self.__height
+    def __init__(self, x, y, maxWidth, maxHeight):
+        instance = TransparentWindow._impl(x, y, maxWidth, maxHeight)
+        self.__dict__["_TransparentWindow__instance"] = instance
 
-    def getMaxWidth( self ):
-        return self.__maxWidth
+    def __getattr__(self, attr):
+        return getattr(self.__instance, attr)
 
-    def getMaxHeight( self ):
-        return self.__maxHeight
+    def __setattr__(self, attr, value):
+        return setattr(self.__instance, attr, value)
 
-    def __del__( self ):
-        if self._surface:
-            self._surface.finish()
-            self._surface = None
+    def __del__(self):
+        self.finish()
 
-def getDesktopSize():
-    size = AppKit.NSScreen.mainScreen().frame().size
-    return ( size.width, size.height )
+
+def _getCurrentScreen():
+    """Returns the NSScreen under the mouse pointer."""
+    location = AppKit.NSEvent.mouseLocation()
+    for screen in AppKit.NSScreen.screens():
+        if Foundation.NSPointInRect(location, screen.frame()):
+            return screen
+    return AppKit.NSScreen.screens()[0]
+
+
+def _getCurrentScreenRect():
+    screen = _getCurrentScreen()
+    if config.APPEAR_OVER_TASKBAR:
+        return screen.frame()
+    return screen.visibleFrame()
+
 
 def getDesktopOffset():
-    return (0, 0)
+    """Offset of the current screen in top-left-origin global
+    coordinates, so Enso can draw on any of them."""
+    rect = _getCurrentScreenRect()
+    x = rect.origin.x
+    y = _mainScreenHeight() - rect.origin.y - rect.size.height
+    return (x, y)
+
+
+def getDesktopSize():
+    rect = _getCurrentScreenRect()
+    return (rect.size.width, rect.size.height)

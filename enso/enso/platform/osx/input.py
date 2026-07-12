@@ -1,345 +1,411 @@
+"""
+Quartz/Cocoa implementation of the Enso "input" provider.
+
+Based on the original Enso OS X port:
+Copyright (c) 2008, Humanized, Inc.
+Rewritten for Python 3 / modern PyObjC.  The external EnsoKeyNotifier
+helper of the legacy port is replaced with an in-process CGEventTap
+installed on the main run loop, so everything runs on the main thread
+(Enso core is not thread-safe).
+
+The event tap needs the "Input Monitoring" permission (System Settings
+-> Privacy & Security); without it CGEventTapCreate returns None.
+"""
+
 import logging
-import subprocess
-import errno
-import os
-import sys
 import signal
-import atexit
+import traceback
 
 import objc
-import Foundation
 import AppKit
+import Foundation
+import Quartz
 
-from enso.platform.osx.utils import sendMsg
+from PyObjCTools import AppHelper
 
-# Timer interval in seconds.
-_TIMER_INTERVAL = 0.010
+# Timer tick interval, in milliseconds.
+TICK_INTERVAL_MS = 10
 
-# Timer interval in milliseconds.
-_TIMER_INTERVAL_IN_MS = int( _TIMER_INTERVAL * 1000 )
-
-KEYCODE_CAPITAL = -1
-KEYCODE_SPACE = 49
-KEYCODE_LSHIFT = -1
-KEYCODE_RSHIFT = -1
-KEYCODE_LCONTROL = -1
-KEYCODE_RCONTROL = -1
-KEYCODE_LWIN = -1
-KEYCODE_RWIN = -1
-KEYCODE_RETURN = 36
-KEYCODE_ESCAPE = 53
-KEYCODE_TAB = 48
-KEYCODE_BACK = 51
-KEYCODE_DOWN = 125
-KEYCODE_UP = 126
-
+# Event types, matching the win32 InputManager constants.
 EVENT_KEY_UP = 0
 EVENT_KEY_DOWN = 1
 EVENT_KEY_QUASIMODE = 2
 
+# Quasimode keycode "slots".
 KEYCODE_QUASIMODE_START = 0
 KEYCODE_QUASIMODE_END = 1
 KEYCODE_QUASIMODE_CANCEL = 2
 
-CASE_INSENSITIVE_KEYCODE_MAP = {
-    29: "0",
-    18: "1",
-    19: "2",
-    20: "3",
-    21: "4",
-    23: "5",
-    22: "6",
-    26: "7",
-    28: "8",
-    25: "9",
-    KEYCODE_SPACE: " ",
-    0: "a",
-    11: "b",
-    8: "c",
-    2: "d",
-    14: "e",
-    3: "f",
-    5: "g",
-    4: "h",
-    34: "i",
-    38: "j",
-    40: "k",
-    37: "l",
-    46: "m",
-    45: "n",
-    31: "o",
-    35: "p",
-    12: "q",
-    15: "r",
-    1: "s",
-    17: "t",
-    32: "u",
-    9: "v",
-    13: "w",
-    7: "x",
-    16: "y",
-    6: "z",
-    44: "?",
-    42: "\\",
-    47: ".",
-    41: ":",
-    24: "+",
-    27: "-",
-    }
+# Mac virtual keycodes (Carbon kVK_* values) for the keys Enso core
+# refers to by name.
+KEYCODE_CAPITAL = 57
+KEYCODE_RETURN = 36
+KEYCODE_ESCAPE = 53
+KEYCODE_TAB = 48
+KEYCODE_BACK = 51
+KEYCODE_UP = 126
+KEYCODE_DOWN = 125
+KEYCODE_SPACE = 49
+KEYCODE_LSHIFT = 56
+KEYCODE_RSHIFT = 60
+KEYCODE_SHIFT = KEYCODE_LSHIFT
+# Macs have no NumLock; kVK_ANSI_KeypadClear stands in so the constant
+# exists (getKeyState always reports it off).
+KEYCODE_NUMLOCK = 71
 
-def _getRunningProcessInfo():
-    popen = subprocess.Popen( ["ps", "-ef"], stdout=subprocess.PIPE )
-    output, errors = popen.communicate()
-    info = []
-    for line in output.splitlines()[1:]:
-        parts = line.split()
-        pid = int( parts[1] )
-        cmd = " ".join( parts[7:] )
-        info.append( {"pid" : pid, "cmd" : cmd} )
-    return info
+_SPECIAL_KEYCODES = frozenset((
+    KEYCODE_CAPITAL, KEYCODE_RETURN, KEYCODE_ESCAPE, KEYCODE_TAB,
+    KEYCODE_BACK, KEYCODE_UP, KEYCODE_DOWN, KEYCODE_NUMLOCK,
+))
 
-class _KeyNotifierController( object ):
-    def __init__( self ):
-        pass
+# Maps mac virtual keycodes to the characters they produce with the
+# current keyboard layout, with the shifted character of a keycode
+# stored at keycode + 1000 (the same convention the win32 CharMaps
+# module uses).  Shifted letters are deliberately absent so that
+# command names stay case-insensitive.
+CASE_INSENSITIVE_KEYCODE_MAP = {}
 
-    def __killExistingKeyNotifiers( self ):
-        # TODO: This may get processes that aren't the key notifier,
-        # e.g. 'nano EnsoKeyNotifier.m'.
-        infos = [ info for info in _getRunningProcessInfo()
-                  if "EnsoKeyNotifier" in info["cmd"] ]
-        for info in infos:
-            logging.info( "Killing existing key notifier %d." % info["pid"] )
-            os.kill( info["pid"], signal.SIGKILL )
 
-    def __tryToStartKeyNotifier( self, path="" ):
-        fullPath = os.path.join( path, "EnsoKeyNotifier" )
-        logging.info( "Trying to launch '%s'." % fullPath )
-        popen = subprocess.Popen( [fullPath] )
-        return popen
+def _keycodeToChar(keycode, shifted):
+    """Returns the character the given keycode produces under the
+    current layout, using a throwaway CGEvent (no Carbon/UCKeyTranslate
+    needed; creating events requires no special permissions)."""
+    event = Quartz.CGEventCreateKeyboardEvent(None, keycode, True)
+    Quartz.CGEventSetFlags(
+        event, Quartz.kCGEventFlagMaskShift if shifted else 0)
+    _, chars = Quartz.CGEventKeyboardGetUnicodeString(event, 4, None, None)
+    if chars and len(chars) == 1 and chars.isprintable():
+        return chars
+    return None
 
-    def start( self ):
-        self.__killExistingKeyNotifiers()
-        try:
-            # First see if the key notifier is on our path...
-            popen = self.__tryToStartKeyNotifier()
-        except OSError, e:
-            if e.errno == errno.ENOENT:
-                logging.info( "Couldn't find key notifier on path." )
-                # Maybe we're running from a repository checkout...
-                import enso
-                path = os.path.normpath( enso.__path__[0] + "/../bin" )
-                popen = self.__tryToStartKeyNotifier( path )
-            else:
-                raise
 
-        self._pid = popen.pid
+def _fillKeymap():
+    for keycode in range(0, 128):
+        if keycode in _SPECIAL_KEYCODES:
+            continue
+        char = _keycodeToChar(keycode, shifted=False)
+        if char:
+            CASE_INSENSITIVE_KEYCODE_MAP[keycode] = char
+            shifted = _keycodeToChar(keycode, shifted=True)
+            if shifted and shifted.lower() != char.lower():
+                CASE_INSENSITIVE_KEYCODE_MAP[keycode + 1000] = shifted
+    CASE_INSENSITIVE_KEYCODE_MAP[KEYCODE_SPACE] = " "
 
-    def stop( self ):
-        logging.info( "Stopping key notifier." )
-        try:
-            os.kill( self._pid, signal.SIGINT )
-        except OSError, e:
-            if e.errno == errno.ESRCH:
-                logging.warn( "Key notifier process no longer exists." )
-            else:
-                raise
 
-class _Timer( Foundation.NSObject ):
-    def initWithCallback_( self, callback ):
-        self = super( _Timer, self ).init()
-        if self == None:
+_fillKeymap()
+
+_COMBINED_STATE = Quartz.kCGEventSourceStateCombinedSessionState
+
+
+def getKeyState(keyCode):
+    """Queries the current keyboard state, with win32 GetKeyState()
+    semantics: negative means held down, low bit means toggled on."""
+    flags = Quartz.CGEventSourceFlagsState(_COMBINED_STATE)
+    if keyCode in (KEYCODE_SHIFT, KEYCODE_LSHIFT, KEYCODE_RSHIFT):
+        return -128 if flags & Quartz.kCGEventFlagMaskShift else 0
+    if keyCode == KEYCODE_CAPITAL:
+        return 1 if flags & Quartz.kCGEventFlagMaskAlphaShift else 0
+    return 0
+
+
+class _Timer(Foundation.NSObject):
+
+    def initWithCallback_(self, callback):
+        self = objc.super(_Timer, self).init()
+        if self is None:
             return None
         self.__callback = callback
         return self
 
-    def onTimer( self ):
+    def onTimer_(self, timer):
         self.__callback()
 
-class _AppDelegate( Foundation.NSObject ):
-    def applicationShouldTerminate_( self, sender ):
-        logging.info( "applicationShouldTerminate() called." )
-        return AppKit.NSTerminateNow
 
-    def applicationWillTerminate_( self, notification ):
-        # The sys.exitfunc() won't get called unless we explicitly
-        # call it here, because OS X is going to terminate our app,
-        # not Python.
-        sys.exitfunc()
+class InputManager(object):
+    """Input event manager: owns the Cocoa main loop and the event tap.
+    Enso's EventManager subclasses this and overrides the on* hooks."""
 
-class _KeyListener( Foundation.NSObject ):
-    def initWithCallback_( self, callback ):
-        self = super( _KeyListener, self ).init()
-        if self == None:
-            return None
-        self.__callback = callback
-        return self
-
-    def onNotification( self, notification ):
-        #print "notification received: %s" % notification.name()
-        userInfo = notification.userInfo()
-        eventDict = {}
-        for key in userInfo:
-            eventDict[key] = sendMsg( userInfo,
-                                       "objectForKey:", key )
-        self.__callback( eventDict )
-
-    def register( self ):
-        NSDNC = Foundation.NSDistributedNotificationCenter
-        self.__center = NSDNC.defaultCenter()
-        sendMsg(
-            self.__center,
-            "addObserver:", self,
-            "selector:", self.onNotification,
-            "name:", u"EnsoKeyNotifier_msg",
-            "object:", u"EnsoKeyNotifier"
-            )
-
-    def unregister( self ):
-        sendMsg( self.__center,
-                  "removeObserver:", self )
-
-def nestedAutoreleasePooled(func):
-    """
-    Decorator that executes the wrapped function in a nested
-    autorelease pool, so that any Objective-C memory that is unneeded
-    is released when the function returns, rather than at some unknown
-    later time.
-    """
-
-    def wrappedFunc(*args, **kwargs):
-        pool = AppKit.NSAutoreleasePool.alloc().init()
-        retval = func(*args, **kwargs)
-        del pool
-        return retval
-    return wrappedFunc
-
-class InputManager( object ):
-    def __init__( self ):
+    def __init__(self):
         self.__mouseEventsEnabled = False
-        self.__qmKeycodes = [0, 0, 0]
+        self.__qmKeycodes = [KEYCODE_CAPITAL, KEYCODE_RETURN, KEYCODE_ESCAPE]
         self.__isModal = False
-        self.__inQuasimode = False
+        self.__capturing = False
+        self.__currentlyModal = False
+        self.__tap = None
+        self.__lastMousePos = None
+        self.__lastMouseButtons = 0
 
-    @nestedAutoreleasePooled
-    def __timerCallback( self ):
-        self.onTick( _TIMER_INTERVAL_IN_MS )
+    # ------------------------------------------------------------------
+    # Main loop
+    # ------------------------------------------------------------------
 
-    @nestedAutoreleasePooled
-    def __keyCallback( self, info ):
-        if info["event"] == "quasimodeStart":
-            self.onKeypress( EVENT_KEY_QUASIMODE,
-                             KEYCODE_QUASIMODE_START )
-        elif info["event"] == "quasimodeEnd":
-            self.onKeypress( EVENT_KEY_QUASIMODE,
-                             KEYCODE_QUASIMODE_END )
-        elif info["event"] == "someKey":
-            self.onSomeKey()
-        elif info["event"] in ["keyUp", "keyDown"]:
-            keycode = info["keycode"]
-            if info["event"] == "keyUp":
-                eventType = EVENT_KEY_UP
-            else:
-                eventType = EVENT_KEY_DOWN
-            self.onKeypress( eventType, keycode )
-        else:
-            logging.warn( "Don't know what to do with event: %s" % info )
-
-    def run( self ):
-        logging.info( "Entering InputManager.run()" )
+    def run(self):
+        logging.info("Entering InputManager.run()")
 
         app = AppKit.NSApplication.sharedApplication()
+        app.setActivationPolicy_(
+            AppKit.NSApplicationActivationPolicyAccessory)
 
-        if not app.delegate():
-            logging.info( "Attaching app delegate." )
-            delegate = _AppDelegate.alloc().init()
-            app.setDelegate_( delegate )
-        else:
-            logging.info( "An app delegate is already attached; "
-                          "skipping installation." )
+        self.__checkPermissions()
 
-        timer = sendMsg(
-            _Timer.alloc(),
-            "initWithCallback:", self.__timerCallback
-            )
+        mask = (Quartz.CGEventMaskBit(Quartz.kCGEventKeyDown)
+                | Quartz.CGEventMaskBit(Quartz.kCGEventKeyUp)
+                | Quartz.CGEventMaskBit(Quartz.kCGEventFlagsChanged))
+        self.__tap = Quartz.CGEventTapCreate(
+            Quartz.kCGSessionEventTap,
+            Quartz.kCGHeadInsertEventTap,
+            Quartz.kCGEventTapOptionDefault,
+            mask,
+            self.__onTapEvent,
+            None)
+        if self.__tap is None:
+            logging.critical(
+                "Couldn't create the keyboard event tap.  Grant this "
+                "python binary both 'Accessibility' and 'Input "
+                "Monitoring' in System Settings -> Privacy & Security, "
+                "then restart Enso.")
+            return
+        source = Quartz.CFMachPortCreateRunLoopSource(None, self.__tap, 0)
+        Quartz.CFRunLoopAddSource(Quartz.CFRunLoopGetCurrent(), source,
+                                  Quartz.kCFRunLoopCommonModes)
+        Quartz.CGEventTapEnable(self.__tap, True)
 
-        signature = sendMsg(
-            timer,
-            "methodSignatureForSelector:", timer.onTimer
-            )
+        timerTarget = _Timer.alloc().initWithCallback_(self.__onTimer)
+        timer = (Foundation.NSTimer
+                 .scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                     TICK_INTERVAL_MS / 1000.0, timerTarget, "onTimer:",
+                     None, True))
+        # Keep ticking while menus/drags run their own run-loop modes.
+        Foundation.NSRunLoop.currentRunLoop().addTimer_forMode_(
+            timer, AppKit.NSEventTrackingRunLoopMode)
 
-        invocation = sendMsg(
-            Foundation.NSInvocation,
-            "invocationWithMethodSignature:", signature
-            )
+        # The 10 ms timer wakes the interpreter often enough for Python
+        # signal handlers to run despite the ObjC main loop.
+        signal.signal(signal.SIGINT, lambda signum, frame: self.stop())
 
-        sendMsg( invocation, "setSelector:", timer.onTimer )
-        sendMsg( invocation, "setTarget:", timer )
-
-        sendMsg( Foundation.NSTimer,
-                  "scheduledTimerWithTimeInterval:", _TIMER_INTERVAL,
-                  "invocation:", invocation,
-                  "repeats:", objc.YES )
-
-        keyNotifier = _KeyNotifierController()
-        keyNotifier.start()
-        atexit.register( keyNotifier.stop )
-
-        keyListener = sendMsg(
-            _KeyListener.alloc(),
-            "initWithCallback:", self.__keyCallback
-            )
-        keyListener.register()
-        atexit.register( keyListener.unregister )
-
-        self.onInit()
-
-        if not app.isRunning():
-            logging.info( "Calling app.run()." )
+        try:
+            self.onInit()
             app.run()
-        else:
-            logging.info( "Application appears to be running already; "
-                          "skipping app.run()." )
+        finally:
+            timer.invalidate()
+            if self.__tap is not None:
+                Quartz.CGEventTapEnable(self.__tap, False)
+                self.__tap = None
 
-    def stop( self ):
-        app = AppKit.NSApplication.sharedApplication()
-        app.terminate_( None )
+        logging.info("Exiting InputManager.run()")
 
-    def enableMouseEvents( self, isEnabled ):
-        # TODO: Implementation needed.
+    def stop(self):
+        AppHelper.callAfter(AppHelper.stopEventLoop)
+
+    def __checkPermissions(self):
+        try:
+            if not Quartz.CGPreflightListenEventAccess():
+                Quartz.CGRequestListenEventAccess()
+                logging.error(
+                    "Input Monitoring permission is not granted; the "
+                    "system permission prompt was requested.  Grant it "
+                    "in System Settings -> Privacy & Security -> Input "
+                    "Monitoring and restart Enso.")
+        except AttributeError:
+            # CGPreflightListenEventAccess needs macOS 10.15+.
+            pass
+
+    def __onTimer(self):
+        # A tick handler exception must not kill the timer.
+        try:
+            if self.__mouseEventsEnabled:
+                self.__pollMouse()
+            self.onTick(TICK_INTERVAL_MS)
+        except Exception:
+            logging.error("Exception in timer event handler:\n%s"
+                          % traceback.format_exc())
+
+    def __pollMouse(self):
+        # macOS has no reason to tap mouse events just for dismissal;
+        # poll on the same tick that already drives onTick(), exactly
+        # like the X11 implementation.
+        location = AppKit.NSEvent.mouseLocation()
+        # Convert Cocoa bottom-left global coords to the top-left
+        # convention the other platforms report.
+        mainHeight = AppKit.NSScreen.screens()[0].frame().size.height
+        pos = (location.x, mainHeight - location.y)
+        buttons = sum(
+            Quartz.CGEventSourceButtonState(_COMBINED_STATE, button)
+            for button in range(3))
+        if self.__lastMousePos is not None and pos != self.__lastMousePos:
+            self.onMouseMove(pos[0], pos[1])
+        self.__lastMousePos = pos
+        if buttons and not self.__lastMouseButtons:
+            self.onSomeMouseButton()
+        self.__lastMouseButtons = buttons
+
+    # ------------------------------------------------------------------
+    # Event tap
+    # ------------------------------------------------------------------
+
+    def __onTapEvent(self, proxy, eventType, event, refcon):
+        try:
+            return self.__handleTapEvent(eventType, event)
+        except Exception:
+            logging.error("Exception in event tap callback:\n%s"
+                          % traceback.format_exc())
+            return event
+
+    def __handleTapEvent(self, eventType, event):
+        """Returning None consumes the event (the focused application
+        never sees it); returning the event passes it through."""
+        if eventType in (Quartz.kCGEventTapDisabledByTimeout,
+                         Quartz.kCGEventTapDisabledByUserInput):
+            # macOS disables taps it deems too slow; recover.
+            if self.__tap is not None:
+                Quartz.CGEventTapEnable(self.__tap, True)
+            return None
+
+        keycode = Quartz.CGEventGetIntegerValueField(
+            event, Quartz.kCGKeyboardEventKeycode)
+        trigger = self.getQuasimodeKeycode(KEYCODE_QUASIMODE_START)
+
+        if eventType == Quartz.kCGEventFlagsChanged:
+            if keycode != trigger:
+                return event
+            # The trigger is a modifier-type key (CapsLock by default).
+            # Consuming its events entirely means the caps-lock toggle
+            # and LED never engage while Enso runs -- no system state
+            # to patch and restore, unlike the X11 xmodmap approach.
+            pressed = Quartz.CGEventSourceKeyState(_COMBINED_STATE, trigger)
+            if pressed and not self.__capturing:
+                self.__beginCapture()
+            elif not pressed and self.__capturing \
+                    and not self.__currentlyModal:
+                self.__endCapture("quasimodeEnd")
+            return None
+
+        if eventType == Quartz.kCGEventKeyDown:
+            if not self.__capturing:
+                if keycode == trigger:
+                    self.__beginCapture()
+                    return None
+                self.__postEvent("someKey")
+                return event
+            if self.__currentlyModal and keycode == \
+                    self.getQuasimodeKeycode(KEYCODE_QUASIMODE_END):
+                self.__endCapture("quasimodeEnd")
+            elif self.__currentlyModal and keycode == \
+                    self.getQuasimodeKeycode(KEYCODE_QUASIMODE_CANCEL):
+                self.__endCapture("quasimodeCancel")
+            elif keycode != trigger:
+                self.__postEvent("keyDown", keycode)
+            return None
+
+        if eventType == Quartz.kCGEventKeyUp:
+            if not self.__capturing:
+                return event
+            if keycode == trigger:
+                if not self.__currentlyModal:
+                    self.__endCapture("quasimodeEnd")
+            else:
+                self.__postEvent("keyUp", keycode)
+            return None
+
+        return event
+
+    def __beginCapture(self):
+        self.__capturing = True
+        self.__currentlyModal = self.__isModal
+        self.__postEvent("quasimodeStart")
+
+    def __endCapture(self, eventName):
+        self.__capturing = False
+        self.__postEvent(eventName)
+
+    def __postEvent(self, eventName, keycode=None):
+        # Deliver outside the tap callback: core handlers redraw the
+        # overlay, which is far too slow for a tap callback (macOS
+        # disables taps that stall the event stream).
+        AppHelper.callAfter(self._dispatchKeyEvent,
+                            {"event": eventName, "keycode": keycode})
+
+    def _dispatchKeyEvent(self, info):
+        """Delivers a tap event from the run loop, outside the tap."""
+        try:
+            event = info["event"]
+            if event == "quasimodeStart":
+                self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
+            elif event == "quasimodeEnd":
+                self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_END)
+            elif event == "quasimodeCancel":
+                self.onKeypress(EVENT_KEY_QUASIMODE,
+                                KEYCODE_QUASIMODE_CANCEL)
+            elif event == "keyDown":
+                self.onKeypress(EVENT_KEY_DOWN, info["keycode"])
+            elif event == "keyUp":
+                self.onKeypress(EVENT_KEY_UP, info["keycode"])
+            elif event == "someKey":
+                self.onSomeKey()
+            else:
+                logging.warning("Don't know what to do with event: %s"
+                                % info)
+        except Exception:
+            logging.error("Exception in key event handler:\n%s"
+                          % traceback.format_exc())
+
+    # ------------------------------------------------------------------
+    # Configuration
+    # ------------------------------------------------------------------
+
+    def enableMouseEvents(self, isEnabled):
         self.__mouseEventsEnabled = isEnabled
+        if isEnabled:
+            # Forget any previously observed position/buttons so the
+            # next poll only records a baseline instead of comparing
+            # against stale state and firing a spurious dismissal.
+            self.__lastMousePos = None
+            self.__lastMouseButtons = 0
 
-    def onKeypress( self, eventType, vkCode ):
-        pass
-
-    def onSomeKey( self ):
-        pass
-
-    def onSomeMouseButton( self ):
-        pass
-
-    def onExitRequested( self ):
-        pass
-
-    def onMouseMove( self, x, y ):
-        pass
-
-    def getQuasimodeKeycode( self, quasimodeKeycode ):
+    def getQuasimodeKeycode(self, quasimodeKeycode):
         return self.__qmKeycodes[quasimodeKeycode]
 
-    def setQuasimodeKeycode( self, quasimodeKeycode, keycode ):
-        # TODO: Implementation needed.
+    def setQuasimodeKeycode(self, quasimodeKeycode, keycode):
+        # No grab to re-establish, unlike X11: the tap sees every key,
+        # so a changed trigger takes effect immediately.
         self.__qmKeycodes[quasimodeKeycode] = keycode
 
-    def setModality( self, isModal ):
-        # TODO: Implementation needed.
-        self.__isModal = isModal
+    def setModality(self, isModal):
+        self.__isModal = bool(isModal)
 
-    def setCapsLockMode( self, isCapsLockEnabled ):
-        # TODO: Implementation needed.
+    def getModality(self):
+        return self.__isModal
+
+    def setCapsLockMode(self, capsLockEnabled):
+        # Nothing to do: caps-lock toggling is suppressed inherently by
+        # consuming the trigger events in the tap.
         pass
 
-    def onTick( self, msPassed ):
+    def leaveQuasimode(self):
+        if self.__capturing:
+            self.__endCapture("quasimodeEnd")
+
+    # ------------------------------------------------------------------
+    # Hooks overridden by Enso's EventManager
+    # ------------------------------------------------------------------
+
+    def onKeypress(self, eventType, vkCode):
         pass
 
-    def onInit( self ):
+    def onSomeKey(self):
+        pass
+
+    def onSomeMouseButton(self):
+        pass
+
+    def onExitRequested(self):
+        pass
+
+    def onMouseMove(self, x, y):
+        pass
+
+    def onTick(self, msPassed):
+        pass
+
+    def onInit(self):
         pass

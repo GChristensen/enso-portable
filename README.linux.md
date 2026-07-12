@@ -17,12 +17,28 @@ Optional:
 
 - `python3-Flask` — enables the web UI (settings page). Without it, Enso
   runs with the web UI disabled.
+- `typelib-1_0-AyatanaAppIndicator3-0_1` — enables the tray icon
+  (About/Restart/Start at login/Quit). Without it, Enso runs without a
+  tray.
 - `picom` — a compositing manager, required for transparent overlays on
   desktops that don't composite by default (LXQt). KDE's KWin always
   composites, so nothing extra is needed there. On LXQt, start it with
   `picom -b` (or enable it in the LXQt session settings); without a
   compositor Enso still works, but the overlays are drawn on an opaque
   background.
+
+## Installing
+
+After the distro packages above are in place, the install script sets
+up a virtual environment at `~/.enso/venv` (sharing the system GTK
+bindings) with the pure-Python extras (flask for the web UI), and can
+optionally register an XDG autostart entry so Enso starts with the
+desktop session:
+
+```
+./install_linux.sh              # venv + dependencies only
+./install_linux.sh --autostart  # also start Enso at login
+```
 
 ## Running
 
@@ -32,8 +48,14 @@ From a checkout of this repository:
 python3 enso/scripts/run_enso.py -l INFO
 ```
 
-(This is the same launcher script used on Windows; it detects the OS at
-runtime and behaves accordingly.)
+or, if installed via the script:
+
+```
+~/.enso/venv/bin/python3 enso/scripts/run_enso.py -l INFO
+```
+
+(This is the same launcher script used on Windows and macOS; it detects
+the OS at runtime and behaves accordingly.)
 
 Hold **Caps Lock** and type a command name (e.g. `help`), then release.
 While Enso runs, the Caps Lock toggle is disabled via `xmodmap` and
@@ -64,7 +86,6 @@ is held, and must restore the Caps Lock toggle and key repeat on exit
   (highlighted text); inserting text is done by setting the clipboard
   and synthesizing Ctrl+V (applications with different paste shortcuts,
   e.g. terminals, won't receive it).
-- No tray icon yet (planned: StatusNotifierItem via AyatanaAppIndicator3).
 - The Windows `open`/`open with` commands have no Linux equivalent yet
   (planned: freedesktop `.desktop` scanning).
 - Localized keyboard input (`LOCALIZED_INPUT`) is not implemented; the
