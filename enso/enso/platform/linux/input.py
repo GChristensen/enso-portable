@@ -14,12 +14,14 @@ Enso core is not thread-safe.
 """
 
 import atexit
+import ctypes
 import logging
 import select
 import shutil
 import signal
 import subprocess
 import threading
+import time
 import traceback
 
 import gi
@@ -104,6 +106,40 @@ def getKeyState(keyCode):
     return 0
 
 
+# XkbLockModifiers device spec meaning "the core keyboard".
+_XKB_USE_CORE_KBD = 0x0100
+
+
+def _setLockModifierState(enabled):
+    """Sets the Caps Lock (Lock modifier) latch state directly via
+    libX11's XkbLockModifiers.  Unlike synthesizing Caps Lock key
+    events, this generates no key events at all, so it cannot interact
+    with Enso's own trigger-key grab."""
+    try:
+        libX11 = ctypes.CDLL("libX11.so.6")
+        libX11.XOpenDisplay.restype = ctypes.c_void_p
+        libX11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        libX11.XkbLockModifiers.argtypes = [ctypes.c_void_p,
+                                            ctypes.c_uint,
+                                            ctypes.c_uint,
+                                            ctypes.c_uint]
+        libX11.XFlush.argtypes = [ctypes.c_void_p]
+        libX11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+
+        dpy = libX11.XOpenDisplay(None)
+        if not dpy:
+            logging.error("XOpenDisplay failed; can't reset Caps Lock.")
+            return
+        try:
+            libX11.XkbLockModifiers(dpy, _XKB_USE_CORE_KBD, X.LockMask,
+                                    X.LockMask if enabled else 0)
+            libX11.XFlush(dpy)
+        finally:
+            libX11.XCloseDisplay(dpy)
+    except Exception:
+        logging.exception("Couldn't reset the Caps Lock state")
+
+
 class _XKeyListener(threading.Thread):
     """Thread that grabs the quasimode trigger key and, while the
     quasimode is active, the whole keyboard.  It owns a private X
@@ -119,9 +155,11 @@ class _XKeyListener(threading.Thread):
         self.__capturing = False
         self.__currentlyModal = False
         self.__grabbedKeycode = 0
-        self.__capsLockKeysym = None
+        self.__originalXkbOptions = None
         self.__capsLockCleared = False
         self.__autoRepeatDisabled = False
+        self.__lockBaseline = None
+        self.__ignoreTriggerUntil = 0.0
 
     # ------------------------------------------------------------------
     # Requests from other threads (simple flags, polled by the loop)
@@ -216,6 +254,9 @@ class _XKeyListener(threading.Thread):
                       X.GrabModeAsync, X.GrabModeAsync)
         self.__display.sync()
         self.__grabbedKeycode = keycode
+        # The Caps Lock state the user actually wants; used to detect
+        # and undo toggles that caps:none suppression didn't prevent.
+        self.__lockBaseline = self.__lockState()
 
     def __releaseTrigger(self):
         if self.__grabbedKeycode:
@@ -236,9 +277,28 @@ class _XKeyListener(threading.Thread):
         keycode = event.detail
         trigger = self.__grabbedKeycode
 
+        # Programmatically resetting the Caps Lock state makes XKB
+        # synthesize phantom Caps_Lock key events (for core-protocol
+        # consistency), which arrive through our own grab and must not
+        # start a quasimode.  Their exact number varies, so ignore the
+        # trigger key entirely for a short window after a correction.
+        if keycode == trigger \
+                and time.monotonic() < self.__ignoreTriggerUntil:
+            logging.debug("Ignoring phantom trigger event (type=%d, %.0f ms "
+                          "into the ignore window)." % (
+                              event.type,
+                              1000 * (0.2 - (self.__ignoreTriggerUntil
+                                             - time.monotonic()))))
+            return
+
         if event.type == X.KeyPress:
             if not self.__capturing:
                 if keycode == trigger:
+                    logging.debug(
+                        "Trigger key press accepted (%.0f ms after the "
+                        "ignore window closed)." % (
+                            1000 * (time.monotonic()
+                                    - self.__ignoreTriggerUntil)))
                     self.__capturing = True
                     self.__currentlyModal = self.__parent.getModality()
                     self.__grabKeyboard()
@@ -280,40 +340,81 @@ class _XKeyListener(threading.Thread):
             self.__capturing = False
             self.__display.ungrab_keyboard(X.CurrentTime)
             self.__display.sync()
+            self.__fixCapsLockState()
+
+    def __lockState(self):
+        mask = self.__display.screen().root.query_pointer().mask
+        return bool(mask & X.LockMask)
+
+    def __fixCapsLockState(self):
+        """Safety net: undoes a Caps Lock toggle caused by the trigger.
+
+        With the caps:none XKB option applied, the trigger can't toggle
+        the lock and this never fires.  Drift therefore means something
+        external reverted the option (e.g. a keymap reload from layout
+        switching), so re-apply it and reset the lock state.  Caveat:
+        resetting the state programmatically makes XKB synthesize a
+        phantom Caps_Lock event lazily, attached to the *next* real key
+        event, which the ignore window below usually cannot cover -- a
+        single spurious quasimode may occur.  That is acceptable for a
+        rare recovery path; the steady state has no drift at all."""
+        if self.__lockBaseline is None:
+            return
+        if self.__lockState() == self.__lockBaseline:
+            return
+        logging.debug("Caps Lock state drifted; setting it back and "
+                      "re-applying caps:none.")
+        self.__capsLockCleared = False
+        self.__disableCapsLock()
+        self.__ignoreTriggerUntil = time.monotonic() + 0.2
+        _setLockModifierState(self.__lockBaseline)
 
     # ------------------------------------------------------------------
     # Caps Lock toggle suppression and trigger auto-repeat
     # ------------------------------------------------------------------
 
     def __disableCapsLock(self):
-        if self.__capsLockCleared or not shutil.which("xmodmap"):
-            if not shutil.which("xmodmap"):
-                logging.warning("xmodmap not found; Caps Lock will keep "
-                                "toggling while used as the Enso trigger.")
+        """Disables the Caps Lock toggle action for the session via
+        'setxkbmap -option caps:none'.
+
+        This must happen at the XKB level: on XKB servers the toggle
+        action fires regardless of the core modifier map, so the
+        classic 'xmodmap -e "clear Lock"' approach does not stop it.
+        The key still delivers keycode events, so the trigger grab is
+        unaffected -- the key just no longer locks anything."""
+        if self.__capsLockCleared:
+            return
+        if not shutil.which("setxkbmap"):
+            logging.warning("setxkbmap not found; Caps Lock will keep "
+                            "toggling while used as the Enso trigger.")
             return
         try:
-            output = subprocess.run(["xmodmap", "-pm"], capture_output=True,
-                                    text=True).stdout
+            output = subprocess.run(["setxkbmap", "-query"],
+                                    capture_output=True, text=True).stdout
         except OSError:
             return
+        options = ""
         for line in output.splitlines():
-            parts = line.strip().split()
-            if parts and parts[0] == "lock" and len(parts) > 1:
-                self.__capsLockKeysym = parts[1]
-                break
-        if self.__capsLockKeysym:
-            logging.debug("Using xmodmap to disable Caps Lock")
-            subprocess.run(["xmodmap", "-e", "clear Lock"])
+            if line.startswith("options:"):
+                options = line.split(":", 1)[1].strip()
+        if "caps:none" in options.split(","):
+            logging.debug("Caps Lock action already disabled")
             self.__capsLockCleared = True
-            atexit.register(self.enable_caps_lock)
-        else:
-            logging.debug("Caps Lock already disabled")
+            return
+        logging.debug("Disabling the Caps Lock action (setxkbmap caps:none)")
+        self.__originalXkbOptions = options
+        subprocess.run(["setxkbmap", "-option", "caps:none"])
+        self.__capsLockCleared = True
+        atexit.register(self.enable_caps_lock)
 
     def enable_caps_lock(self):
-        if self.__capsLockCleared and self.__capsLockKeysym:
-            logging.debug("Using xmodmap to re-enable Caps Lock")
-            subprocess.run(["xmodmap", "-e",
-                            "add Lock = %s" % self.__capsLockKeysym])
+        if self.__capsLockCleared and self.__originalXkbOptions is not None:
+            logging.debug("Restoring the original XKB options")
+            subprocess.run(["setxkbmap", "-option", ""])
+            if self.__originalXkbOptions:
+                subprocess.run(["setxkbmap", "-option",
+                                self.__originalXkbOptions])
+            self.__originalXkbOptions = None
             self.__capsLockCleared = False
 
     def disable_caps_lock(self):

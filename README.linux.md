@@ -10,7 +10,7 @@ On openSUSE:
 
 ```
 sudo zypper install python3-gobject python3-gobject-Gdk \
-    typelib-1_0-Gtk-3_0 python3-cairo python3-xlib xmodmap xset
+    typelib-1_0-Gtk-3_0 python3-cairo python3-xlib setxkbmap xset
 ```
 
 Optional:
@@ -58,12 +58,13 @@ or, if installed via the script:
 the OS at runtime and behaves accordingly.)
 
 Hold **Caps Lock** and type a command name (e.g. `help`), then release.
-While Enso runs, the Caps Lock toggle is disabled via `xmodmap` and
+While Enso runs, the Caps Lock toggle action is disabled via
+`setxkbmap -option caps:none` and the original XKB options are
 restored on exit.
 
 User files live in `~/.enso` (configuration `ensorc.py`, user commands in
-`~/.enso/commands`); command scripts are also loaded from
-`~/.local/share/enso/commands`.
+`~/.enso/commands`). The bundled commands ship in the repository's
+`enso/commands` directory; Windows-only ones are skipped automatically.
 
 ## Bring-up test scripts
 
@@ -79,6 +80,16 @@ The first draws a translucent rounded rectangle that fades, moves, and
 is click-through. The second prints quasimode/key events while Caps Lock
 is held, and must restore the Caps Lock toggle and key repeat on exit
 (check with `xmodmap -pm`: the `lock` row should list `Caps_Lock` again).
+
+## Notes on specific commands
+
+- `open {name}` lists installed applications (desktop entries) plus
+  anything learned via `learn as open`.
+- `go {window}` and the window commands (maximize, minimize, close,
+  fullscreen, ...) use EWMH and work on KDE, LXQt and other
+  standards-compliant window managers.
+- `shutdown`/`reboot`/`suspend`/`hibernate` use systemctl; `logoff`
+  uses loginctl.
 
 ## Known limitations
 

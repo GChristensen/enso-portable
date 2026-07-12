@@ -454,11 +454,36 @@ class Quasimode:
 
         try:
             if self.__contextUtils:
+                foregroundClass = None
+
+                def getForegroundClass():
+                    # Only ask the OS once, and only if some bypass is
+                    # actually enabled.
+                    return self.__contextUtils.getForegroundClassNameUnicode()
+
                 if config.QUASIMODE_BYPASS_TO_RDP:
-                    foregroundClass = self.__contextUtils.getForegroundClassNameUnicode()
+                    foregroundClass = getForegroundClass()
 
                     if foregroundClass == "TscShellContainerClass":
                         result = False
+
+                if result and config.QUASIMODE_BYPASS_TO_VMWARE:
+                    if foregroundClass is None:
+                        foregroundClass = getForegroundClass()
+
+                    if foregroundClass == "VMUIFrame":
+                        result = False
+
+                if result and config.QUASIMODE_BYPASS_TO_NOMACHINE:
+                    if foregroundClass is None:
+                        foregroundClass = getForegroundClass()
+
+                    # NoMachine uses a generic Qt window class, so the
+                    # title has to be checked as well.
+                    if foregroundClass == "QWidget":
+                        title = self.__contextUtils.getForegroundWindowTitleUnicode()
+                        if title and "NoMachine" in title:
+                            result = False
         except:
             pass
 

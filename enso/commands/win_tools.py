@@ -1,3 +1,5 @@
+# platforms: windows
+
 '''
 A simple OO wrapper around the win32 Python modules
 

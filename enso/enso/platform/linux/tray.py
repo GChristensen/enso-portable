@@ -43,7 +43,10 @@ def _ensure_icon():
     """Converts the themed .ico to a PNG in an icon dir AppIndicator
     can use; returns (theme_dir, icon_name) or None."""
     icon_dir = os.path.join(config.ENSO_USER_DIR, "icons")
-    png_path = os.path.join(icon_dir, "enso.png")
+    # The PNG is named after the source icon, so switching the color
+    # theme picks up a different file instead of reusing a stale one.
+    icon_name = os.path.splitext(tray_actions.get_icon_name())[0]
+    png_path = os.path.join(icon_dir, icon_name + ".png")
     if not os.path.isfile(png_path):
         try:
             os.makedirs(icon_dir, exist_ok=True)
@@ -54,7 +57,7 @@ def _ensure_icon():
             logging.exception("Couldn't prepare the tray icon PNG; "
                               "running without a tray icon.")
             return None
-    return icon_dir, "enso"
+    return icon_dir, icon_name
 
 
 def _autostart_enabled():

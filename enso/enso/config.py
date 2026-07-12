@@ -26,6 +26,12 @@ IS_QUASIMODE_MODAL = True
 # Do not enter the quasimode if an RDP window is in the foreground
 QUASIMODE_BYPASS_TO_RDP = False
 
+# Do not enter the quasimode if a VMware window is in the foreground
+QUASIMODE_BYPASS_TO_VMWARE = False
+
+# Do not enter the quasimode if a NoMachine window is in the foreground
+QUASIMODE_BYPASS_TO_NOMACHINE = False
+
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
 # in the os-specific input module in use.

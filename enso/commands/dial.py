@@ -1,3 +1,5 @@
+# platforms: windows
+
 import win32ras
 import threading
 from ctypes import *

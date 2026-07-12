@@ -94,8 +94,8 @@ An Enso icon appears in the menu bar with About/Restart/Quit and a
 `install_macos.sh --autostart`).
 
 User files live in `~/.enso` (configuration `ensorc.py`, user commands
-in `~/.enso/commands`); command scripts are also loaded from
-`~/Library/Application Support/enso/commands`.
+in `~/.enso/commands`). The bundled commands ship in the repository's
+`enso/commands` directory; Windows-only ones are skipped automatically.
 
 ## Bring-up test scripts
 
@@ -140,6 +140,15 @@ Then: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ensoos.enso.p
 
 Note the two-step flow: the permissions must have been granted during a
 manual Terminal run first; only then does the login launch work.
+
+## Notes on specific commands
+
+- `shutdown`, `reboot`, `logoff` use AppleScript (System Events); the
+  first use triggers an Automation permission prompt — grant it once.
+- `go {name}` switches between running applications (not individual
+  windows).
+- `open {name}` finds applications from /Applications,
+  /System/Applications and ~/Applications.
 
 ## Known limitations
 

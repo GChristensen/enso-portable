@@ -207,8 +207,15 @@ def configure_init_files():
 
     default_enso_rc = os.path.join(config.ENSO_USER_DIR, "ensorc.py")
     if not os.path.exists(default_enso_rc):
-        shutil.copyfile(os.path.join(config.ENSO_DIR, "scripts", "ensorc.py.default"),
-                        default_enso_rc)
+        if sys.platform.startswith("win"):
+            shutil.copyfile(os.path.join(config.ENSO_DIR, "scripts",
+                                         "ensorc.py.default"),
+                            default_enso_rc)
+        else:
+            # The default rc file only contains Windows-specific
+            # settings; elsewhere just create an empty one for the user
+            # to fill in.
+            open(default_enso_rc, "a").close()
 
     load_rc_config(default_enso_rc)
 

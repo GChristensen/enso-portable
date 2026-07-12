@@ -56,13 +56,32 @@ def open_settings():
                         + "/options.html")
 
 
+_THEME_ICONS = {
+    "amethyst": "Enso_amethyst.ico",
+    "strawberry": "Enso_strawberry.ico",
+}
+
+_DEFAULT_ICON = "Enso.ico"
+
+
+def get_icon_name():
+    """Basename of the tray icon for the configured color theme."""
+    return _THEME_ICONS.get(getattr(config, "COLOR_THEME", None),
+                            _DEFAULT_ICON)
+
+
 def get_icon_path():
-    """Path of the .ico for the configured color theme (the same
-    selection the win32 tray makes)."""
-    name = ("Enso_amethyst.ico" if config.COLOR_THEME == "amethyst"
-            else "Enso.ico")
-    return os.path.realpath(
-        os.path.join(config.ENSO_DIR, "media", "images", name))
+    """Absolute path of the tray icon for the configured color theme,
+    falling back to the default icon if the themed one is missing."""
+    images = os.path.join(config.ENSO_DIR, "media", "images")
+    path = os.path.realpath(os.path.join(images, get_icon_name()))
+    if not os.path.isfile(path):
+        fallback = os.path.realpath(os.path.join(images, _DEFAULT_ICON))
+        logging.error("Tray icon '%s' not found; falling back to '%s'."
+                      % (path, fallback))
+        return fallback
+    logging.debug("Using tray icon '%s'." % path)
+    return path
 
 
 def get_launcher_path():

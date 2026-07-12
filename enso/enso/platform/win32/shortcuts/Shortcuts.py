@@ -533,6 +533,132 @@ def get_control_panel_applets():
 print get_control_panel_applets()
 """
 
+# ----------------------------------------------------------------------
+# Launch / learn / unlearn operations used by the 'open' commands.
+# (Logic moved verbatim from commands/open.py so that command file can
+# stay platform-neutral.)
+# ----------------------------------------------------------------------
+
+def expand_path_variables(file_path):
+    re_env = re.compile(r'%\w+%')
+
+    def expander(mo):
+        return os.environ.get(mo.group()[1:-1], 'UNKNOWN')
+
+    return os.path.expandvars(re_env.sub(expander, file_path))
+
+
+def run_shortcut(shortcut_type, shortcut_id, file_path):
+    """Launches the given shortcut; returns True on success."""
+    import win32api
+    import win32con
+    file_path = os.path.normpath(expand_path_variables(file_path))
+    logging.info("Executing '%s'" % file_path)
+
+    if shortcut_type == SHORTCUT_TYPE_CONTROL_PANEL:
+        if " " in file_path:
+            executable = file_path[0:file_path.index(' ')]
+            params = file_path[file_path.index(' ')+1:]
+        else:
+            executable = file_path
+            params = None
+        try:
+            # somewhere /name parameter of control.exe is mangled
+            params = params.replace("\\name Microsoft", "/name Microsoft")
+
+            win32api.ShellExecute(
+                0,
+                'open',
+                executable,
+                params,
+                None,
+                win32con.SW_SHOWDEFAULT)
+        except Exception as e:
+            logging.error(e)
+            return False
+    else:
+        win32api.ShellExecute(
+            0,
+            'open',
+            file_path,
+            None,
+            None,
+            win32con.SW_SHOWDEFAULT)
+    return True
+
+
+def open_with_shortcut(executable_target, file):
+    """Opens the given file with the given executable shortcut target."""
+    import win32api
+    import win32con
+    executable = expand_path_variables(executable_target)
+    try:
+        win32api.ShellExecute(
+            0,
+            'open',
+            executable,
+            '"%s"' % file,
+            os.path.dirname(file),
+            win32con.SW_SHOWDEFAULT)
+    except Exception as e:
+        logging.error(e)
+
+
+def learn_shortcut(name, target, is_url):
+    """Persists a learned shortcut; returns its file path, or None if a
+    shortcut with that name already exists."""
+    file_name = name.replace(":", "").replace("?", "").replace("\\", "")
+    file_path = os.path.join(LEARN_AS_DIR, file_name)
+
+    if os.path.isfile(file_path + ".url") or os.path.isfile(file_path + ".lnk"):
+        return None
+
+    if is_url:
+        shortcut = PyInternetShortcut()
+
+        file_path = file_path + ".url"
+        shortcut.SetURL(target)
+        shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
+            file_path, 0 )
+    else:
+        shortcut = PyShellLink()
+
+        shortcut.SetPath(target)
+        shortcut.SetWorkingDirectory(os.path.dirname(target))
+        shortcut.SetIconLocation(target, 0)
+
+        file_path = file_path + ".lnk"
+        shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
+            file_path, 0 )
+
+    return file_path
+
+
+def unlearn_shortcut(name):
+    """Removes a learned shortcut; returns an undo token, or None if no
+    such shortcut exists."""
+    file_path = os.path.join(LEARN_AS_DIR, name)
+    if os.path.isfile(file_path + ".lnk"):
+        sl = PyShellLink()
+        sl.load(file_path + ".lnk")
+        os.remove(file_path + ".lnk")
+        return (name, sl)
+    elif os.path.isfile(file_path + ".url"):
+        sl = PyInternetShortcut()
+        sl.load(file_path + ".url")
+        os.remove(file_path + ".url")
+        return (name, sl)
+    return None
+
+
+def restore_shortcut(token):
+    """Restores a shortcut removed by unlearn_shortcut(); returns its
+    name."""
+    name, sl = token
+    sl.save()
+    return name
+
+
 class Shortcuts:
     _instance = None
 

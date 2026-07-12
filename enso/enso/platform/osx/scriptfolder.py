@@ -1,12 +1,14 @@
+"""
+macOS implementation of the Enso "scripts_folder" provider.
+"""
+
 import os
 
-def get_script_folder_name():
-  """Returns the folder where Enso commands are found. This function
-     is responsible for ensuring that this folder exists: it must not
-     return a path that is not present! It is expected to place this
-     folder in some platform-specific logical location."""
-  enso_command_path = os.path.expanduser('~/Library/Application Support/enso/commands')
-  if (not os.path.isdir(enso_command_path)):
-    os.makedirs(enso_command_path)
-  return enso_command_path 
+from enso import config
 
+
+def get_script_folder_name():
+    """Returns the folder where the bundled Enso commands are found
+    (the same location the win32 provider uses; per-user commands are
+    loaded separately from ~/.enso/commands)."""
+    return os.path.join(config.ENSO_DIR, "commands")

@@ -1,3 +1,5 @@
+# platforms: windows
+
 from enso.contrib import retreat
 
 

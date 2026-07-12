@@ -1,3 +1,5 @@
+# platforms: windows
+
 import win32api
 import win32gui
 

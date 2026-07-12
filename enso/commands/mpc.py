@@ -1,3 +1,5 @@
+# platforms: windows
+
 import mpcapi
 
 from mpcapi import commands

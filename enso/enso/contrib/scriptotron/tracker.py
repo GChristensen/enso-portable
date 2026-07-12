@@ -1,5 +1,7 @@
 import logging
 import os
+import re
+import sys
 import types
 
 import traceback
@@ -13,6 +15,27 @@ from enso.contrib.scriptotron import adapters
 from enso.contrib.scriptotron import cmdretriever
 from enso.contrib.scriptotron import ensoapi
 from enso.contrib.scriptotron import concurrency
+
+# A command file may declare which platforms it supports with a header
+# comment like "# platforms: windows, linux, darwin"; files without the
+# marker load everywhere.  Files for foreign platforms are skipped
+# before exec, so their platform-specific imports never raise (a
+# failing command file pops a visible error message).
+_PLATFORMS_MARKER = re.compile(r"^#\s*platforms\s*:\s*(.+)$",
+                               re.MULTILINE | re.IGNORECASE)
+
+_CURRENT_PLATFORM = ("windows" if sys.platform.startswith("win")
+                     else "darwin" if sys.platform == "darwin"
+                     else "linux")
+
+
+def _platformsSupported(sourceText):
+    match = _PLATFORMS_MARKER.search(sourceText)
+    if not match:
+        return True
+    platforms = [p.strip().lower() for p in match.group(1).split(",")]
+    return _CURRENT_PLATFORM in platforms
+
 
 class ScriptCommandTracker:
     def __init__( self, commandManager, eventManager ):
@@ -135,6 +158,11 @@ class ScriptTracker:
             try:
                 text = open( f, "r" ).read()
             except:
+                continue
+
+            if not _platformsSupported(text):
+                logging.info("Skipping command file '%s': not for this "
+                             "platform." % f)
                 continue
 
             allGlobals = self._getGlobalsFromSourceCode(text, f)

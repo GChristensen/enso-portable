@@ -1,11 +1,17 @@
-from enso.platform.win32.shortcuts import *
-
+import logging
 import os
 import re
-import win32api
-import win32con
-import pythoncom
-import logging
+import sys
+
+if sys.platform.startswith("win"):
+    from enso.platform.win32.shortcuts import *
+    from enso.platform.win32 import shortcuts as _backend
+elif sys.platform == "darwin":
+    from enso.platform.osx.shortcuts import *
+    from enso.platform.osx import shortcuts as _backend
+else:
+    from enso.platform.linux.shortcuts import *
+    from enso.platform.linux import shortcuts as _backend
 
 unlearn_open_undo = []
 
@@ -17,57 +23,14 @@ def displayMessage(msg, foreground = False):
     enso.messages.displayMessage("<p>%s</p>" % msg, foreground)
 
 
-def expand_path_variables(file_path):
-    re_env = re.compile(r'%\w+%')
-
-    def expander(mo):
-        return os.environ.get(mo.group()[1:-1], 'UNKNOWN')
-
-    return os.path.expandvars(re_env.sub(expander, file_path))
-
-
 def cmd_open(ensoapi, target):
     """ Continue typing to open an application or document """
 
     try:
         global shortcuts_map
-        shortcut_type, shortuct_id, file_path = shortcuts_map[target]
-        file_path = os.path.normpath(expand_path_variables(file_path))
-        logging.info("Executing '%s'" % file_path)
-
+        shortcut_type, shortcut_id, file_path = shortcuts_map[target]
         displayMessage("Opening <command>%s</command>..." % target, foreground=True)
-
-        if shortcut_type == SHORTCUT_TYPE_CONTROL_PANEL:
-            if " " in file_path:
-                executable = file_path[0:file_path.index(' ')]
-                params = file_path[file_path.index(' ')+1:]
-            else:
-                executable = file_path
-                params = None
-            try:
-                # somewhere /name parameter of control.exe is mangled
-                params = params.replace("\\name Microsoft", "/name Microsoft")
-
-                rcode = win32api.ShellExecute(
-                    0,
-                    'open',
-                    executable,
-                    params,
-                    None,
-                    win32con.SW_SHOWDEFAULT)
-            except Exception as e:
-                logging.error(e)
-        else:
-            #os.startfile(file_path)
-            rcode = win32api.ShellExecute(
-                0,
-                'open',
-                file_path,
-                None,
-                None,
-                win32con.SW_SHOWDEFAULT)
-
-        return True
+        return _backend.run_shortcut(shortcut_type, shortcut_id, file_path)
     except Exception as e:
         logging.error(e)
         return False
@@ -91,24 +54,13 @@ def cmd_open_with(ensoapi, application):
 
     displayMessage("Opening <command>%s</command>..." % application, foreground=True)
 
-    #print file, application
     global shortcuts_map
     try:
-        executable = expand_path_variables(shortcuts_map[application][2])
-    except:
-        print(application)
-        print(list(shortcuts_map.keys()))
-        print(list(shortcuts_map.values()))
-    try:
-        rcode = win32api.ShellExecute(
-            0,
-            'open',
-            executable,
-            '"%s"' % file,
-            os.path.dirname(file),
-            win32con.SW_SHOWDEFAULT)
-    except Exception as e:
-        logging.error(e)
+        executable = shortcuts_map[application][2]
+    except KeyError:
+        ensoapi.display_message("Unknown application “%s”" % application)
+        return
+    _backend.open_with_shortcut(executable, file)
 
 
 cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
@@ -127,6 +79,13 @@ def is_url(text):
             return True
 
     return False
+
+
+def _refresh_valid_args():
+    global shortcuts_map
+    cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
+    cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
 
 
 def cmd_learn_as_open(ensoapi, name):
@@ -148,39 +107,15 @@ def cmd_learn_as_open(ensoapi, name):
             "Selection represents no existing file, folder or URL.")
         return
 
-    file_name = name.replace(":", "").replace("?", "").replace("\\", "")
-    file_path = os.path.join(LEARN_AS_DIR, file_name)
-
-    if os.path.isfile(file_path + ".url") or os.path.isfile(file_path + ".lnk"):
+    file_path = _backend.learn_shortcut(name, file, is_url(file))
+    if file_path is None:
         displayMessage(
             "<command>open %s</command> already exists. Please choose another name."
             % name)
         return
 
-    if is_url(file):
-        shortcut = PyInternetShortcut()
-
-        file_path = file_path + ".url"
-        shortcut.SetURL(file)
-        shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
-            file_path, 0 )
-    else:
-        shortcut = PyShellLink()
-
-        shortcut.SetPath(file)
-        shortcut.SetWorkingDirectory(os.path.dirname(file))
-        shortcut.SetIconLocation(file, 0)
-
-        file_path = file_path + ".lnk"
-        shortcut.QueryInterface( pythoncom.IID_IPersistFile ).Save(
-            file_path, 0 )
-
-    #time.sleep(0.5)
-    global shortcuts_map
     Shortcuts.get().add_shortcut(file_path)
-    cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
-    cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
-    cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    _refresh_valid_args()
 
     displayMessage("<command>open %s</command> is now a command" % name)
 
@@ -188,28 +123,12 @@ def cmd_learn_as_open(ensoapi, name):
 def cmd_unlearn_open(ensoapi, name):
     """ Unlearn "open {name}" command """
 
-    file_path = os.path.join(LEARN_AS_DIR, name)
-    if os.path.isfile(file_path + ".lnk"):
-        sl = PyShellLink()
-
-        file_path = file_path + ".lnk"
-        sl.load(file_path)
-        unlearn_open_undo.append([name, sl])
-        os.remove(file_path)
-    elif os.path.isfile(file_path + ".url"):
-        sl = PyInternetShortcut()
-
-        file_path = file_path + ".url"
-        sl.load(file_path)
-        unlearn_open_undo.append([name, sl])
-        os.remove(file_path)
-
-    global shortcuts_map
+    token = _backend.unlearn_shortcut(name)
+    if token is not None:
+        unlearn_open_undo.append(token)
 
     Shortcuts.get().remove_shortcut(name.lower())
-    cmd_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
-    cmd_open_with.valid_args = [s[1] for s in list(shortcuts_map.values()) if s[0] == SHORTCUT_TYPE_EXECUTABLE]
-    cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
+    _refresh_valid_args()
     displayMessage("Unlearned <command>open %s</command>" % name)
 
 
@@ -219,17 +138,11 @@ cmd_unlearn_open.valid_args = [s[1] for s in list(shortcuts_map.values())]
 def cmd_undo_unlearn(ensoapi):
     """ Undoes your last "unlearn open" command """
     if len(unlearn_open_undo) > 0:
-        name, sl = unlearn_open_undo.pop()
-        sl.save()
+        token = unlearn_open_undo.pop()
+        name = _backend.restore_shortcut(token)
         displayMessage("Undo successful. <command>open %s</command> is now a command" % name)
     else:
         ensoapi.display_message("There is nothing to undo")
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
-
 
 
 # vim:set ff=unix tabstop=4 shiftwidth=4 expandtab:

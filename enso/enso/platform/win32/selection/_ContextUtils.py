@@ -501,6 +501,29 @@ def getForegroundClassNameUnicode():
     return classNameBuf.value
 
 
+def getForegroundWindowTitleUnicode():
+    """
+    Returns a unicode string containing the title of the frontmost
+    application window.
+    """
+
+    hwnd = win32gui.GetForegroundWindow()
+
+    # Maximum number of chars we'll accept for the title; the rest will
+    # be truncated if it's longer than this.
+    MAX_LENGTH = 1024
+
+    titleBuf = ctypes.create_unicode_buffer( MAX_LENGTH )
+    ctypes.windll.User32.GetWindowTextW(
+        hwnd,
+        titleBuf,
+        len( titleBuf )
+        )
+    # An empty title is legitimate, so a zero return value is not an
+    # error here (unlike GetClassNameW above).
+    return titleBuf.value
+
+
 # ----------------------------------------------------------------------------
 # Exception
 # ----------------------------------------------------------------------------

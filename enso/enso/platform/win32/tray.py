@@ -6,7 +6,7 @@ import subprocess
 import pythoncom
 from win32com.shell import shell, shellcon
 
-from enso import config, webui
+from enso import config, tray_actions, webui
 from enso.messages import displayMessage
 from enso.events import EventManager
 from enso.contrib import retreat
@@ -88,8 +88,7 @@ def run(enso_config):
     """Creates and runs the tray icon; blocks the calling thread, so
     this must be called on its own thread."""
 
-    enso_icon = os.path.realpath(os.path.join(config.ENSO_DIR, "media", "images", \
-                                              "Enso_amethyst.ico" if config.COLOR_THEME == "amethyst" else "Enso.ico"))
+    enso_icon = tray_actions.get_icon_path()
 
     enso_config.SYSTRAY_ICON = SysTrayIcon(
             enso_icon,

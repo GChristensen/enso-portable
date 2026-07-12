@@ -1,3 +1,5 @@
+# platforms: windows
+
 import re
 import win32com.client
 
