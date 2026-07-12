@@ -103,14 +103,22 @@ class TransparentWindow(object):
             self.__wind.setBackgroundColor_(AppKit.NSColor.clearColor())
             self.__wind.setOpaque_(False)
             self.__wind.setHasShadow_(False)
-            self.__wind.setLevel_(AppKit.NSPopUpMenuWindowLevel)
+            # Float above every ordinary application window (including
+            # full-screen ones); a lower level leaves the overlay behind
+            # the frontmost application, visible only over the desktop.
+            self.__wind.setLevel_(AppKit.NSScreenSaverWindowLevel)
+            # Enso runs as a background (accessory) app, so its windows
+            # would otherwise be hidden whenever another app is active.
+            self.__wind.setHidesOnDeactivate_(False)
             # The overlay must never take mouse input (parity with the
             # win32 WS_EX_TRANSPARENT style and the X11 empty input
             # shape).
             self.__wind.setIgnoresMouseEvents_(True)
             self.__wind.setCollectionBehavior_(
                 AppKit.NSWindowCollectionBehaviorCanJoinAllSpaces
-                | AppKit.NSWindowCollectionBehaviorStationary)
+                | AppKit.NSWindowCollectionBehaviorStationary
+                | AppKit.NSWindowCollectionBehaviorFullScreenAuxiliary
+                | AppKit.NSWindowCollectionBehaviorIgnoresCycle)
 
             self.__view = (_TransparentWindowView.alloc()
                            .initWithParent_(self))
@@ -143,10 +151,13 @@ class TransparentWindow(object):
 
         def update(self):
             if self.__surface:
-                if not self.__shown:
-                    # Never before there is real content to show, and
-                    # never with makeKeyAndOrderFront: the overlay must
-                    # not steal focus.
+                # Show the window only once there is real content to
+                # draw (showing it on surface creation makes it flash
+                # empty first), and never with makeKeyAndOrderFront:
+                # the overlay must not steal focus.  isVisible() is
+                # re-checked on every update so the overlay comes back
+                # if it was ordered out for any reason.
+                if not self.__wind.isVisible():
                     self.__wind.orderFrontRegardless()
                     self.__shown = True
                 self.__view.setNeedsDisplay_(True)
