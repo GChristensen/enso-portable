@@ -16,6 +16,6 @@ __pycache__
 *.iml
 .idea
 .local
-enso-open-source-*.exe
+/enso-open-source-*
 /enso/python*
 /.claude/

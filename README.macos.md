@@ -63,16 +63,7 @@ Tips for the "+" file dialog:
   hidden directories (like `~/.enso`).
 
 If key capture still fails with the grants in place: fully quit the
-terminal app (Cmd+Q) and reopen it (grants are read at launch), make
-sure "Secure Keyboard Entry" is disabled in the Terminal/iTerm2 menu,
-and diagnose with:
-
-```
-~/.enso/venv/bin/python3 enso/scripts/test_permissions_macos.py
-```
-
-These are two independent grants — testing from Terminal does not
-pre-authorize the autostart, and vice versa.
+terminal app (Cmd+Q) and reopen it (grants are read at launch).
 
 ## Running
 
@@ -85,11 +76,7 @@ From a checkout of this repository:
 (This is the same launcher script used on Windows and Linux; it detects
 the OS at runtime.)
 
-Hold **Caps Lock** and type a command name (e.g. `help`), then release.
-While Enso runs, Caps Lock does not toggle: the event tap consumes the
-key so applications never see it, and the system-level caps toggle
-(which engages in the HID driver regardless) is reset on every press,
-so the LED and letter case stay unaffected.
+Hit **Caps Lock** and type a command name (e.g. `help`).
 
 An Enso icon appears in the menu bar with About/Restart/Quit and a
 "Start at login" toggle (which manages the same LaunchAgent as
@@ -98,23 +85,6 @@ An Enso icon appears in the menu bar with About/Restart/Quit and a
 User files live in `~/.enso` (configuration `ensorc.py`, user commands
 in `~/.enso/commands`). The bundled commands ship in the repository's
 `enso/commands` directory; Windows-only ones are skipped automatically.
-
-## Bring-up test scripts
-
-To test the two platform layers separately, before running the whole
-launcher:
-
-```
-~/.enso/venv/bin/python3 enso/scripts/test_transparent_window_macos.py   # graphics
-~/.enso/venv/bin/python3 enso/scripts/test_input_macos.py [--modal]      # key capture
-```
-
-The first draws a translucent rounded rectangle that fades, moves, and
-is click-through (and its colors must be correct: green rectangle,
-white text — swapped colors indicate a pixel-format bug worth
-reporting). The second prints quasimode/key events while Caps Lock is
-held; the Caps Lock LED must never light up, and keys typed during the
-quasimode must not reach the focused application.
 
 ## Starting Enso at login
 

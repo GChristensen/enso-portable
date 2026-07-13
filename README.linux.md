@@ -15,8 +15,6 @@ sudo zypper install python3-gobject python3-gobject-Gdk \
 
 Optional:
 
-- `python3-Flask` — enables the web UI (settings page). Without it, Enso
-  runs with the web UI disabled.
 - `typelib-1_0-AyatanaAppIndicator3-0_1` — enables the tray icon
   (About/Restart/Start at login/Quit). Without it, Enso runs without a
   tray.
@@ -26,14 +24,16 @@ Optional:
   `picom -b` (or enable it in the LXQt session settings); without a
   compositor Enso still works, but the overlays are drawn on an opaque
   background.
+- `python3-Flask` — enables the web UI (settings page). Without it, Enso
+  runs with the web UI disabled.
 
 ## Installing
 
 After the distro packages above are in place, the install script sets
 up a virtual environment at `~/.enso/venv` (sharing the system GTK
-bindings) with the pure-Python extras (flask for the web UI), and can
-optionally register an XDG autostart entry so Enso starts with the
-desktop session:
+bindings) with the pure-Python extras (flask for the web UI).
+The install script also can optionally register an XDG autostart entry 
+so Enso starts with the desktop session:
 
 ```
 ./install_linux.sh              # venv + dependencies only
@@ -54,32 +54,11 @@ or, if installed via the script:
 ~/.enso/venv/bin/python3 enso/scripts/run_enso.py -l INFO
 ```
 
-(This is the same launcher script used on Windows and macOS; it detects
-the OS at runtime and behaves accordingly.)
-
-Hold **Caps Lock** and type a command name (e.g. `help`), then release.
-While Enso runs, the Caps Lock toggle action is disabled via
-`setxkbmap -option caps:none` and the original XKB options are
-restored on exit.
+Hit **Caps Lock** and type a command name (e.g. `help`).
 
 User files live in `~/.enso` (configuration `ensorc.py`, user commands in
 `~/.enso/commands`). The bundled commands ship in the repository's
-`enso/commands` directory; Windows-only ones are skipped automatically.
-
-## Bring-up test scripts
-
-To test the two platform layers separately, before running the whole
-launcher:
-
-```
-python3 enso/scripts/test_transparent_window_linux.py   # graphics
-python3 enso/scripts/test_input_linux.py [--modal]      # key grabbing
-```
-
-The first draws a translucent rounded rectangle that fades, moves, and
-is click-through. The second prints quasimode/key events while Caps Lock
-is held, and must restore the Caps Lock toggle and key repeat on exit
-(check with `xmodmap -pm`: the `lock` row should list `Caps_Lock` again).
+`enso/commands` directory.
 
 ## Notes on specific commands
 
@@ -98,6 +77,6 @@ is held, and must restore the Caps Lock toggle and key repeat on exit
   and synthesizing Ctrl+V (applications with different paste shortcuts,
   e.g. terminals, won't receive it).
 - The Windows `open`/`open with` commands have no Linux equivalent yet
-  (planned: freedesktop `.desktop` scanning).
+  (but theoretically achievable with freedesktop `.desktop` scanning).
 - Localized keyboard input (`LOCALIZED_INPUT`) is not implemented; the
   command line accepts the characters of the primary keyboard layout.
