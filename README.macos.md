@@ -1,13 +1,13 @@
 # Enso on macOS
 
 Experimental macOS port of the Enso launcher, with the same feature set
-as the Linux port (see `README.linux.md`). Pure Python — no native
+as the Linux port (see `README.linux.md`). Pure Python - no native
 components to compile; global key capture uses a Quartz event tap.
 
 ## Prerequisites
 
 macOS 12 or newer, with Python 3 (system, Homebrew, or python.org),
-and [Homebrew](https://brew.sh) — pycairo has no macOS wheels on PyPI,
+and [Homebrew](https://brew.sh) - pycairo has no macOS wheels on PyPI,
 so pip builds it from source and needs the cairo library and
 pkg-config:
 
@@ -16,7 +16,7 @@ brew install cairo pkg-config
 ```
 
 Install the Python dependencies into a virtual environment at a
-**stable path** — macOS privacy permissions attach to the python
+**stable path** - macOS privacy permissions attach to the python
 binary, so recreating the venv elsewhere means granting them again:
 
 ```
@@ -24,7 +24,7 @@ python3 -m venv ~/.enso/venv
 ~/.enso/venv/bin/pip install pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices pycairo
 ```
 
-Optional: `pip install flask` — enables the web UI (settings page).
+Optional: `pip install flask` - enables the web UI (settings page).
 Without it, Enso runs with the web UI disabled.
 
 ## Permissions (important)
@@ -32,9 +32,9 @@ Without it, Enso runs with the web UI disabled.
 Enso's key capture requires two permissions in System Settings →
 Privacy & Security:
 
-- **Input Monitoring** — required; without it Enso cannot see the
-  quasimode key at all (there is no crash — it just sees nothing).
-- **Accessibility** — needed for simulated copy/paste (selection
+- **Input Monitoring** - required; without it Enso cannot see the
+  quasimode key at all (there is no crash - it just sees nothing).
+- **Accessibility** - needed for simulated copy/paste (selection
   commands).
 
 macOS attributes these permissions to the *responsible application* at
@@ -42,7 +42,7 @@ the root of the process tree, so **which entry to enable depends on how
 Enso is launched**:
 
 - Launched from a terminal: the grant goes to the terminal app
-  (Terminal, iTerm2, ...). The permission prompt names it accordingly —
+  (Terminal, iTerm2, ...). The permission prompt names it accordingly -
   enable it, restart Enso from the same terminal.
 - Launched at login via the LaunchAgent (see below): the grant goes to
   the python installation itself, as a separate entry. macOS prompts
@@ -116,7 +116,7 @@ manual Terminal run first; only then does the login launch work.
 ## Notes on specific commands
 
 - `shutdown`, `reboot`, `logoff` use AppleScript (System Events); the
-  first use triggers an Automation permission prompt — grant it once.
+  first use triggers an Automation permission prompt - grant it once.
 - `go {name}` switches between running applications (not individual
   windows).
 - `close` closes the frontmost window via the Accessibility API

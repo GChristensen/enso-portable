@@ -15,16 +15,16 @@ sudo zypper install python3-gobject python3-gobject-Gdk \
 
 Optional:
 
-- `typelib-1_0-AyatanaAppIndicator3-0_1` — enables the tray icon
+- `typelib-1_0-AyatanaAppIndicator3-0_1` - enables the tray icon
   (About/Restart/Start at login/Quit). Without it, Enso runs without a
   tray.
-- `picom` — a compositing manager, required for transparent overlays on
+- `picom` - a compositing manager, required for transparent overlays on
   desktops that don't composite by default (LXQt). KDE's KWin always
   composites, so nothing extra is needed there. On LXQt, start it with
   `picom -b` (or enable it in the LXQt session settings); without a
   compositor Enso still works, but the overlays are drawn on an opaque
   background.
-- `python3-Flask` — enables the web UI (settings page). Without it, Enso
+- `python3-Flask` - enables the web UI (settings page). Without it, Enso
   runs with the web UI disabled.
 
 ## Installing
