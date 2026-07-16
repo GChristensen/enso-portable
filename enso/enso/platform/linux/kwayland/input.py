@@ -1,27 +1,37 @@
 """
 KDE Wayland implementation of the Enso "input" provider.
 
-Wayland offers no global key grabs, so the quasimode is composed from
-two mechanisms:
+Wayland offers no global key grabs, so the quasimode is implemented
+entirely on the raw evdev devices (python-evdev, requiring membership
+in the 'input' group):
 
-  * The trigger key (Caps Lock) is watched on the raw evdev devices in
-    a companion thread (python-evdev), which is the only way to see
-    both the press and the release of an arbitrary key regardless of
-    window focus.  This requires read access to /dev/input/event*,
-    i.e. membership in the 'input' group.
+  * The trigger key (Caps Lock) is watched on the evdev keyboards in a
+    companion thread -- the only way to see both the press and the
+    release of an arbitrary key regardless of window focus.
 
-  * While the quasimode is active, an invisible 1x1 layer-shell
-    surface (the "key sink") takes *exclusive* keyboard focus, so the
-    compositor routes every keystroke to Enso as ordinary GTK key
-    events -- and away from the application below, exactly like the
-    active X grab did.  The sink stays mapped the whole session (only
-    its keyboard mode is toggled) so entering the quasimode costs a
-    single compositor round-trip.
+  * The moment the trigger goes down, the listener thread takes an
+    exclusive grab (EVIOCGRAB) on every keyboard device and keeps
+    consuming their events itself.  While the grab is held, the
+    compositor -- and therefore the focused application, and any
+    active input method -- receives nothing at all: the Wayland
+    counterpart of the X11 active keyboard grab, with no window-focus
+    round-trip and no leakage race at quasimode start.  The grab is
+    released when the quasimode ends, and unconditionally when the
+    listener exits, since a leaked grab would freeze the keyboard.
 
-GTK's hardware keycodes are X-style keycodes (evdev code + 8) under
-both backends, so Enso core's keycode conventions carry over
-unchanged.  The Caps Lock toggle action is suppressed session-wide via
-the caps:none XKB option (see kwayland.xkb).
+  * The trigger release is consumed by the grab, but the compositor
+    saw the original press, so a balancing release is injected through
+    a uinput virtual keyboard (which the listener ignores by name).
+
+Grabbing is best-effort: if a device cannot be grabbed (e.g. another
+remapper owns it), its keys still reach Enso -- reading works without
+the grab -- but also leak to the focused application.
+
+Enso core's keycode conventions carry over unchanged: evdev keycodes
++ 8 are X-style keycodes, and the printable-character map is built
+from the GDK keymap.  The Caps Lock toggle action is suppressed
+session-wide via the caps:none XKB option (see kwayland.xkb), with an
+LED-based drift correction as a safety net.
 """
 
 import logging
@@ -31,8 +41,6 @@ import signal
 import threading
 import time
 import traceback
-
-import cairo
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -47,8 +55,7 @@ except ImportError as exc:
         "installed (pip install evdev)."
     ) from exc
 
-from enso.platform.linux.kwayland import layershell, utils, xkb
-from enso.platform.linux.kwayland.layershell import GtkLayerShell
+from enso.platform.linux.kwayland import utils, xkb
 
 # Timer tick interval, in milliseconds.
 TICK_INTERVAL_MS_FAST = 10
@@ -119,25 +126,32 @@ _fillKeymap()
 # The listener singleton, so getKeyState() can reach its state.
 _listener = None
 
-# Lazily created uinput keyboard used only to undo a Caps Lock toggle;
-# it bears UINPUT_DEVICE_NAME, so the evdev listener ignores it.
-_corrective_uinput = None
+# Lazily created uinput keyboard (all key codes) used to balance the
+# swallowed trigger release and to undo a Caps Lock toggle; it bears
+# UINPUT_DEVICE_NAME, so the evdev listener ignores it.
+_virtual_keyboard = None
+
+
+def _virtualKeyboard():
+    global _virtual_keyboard
+    if _virtual_keyboard is None:
+        _virtual_keyboard = evdev.UInput(name=utils.UINPUT_DEVICE_NAME)
+        time.sleep(0.2)  # let the compositor pick the device up
+    return _virtual_keyboard
+
+
+def _injectKey(evdev_code, value):
+    try:
+        device = _virtualKeyboard()
+        device.write(ecodes.EV_KEY, evdev_code, value)
+        device.syn()
+    except Exception:
+        logging.exception("Couldn't inject a key event via uinput.")
 
 
 def _tapCapsLock():
-    global _corrective_uinput
-    try:
-        if _corrective_uinput is None:
-            _corrective_uinput = evdev.UInput(
-                {ecodes.EV_KEY: [ecodes.KEY_CAPSLOCK]},
-                name=utils.UINPUT_DEVICE_NAME)
-            time.sleep(0.2)  # let the compositor pick the device up
-        for value in (1, 0):
-            _corrective_uinput.write(ecodes.EV_KEY, ecodes.KEY_CAPSLOCK,
-                                     value)
-            _corrective_uinput.syn()
-    except Exception:
-        logging.exception("Couldn't tap Caps Lock to undo its toggle.")
+    _injectKey(ecodes.KEY_CAPSLOCK, 1)
+    _injectKey(ecodes.KEY_CAPSLOCK, 0)
 
 
 def getKeyState(keyCode):
@@ -165,20 +179,31 @@ _RESCAN_INTERVAL = 5.0
 
 
 class _EvdevListener(threading.Thread):
-    """Thread that watches the raw input devices for the quasimode
-    trigger key, shift state, and (when enabled) mouse activity.
-    Results are marshalled onto the GTK main thread."""
+    """Thread that watches the raw input devices and owns the
+    quasimode state machine: on the trigger press it grabs the
+    keyboards and consumes the keystrokes itself, releasing them when
+    the quasimode ends.  Results are marshalled onto the GTK main
+    thread."""
 
     def __init__(self, parent):
         threading.Thread.__init__(self, daemon=True)
         self.__parent = parent
         self.__terminate = False
+        self.__leaveRequested = False
         self.__wakeup_r, self.__wakeup_w = os.pipe()
         self.__devices = {}          # fd -> InputDevice
+        self.__keyboardFds = set()
+        self.__grabbedFds = set()
+        self.__capturing = False
+        self.__currentlyModal = False
         self.__shiftDown = set()     # evdev codes of held shift keys
         self.__lastScan = 0.0
         self.__lastMouseMove = 0.0
         self.__permissionWarned = False
+        # The Caps Lock LED state observed at the trigger press, i.e.
+        # the state the user actually wants; read by the manager's
+        # drift correction.
+        self.caps_baseline = None
         # Written from the main thread, read here; a plain attribute is
         # enough for a single int under the GIL.
         self.trigger_keycode = KEYCODE_CAPITAL
@@ -189,7 +214,19 @@ class _EvdevListener(threading.Thread):
 
     def stop(self):
         self.__terminate = True
-        os.write(self.__wakeup_w, b"x")
+        self.__wake()
+
+    def leave_quasimode(self):
+        """Asks the listener to abandon the current capture; used when
+        Enso core refuses to enter the quasimode."""
+        self.__leaveRequested = True
+        self.__wake()
+
+    def __wake(self):
+        try:
+            os.write(self.__wakeup_w, b"x")
+        except OSError:
+            pass
 
     # ------------------------------------------------------------------
     # State queries (any thread)
@@ -215,6 +252,11 @@ class _EvdevListener(threading.Thread):
         try:
             self.__scanDevices()
             while not self.__terminate:
+                if self.__leaveRequested:
+                    self.__leaveRequested = False
+                    if self.__capturing:
+                        self.__endCapture()
+                        self.__post("quasimodeEnd")
                 if time.monotonic() - self.__lastScan > _RESCAN_INTERVAL:
                     self.__scanDevices()
                 fds = list(self.__devices) + [self.__wakeup_r]
@@ -229,6 +271,9 @@ class _EvdevListener(threading.Thread):
                              % traceback.format_exc())
             GLib.idle_add(Gtk.main_quit)
         finally:
+            # A leaked keyboard grab would freeze the user's session;
+            # release everything unconditionally on the way out.
+            self.__ungrabAll()
             for device in self.__devices.values():
                 try:
                     device.close()
@@ -238,12 +283,11 @@ class _EvdevListener(threading.Thread):
     def __scanDevices(self):
         self.__lastScan = time.monotonic()
         known = set(d.path for d in self.__devices.values())
-        found_keyboard = False
+        found_keyboard = bool(self.__keyboardFds)
         denied = 0
         for path in evdev.list_devices():
             try:
                 if path in known:
-                    found_keyboard = True
                     continue
                 device = evdev.InputDevice(path)
                 if device.name == utils.UINPUT_DEVICE_NAME:
@@ -257,7 +301,13 @@ class _EvdevListener(threading.Thread):
                     or ecodes.EV_REL in caps
                 if is_keyboard or is_mouse:
                     self.__devices[device.fd] = device
-                    found_keyboard = found_keyboard or is_keyboard
+                    if is_keyboard:
+                        self.__keyboardFds.add(device.fd)
+                        found_keyboard = True
+                        # A keyboard hotplugged mid-quasimode must be
+                        # captured like the others.
+                        if self.__capturing:
+                            self.__grab(device)
                 else:
                     device.close()
             except PermissionError:
@@ -288,7 +338,42 @@ class _EvdevListener(threading.Thread):
         except OSError:
             # Device unplugged; forget it and rescan soon.
             del self.__devices[fd]
+            self.__keyboardFds.discard(fd)
+            self.__grabbedFds.discard(fd)
             self.__lastScan = 0.0
+
+    # ------------------------------------------------------------------
+    # Grab management
+    # ------------------------------------------------------------------
+
+    def __grab(self, device):
+        try:
+            device.grab()
+            self.__grabbedFds.add(device.fd)
+        except OSError as error:
+            logging.warning("Couldn't grab %s (%s); its keystrokes will "
+                            "leak to the focused application during the "
+                            "quasimode." % (device.path, error))
+
+    def __grabAll(self):
+        for fd in self.__keyboardFds:
+            device = self.__devices.get(fd)
+            if device is not None and fd not in self.__grabbedFds:
+                self.__grab(device)
+
+    def __ungrabAll(self):
+        for fd in list(self.__grabbedFds):
+            device = self.__devices.get(fd)
+            if device is not None:
+                try:
+                    device.ungrab()
+                except OSError:
+                    pass
+            self.__grabbedFds.discard(fd)
+
+    # ------------------------------------------------------------------
+    # Event handling
+    # ------------------------------------------------------------------
 
     def __handleEvent(self, event):
         if event.type == ecodes.EV_REL:
@@ -306,107 +391,85 @@ class _EvdevListener(threading.Thread):
                 self.__onMouseActivity(moved=False)
             return
         keycode = event.code + EVDEV_OFFSET
-        if keycode == self.trigger_keycode:
-            if event.value == 1:
-                self.__post(self.__parent._onTriggerDown)
-            elif event.value == 0:
-                self.__post(self.__parent._onTriggerUp)
-        elif event.value == 1:
-            self.__post(self.__parent._onSomeKey)
+        try:
+            self.__handleKey(event, keycode)
+        except Exception:
+            # Never leave the keyboard grabbed because of a handler bug.
+            self.__endCapture()
+            raise
+
+    def __handleKey(self, event, keycode):
+        trigger = self.trigger_keycode
+        if not self.__capturing:
+            if keycode == trigger and event.value == 1:
+                self.__capturing = True
+                self.__currentlyModal = self.__parent.getModality()
+                self.caps_baseline = self.led_is_on(ecodes.LED_CAPSL) \
+                    if trigger == KEYCODE_CAPITAL else None
+                self.__grabAll()
+                self.__post("quasimodeStart")
+            elif event.value == 1:
+                self.__post("someKey")
+            return
+
+        # --- capturing ---
+        if keycode == trigger:
+            if event.value == 0:
+                # The compositor saw the trigger press but this release
+                # was consumed by the grab; balance its keyboard state.
+                _injectKey(event.code, 0)
+                if not self.__currentlyModal:
+                    self.__endCapture()
+                    self.__post("quasimodeEnd")
+            return
+        if event.value in (1, 2):   # press or auto-repeat
+            if self.__currentlyModal and event.value == 1:
+                if keycode == self.__parent.getQuasimodeKeycode(
+                        KEYCODE_QUASIMODE_END):
+                    self.__endCapture()
+                    self.__post("quasimodeEnd")
+                    return
+                if keycode == self.__parent.getQuasimodeKeycode(
+                        KEYCODE_QUASIMODE_CANCEL):
+                    self.__endCapture()
+                    self.__post("quasimodeCancel")
+                    return
+            self.__post("keyDown", keycode)
+        elif event.value == 0:
+            self.__post("keyUp", keycode)
+
+    def __endCapture(self):
+        if self.__capturing:
+            self.__capturing = False
+            self.__ungrabAll()
 
     def __onMouseActivity(self, moved):
-        if not self.__parent._mouseEventsEnabled():
+        if self.__capturing or not self.__parent._mouseEventsEnabled():
             return
         if moved:
             now = time.monotonic()
             if now - self.__lastMouseMove < _MOUSE_MOVE_THROTTLE:
                 return
             self.__lastMouseMove = now
-            self.__post(self.__parent._onMouseMoved)
+            self.__post("mouseMove")
         else:
-            self.__post(self.__parent._onMouseButton)
+            self.__post("mouseButton")
 
-    def __post(self, callback):
-        GLib.idle_add(self.__safeCall, callback)
-
-    @staticmethod
-    def __safeCall(callback):
-        try:
-            callback()
-        except Exception:
-            logging.error("Exception in input event handler:\n%s"
-                          % traceback.format_exc())
-        return GLib.SOURCE_REMOVE
-
-
-class _KeySink(Gtk.Window):
-    """Invisible 1x1 layer-shell surface that takes exclusive keyboard
-    focus while the quasimode is active, delivering the captured
-    keystrokes as GTK key events."""
-
-    def __init__(self, manager):
-        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        self.__manager = manager
-        visual = self.get_screen().get_rgba_visual()
-        if visual is not None:
-            self.set_visual(visual)
-        # GDK's Wayland backend never commits a frame for a childless
-        # (or app-paintable) toplevel, and an uncommitted layer surface
-        # is not mapped and cannot take keyboard focus; a 1x1
-        # transparent DrawingArea child makes the surface real.
-        area = Gtk.DrawingArea()
-        area.set_size_request(1, 1)
-        area.connect("draw", self.__onDraw)
-        self.add(area)
-        layershell.init_layer_window(self, "enso-keysink")
-        GtkLayerShell.set_keyboard_mode(
-            self, GtkLayerShell.KeyboardMode.NONE)
-        self.connect("realize", self.__onRealize)
-        self.connect("key-press-event", self.__onKeyPress)
-        self.connect("key-release-event", self.__onKeyRelease)
-        self.show_all()
-
-    def __onRealize(self, widget):
-        # Never take mouse input.
-        self.input_shape_combine_region(cairo.Region())
-
-    def __onDraw(self, widget, cr):
-        cr.set_operator(cairo.OPERATOR_SOURCE)
-        cr.set_source_rgba(0, 0, 0, 0)
-        cr.paint()
-        return False
-
-    def grab_keyboard(self):
-        GtkLayerShell.set_keyboard_mode(
-            self, GtkLayerShell.KeyboardMode.EXCLUSIVE)
-
-    def ungrab_keyboard(self):
-        GtkLayerShell.set_keyboard_mode(
-            self, GtkLayerShell.KeyboardMode.NONE)
-
-    def __onKeyPress(self, widget, event):
-        self.__manager._onSinkKey(EVENT_KEY_DOWN, event.hardware_keycode)
-        return True
-
-    def __onKeyRelease(self, widget, event):
-        self.__manager._onSinkKey(EVENT_KEY_UP, event.hardware_keycode)
-        return True
+    def __post(self, eventName, keycode=None):
+        GLib.idle_add(self.__parent._dispatchEvent,
+                      {"event": eventName, "keycode": keycode})
 
 
 class InputManager(object):
-    """Input event manager: owns the GTK main loop, the key sink and
-    the evdev listener.  Enso's EventManager subclasses this and
-    overrides the on* hooks."""
+    """Input event manager: owns the GTK main loop and the evdev
+    listener.  Enso's EventManager subclasses this and overrides the
+    on* hooks."""
 
     def __init__(self):
         self.__mouseEventsEnabled = False
         self.__qmKeycodes = [KEYCODE_CAPITAL, KEYCODE_RETURN, KEYCODE_ESCAPE]
         self.__isModal = False
-        self.__inQuasimode = False
-        self.__currentlyModal = False
-        self.__capsBaseline = None
         self.__listener = None
-        self.__keySink = None
         self.__tickIntervalMs = TICK_INTERVAL_MS_SLOW
         self.__timeoutId = None
 
@@ -423,8 +486,6 @@ class InputManager(object):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
                              self.__onSigint)
 
-        self.__keySink = _KeySink(self)
-
         self.__listener = _EvdevListener(self)
         self.__listener.trigger_keycode = self.__triggerKeycode()
         _listener = self.__listener
@@ -439,7 +500,6 @@ class InputManager(object):
         except KeyboardInterrupt:
             pass
         finally:
-            self.__endQuasimode()
             self.__listener.stop()
             self.__listener.join(2.0)
             _listener = None
@@ -480,60 +540,52 @@ class InputManager(object):
             self.__timeoutId = GLib.timeout_add(desired, self.__onTimer)
 
     # ------------------------------------------------------------------
-    # Quasimode state machine (all on the GTK main thread)
+    # Event dispatch (GTK main thread)
     # ------------------------------------------------------------------
 
     def __triggerKeycode(self):
         return self.__qmKeycodes[KEYCODE_QUASIMODE_START] or KEYCODE_CAPITAL
 
-    def _onTriggerDown(self):
-        if self.__inQuasimode:
-            return
-        self.__inQuasimode = True
-        self.__currentlyModal = self.__isModal
-        # The Caps Lock state the user actually wants, read before
-        # KWin's LED update for this press can land; used to detect and
-        # undo a toggle when the caps:none suppression is not in effect
-        # (non-KDE compositor, kwriteconfig missing, ...).
-        if self.__triggerKeycode() == KEYCODE_CAPITAL and self.__listener:
-            self.__capsBaseline = self.__listener.led_is_on(ecodes.LED_CAPSL)
-        else:
-            self.__capsBaseline = None
-        self.__keySink.grab_keyboard()
-        self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
-
-    def _onTriggerUp(self):
-        if self.__inQuasimode and not self.__currentlyModal:
-            self.__endQuasimode()
-            self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_END)
-
-    def _onSinkKey(self, eventType, keycode):
-        if not self.__inQuasimode:
-            return
-        # The trigger key is owned by the evdev side; its release also
-        # shows up here once the sink has keyboard focus.
-        if keycode == self.__triggerKeycode():
-            return
-        if eventType == EVENT_KEY_DOWN and self.__currentlyModal:
-            if keycode == self.__qmKeycodes[KEYCODE_QUASIMODE_END]:
-                self.__endQuasimode()
+    def _dispatchEvent(self, info):
+        """Delivers a listener event on the GTK main thread."""
+        try:
+            event = info["event"]
+            if event == "quasimodeStart":
+                self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
+            elif event == "quasimodeEnd":
+                self.__scheduleCapsDriftCheck()
                 self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_END)
-                return
-            if keycode == self.__qmKeycodes[KEYCODE_QUASIMODE_CANCEL]:
-                self.__endQuasimode()
+            elif event == "quasimodeCancel":
+                self.__scheduleCapsDriftCheck()
                 self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_CANCEL)
-                return
-        self.onKeypress(eventType, keycode)
+            elif event == "keyDown":
+                self.onKeypress(EVENT_KEY_DOWN, info["keycode"])
+            elif event == "keyUp":
+                self.onKeypress(EVENT_KEY_UP, info["keycode"])
+            elif event == "someKey":
+                if self.__mouseEventsEnabled:
+                    self.onSomeKey()
+            elif event == "mouseMove":
+                # The pointer position is not observable on Wayland; a
+                # sentinel position is enough for the dismiss-on-activity
+                # behavior the core uses this for.
+                if self.__mouseEventsEnabled:
+                    self.onMouseMove(-1, -1)
+            elif event == "mouseButton":
+                if self.__mouseEventsEnabled:
+                    self.onSomeMouseButton()
+            else:
+                logging.warning("Don't know what to do with event: %s" % info)
+        except Exception:
+            logging.error("Exception in input event handler:\n%s"
+                          % traceback.format_exc())
+        return GLib.SOURCE_REMOVE
 
-    def __endQuasimode(self):
-        if self.__inQuasimode:
-            self.__inQuasimode = False
-            if self.__keySink:
-                self.__keySink.ungrab_keyboard()
-            if self.__capsBaseline is not None:
-                # Give the compositor time to process the trigger
-                # release before checking for Caps Lock drift.
-                GLib.timeout_add(250, self.__fixCapsLockDrift)
+    def __scheduleCapsDriftCheck(self):
+        if self.__listener and self.__listener.caps_baseline is not None:
+            # Give the compositor time to process the balancing trigger
+            # release before checking for Caps Lock drift.
+            GLib.timeout_add(250, self.__fixCapsLockDrift)
 
     def __fixCapsLockDrift(self):
         """Safety net: undoes a Caps Lock toggle caused by the trigger.
@@ -541,39 +593,21 @@ class InputManager(object):
         this never fires; when the suppression is unavailable, a
         corrective Caps Lock tap from a uinput device (ignored by the
         evdev listener) puts the state back."""
-        if self.__capsBaseline is not None and not self.__inQuasimode \
-                and self.__listener:
+        if self.__listener:
+            baseline = self.__listener.caps_baseline
             current = self.__listener.led_is_on(ecodes.LED_CAPSL)
-            if current != self.__capsBaseline:
+            if baseline is not None and current != baseline:
                 logging.debug("Caps Lock toggled by the trigger; "
                               "tapping it back.")
                 _tapCapsLock()
         return GLib.SOURCE_REMOVE
 
-    def _onSomeKey(self):
-        if not self.__inQuasimode and self.__mouseEventsEnabled:
-            self.onSomeKey()
-
     # ------------------------------------------------------------------
-    # Mouse activity (position is not observable on Wayland; motion is
-    # reported with a sentinel position, which is enough for the
-    # dismiss-on-activity behavior the core uses it for)
+    # Configuration
     # ------------------------------------------------------------------
 
     def _mouseEventsEnabled(self):
         return self.__mouseEventsEnabled
-
-    def _onMouseMoved(self):
-        if self.__mouseEventsEnabled:
-            self.onMouseMove(-1, -1)
-
-    def _onMouseButton(self):
-        if self.__mouseEventsEnabled:
-            self.onSomeMouseButton()
-
-    # ------------------------------------------------------------------
-    # Configuration
-    # ------------------------------------------------------------------
 
     def enableMouseEvents(self, isEnabled):
         self.__mouseEventsEnabled = isEnabled
@@ -601,11 +635,8 @@ class InputManager(object):
             xkb.disable_caps_lock()
 
     def leaveQuasimode(self):
-        """Abandons the current capture; used when Enso core refuses to
-        enter the quasimode."""
-        if self.__inQuasimode:
-            self.__endQuasimode()
-            self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_END)
+        if self.__listener:
+            self.__listener.leave_quasimode()
 
     # ------------------------------------------------------------------
     # Hooks overridden by Enso's EventManager

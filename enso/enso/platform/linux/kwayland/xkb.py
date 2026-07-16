@@ -21,18 +21,54 @@ Three Plasma quirks matter here (verified against KWin 6.6):
     no longer exists (the name survives only as a broadcast signal that
     current KWin ignores); it is still emitted for older Plasmas.
 
-The original values are restored on exit (also via atexit, so a crash
-of Enso core does not leave the user without Caps Lock).
+The original values are restored on exit (also via atexit).  Since a
+hard kill runs neither, the originals are additionally persisted to a
+backup file in the Enso user directory when they are modified: a
+backup found on the next start identifies leftover state from a
+crashed session (as opposed to the user's own configuration), so it
+can be adopted and restored on the next clean exit.
 """
 
 import atexit
+import json
 import logging
+import os
 import shutil
 import subprocess
+
+from enso import config
+
+_BACKUP_FILE = os.path.join(config.ENSO_USER_DIR, "xkb_options_backup.json")
 
 _original_options = None
 _original_reset = None
 _applied = False
+
+
+def _load_backup():
+    try:
+        with open(_BACKUP_FILE) as f:
+            data = json.load(f)
+        return data["options"], data["reset"]
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+def _save_backup(options, reset):
+    try:
+        os.makedirs(os.path.dirname(_BACKUP_FILE), exist_ok=True)
+        with open(_BACKUP_FILE, "w") as f:
+            json.dump({"options": options, "reset": reset}, f)
+    except OSError:
+        logging.exception("Couldn't write the XKB options backup; the "
+                          "original options won't survive a hard kill.")
+
+
+def _drop_backup():
+    try:
+        os.remove(_BACKUP_FILE)
+    except OSError:
+        pass
 
 
 def _tool(*names):
@@ -85,14 +121,25 @@ def disable_caps_lock():
         return
     options = _read(kreadconfig, "Options")
     reset = _read(kreadconfig, "ResetOldOptions")
+    backup = _load_backup()
+    if backup is not None:
+        # Leftover state from a session that was killed before it
+        # could restore; the backup holds the true originals.  Adopt
+        # them and re-apply from scratch below.
+        logging.info("Found XKB options left over from a previous Enso "
+                     "session; adopting its backup for restoration.")
+        _original_options, _original_reset = backup
+    else:
+        parts = [o for o in options.split(",") if o]
+        if "caps:none" in parts and reset == "true":
+            # Genuinely configured by the user (no Enso backup exists);
+            # applied at session start, nothing to restore later.
+            _applied = True
+            return
+        _original_options = options
+        _original_reset = reset
+        _save_backup(options, reset)
     parts = [o for o in options.split(",") if o]
-    if "caps:none" in parts and reset == "true":
-        # Configured by the user; applied at session start, and there
-        # is nothing for us to restore later.
-        _applied = True
-        return
-    _original_options = options
-    _original_reset = reset
     if "caps:none" not in parts:
         parts.append("caps:none")
     if reset != "true":
@@ -126,6 +173,7 @@ def enable_caps_lock():
         else:
             _delete(kwriteconfig, "ResetOldOptions")
         _emit_legacy_reload_signal()
+        _drop_backup()
     _original_options = None
     _original_reset = None
     _applied = False
