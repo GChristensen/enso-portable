@@ -54,12 +54,12 @@ def preflight():
     """OS-specific startup checks that may abort the process before
     anything else runs (e.g. no X11 session on Linux)."""
     if sys.platform.startswith("linux"):
-        if not os.environ.get("DISPLAY"):
-            sys.exit("Error: DISPLAY is not set. Enso requires an X11 session.")
-        if os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
-            print("Warning: this looks like a Wayland session. Enso's global "
-                  "key grab only sees X11 applications; log into an X11 "
-                  "session for reliable operation.", file=sys.stderr)
+        # X11 and (KDE) Wayland sessions are both supported; the
+        # backend is chosen by enso.platform.linux.detect.
+        if not os.environ.get("DISPLAY") \
+                and not os.environ.get("WAYLAND_DISPLAY"):
+            sys.exit("Error: neither DISPLAY nor WAYLAND_DISPLAY is set. "
+                     "Enso requires a graphical session.")
     elif sys.platform == "darwin":
         try:
             import Quartz

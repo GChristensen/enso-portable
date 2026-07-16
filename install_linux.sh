@@ -26,7 +26,7 @@ python3 -m venv --system-site-packages "$VENV_DIR"
 
 echo "Installing dependencies ..."
 "$VENV_DIR/bin/pip" install --upgrade pip >/dev/null
-"$VENV_DIR/bin/pip" install flask python-xlib
+"$VENV_DIR/bin/pip" install flask python-xlib evdev
 
 if ! "$VENV_DIR/bin/python3" -c "import gi; gi.require_version('Gtk', '3.0'); import cairo" 2>/dev/null; then
     echo

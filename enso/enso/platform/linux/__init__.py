@@ -45,23 +45,38 @@ platforms = [
 if not any (sys.platform.startswith (s) for s in platforms):
     raise enso.platform.PlatformUnsupportedError()
 
+from enso.platform.linux import detect
+
+# Pin GDK to the display protocol matching the chosen backend before
+# anything imports Gtk: under Wayland, GTK would otherwise be free to
+# pick XWayland (or the other way round with GDK_BACKEND set), and the
+# input/graphics code must talk to the same display server the backend
+# was chosen for.  setdefault keeps an explicit user override working.
+BACKEND = detect.get_backend()
+os.environ.setdefault(
+    "GDK_BACKEND", "wayland" if BACKEND == "kwayland" else "x11")
+
+_BACKEND_PACKAGE = "enso.platform.linux." + \
+    ("kwayland" if BACKEND == "kwayland" else "x11")
+
+
+def _backend_module (name):
+    module = __import__ (_BACKEND_PACKAGE + "." + name,
+                         fromlist = [name])
+    return module
+
+
 def provideInterface (name):
     '''Plug into Enso core'''
-    if name in ("input", "graphics") and not os.environ.get ("DISPLAY"):
-        logging.error ("DISPLAY is not set; Enso requires an X11 session "
-                       "(on Wayland, log into an X11 session instead).")
-    if name == "input":
-        import enso.platform.linux.input
-        return enso.platform.linux.input
-    elif name == "graphics":
-        import enso.platform.linux.graphics
-        return enso.platform.linux.graphics
+    if BACKEND == "x11" and name in ("input", "graphics") \
+            and not os.environ.get ("DISPLAY"):
+        logging.error ("DISPLAY is not set; the X11 backend requires an "
+                       "X11 session.")
+    if name in ("input", "graphics", "selection"):
+        return _backend_module (name)
     elif name == "cairo":
         import cairo
         return cairo
-    elif name == "selection":
-        import enso.platform.linux.selection
-        return enso.platform.linux.selection
     elif name == "scripts_folder":
         from enso.platform.linux.scriptfolder import get_script_folder_name
         return get_script_folder_name

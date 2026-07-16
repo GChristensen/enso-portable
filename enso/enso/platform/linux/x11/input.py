@@ -31,7 +31,7 @@ from gi.repository import Gtk, GLib
 from Xlib import X
 from Xlib.error import ConnectionClosedError
 
-from enso.platform.linux import utils
+from enso.platform.linux.x11 import utils
 
 # Timer tick interval, in milliseconds.
 TICK_INTERVAL_MS_FAST = 10

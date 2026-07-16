@@ -2,11 +2,16 @@
 
 # Standalone bring-up test for the Linux InputManager (no Enso core).
 #
+# Works with whichever backend enso.platform.linux.detect selects
+# (X11 grab or KDE Wayland evdev/layer-shell); ENSO_LINUX_BACKEND
+# overrides the choice.
+#
 # Grabs the quasimode trigger key (Caps Lock) and prints every event.
 # Hold Caps Lock and type to see keyDown/keyUp events; release to end
 # the quasimode.  Run with --modal to test sticky mode (Caps Lock tap
-# starts it, Return ends, Escape cancels).  Ctrl+C to quit; afterwards
-# check that 'xmodmap -pm' shows Caps_Lock restored on the lock row.
+# starts it, Return ends, Escape cancels).  Ctrl+C to quit; on X11,
+# afterwards check that 'xmodmap -pm' shows Caps_Lock restored on the
+# lock row.
 
 import os
 import sys
@@ -17,7 +22,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 import logging
 logging.basicConfig(level=logging.DEBUG, force=True)
 
-from enso.platform.linux import input as linux_input
+import enso.platform.linux
+linux_input = enso.platform.linux.provideInterface("input")
 
 _EVENT_NAMES = {
     linux_input.EVENT_KEY_UP: "KEY_UP",

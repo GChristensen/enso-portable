@@ -15,11 +15,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 import cairo
 
+import enso.platform.linux
+graphics = enso.platform.linux.provideInterface("graphics")
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib
-
-from enso.platform.linux import graphics
 
 WIDTH, HEIGHT = 400, 200
 

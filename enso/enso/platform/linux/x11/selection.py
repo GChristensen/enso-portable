@@ -20,7 +20,7 @@ from gi.repository import Gtk, Gdk
 from Xlib import X
 from Xlib.ext import xtest
 
-from enso.platform.linux import utils
+from enso.platform.linux.x11 import utils
 
 # Delay between claiming the clipboard and synthesizing the paste, so
 # the target application sees the new clipboard owner.
