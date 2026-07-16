@@ -92,6 +92,14 @@ class TransparentWindow(object):
 
             layershell.move_layer_window(self, self.__x, self.__y)
 
+            # Map the window immediately while the surface is still
+            # None (the draw handler paints fully transparent in that
+            # state).  This lets KWin's window-open animation play on
+            # an invisible surface, so the user never sees the "grow
+            # from small" scale effect that KDE applies to newly
+            # mapped windows.
+            self.show_all()
+
         def __onRealize(self, widget):
             # The overlay must never take mouse input: an empty input
             # shape makes the whole window click-through.

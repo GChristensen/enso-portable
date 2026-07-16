@@ -183,6 +183,21 @@ class Quasimode:
         # before the quasimode is loaded
         layout.setColorTheme(config.COLOR_THEME)
 
+        # On KDE Wayland, eagerly create the quasimode window at
+        # startup so that KWin's window-open animation (Scale effect)
+        # plays on the empty, invisible surfaces now, well before the
+        # user's first CapsLock press.
+        try:
+            from enso.platform.linux import BACKEND
+            if BACKEND == "kwayland":
+                logging.info( "Pre-creating quasimode window (KDE "
+                              "Wayland: avoids scale animation on "
+                              "first activation)." )
+                self.__quasimodeWindow = TheQuasimodeWindow()
+                self.__quasimodeWindow.hide()
+        except ImportError:
+            pass
+
     def setQuasimodeKeyByName( self, function_name, key_name ):
         # Sets the quasimode to use the given key (key_name must be a
         # string corresponding to a constant defined in the os-specific
@@ -393,12 +408,23 @@ class Quasimode:
         self.__eventMgr.triggerEvent( "endQuasimode" )
         self.__eventMgr.removeResponder( self.__onTick )
 
-        # LONGTERM TODO: Determine whether deleting or hiding is better.
-        logging.info( "Deleting the quasimode window." )
-
-        # Delete the Quasimode window.
-        del self.__quasimodeWindow
-        self.__quasimodeWindow = None
+        # On KDE Wayland, hide (don't delete) the quasimode window so
+        # that the underlying layer-shell surfaces stay mapped.  This
+        # prevents KWin's window-open animation (scale effect) from
+        # replaying on every quasimode activation.  On other backends
+        # the original delete-and-recreate behaviour is preserved.
+        try:
+            from enso.platform.linux import BACKEND
+            _is_kwayland = (BACKEND == "kwayland")
+        except ImportError:
+            _is_kwayland = False
+        if _is_kwayland:
+            logging.info( "Hiding the quasimode window." )
+            self.__quasimodeWindow.hide()
+        else:
+            logging.info( "Deleting the quasimode window." )
+            del self.__quasimodeWindow
+            self.__quasimodeWindow = None
 
         activeCommand = self.__suggestionList.getActiveCommand()
         userText = self.__suggestionList.getUserText()

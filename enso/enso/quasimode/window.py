@@ -173,6 +173,21 @@ class TheQuasimodeWindow:
                 pass
 
 
+    def hide( self ):
+        """
+        Hides all sub-windows (description, user text, suggestions) so
+        that the quasimode display disappears, but the underlying
+        transparent-window objects stay alive and mapped.  Keeping them
+        alive avoids re-triggering KDE's window-open animation on the
+        next quasimode activation.
+        """
+
+        self.__descriptionWindow.hide()
+        self.__userTextWindow.hide()
+        for w in self.__suggestionWindows:
+            w.hide()
+
+
     def continueDrawing( self, ignoreTimeElapsed = False ):
         """
         Continues drawing any parts of the quasimode display that
