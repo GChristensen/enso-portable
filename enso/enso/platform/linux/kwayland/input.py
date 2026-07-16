@@ -119,6 +119,26 @@ _fillKeymap()
 # The listener singleton, so getKeyState() can reach its state.
 _listener = None
 
+# Lazily created uinput keyboard used only to undo a Caps Lock toggle;
+# it bears UINPUT_DEVICE_NAME, so the evdev listener ignores it.
+_corrective_uinput = None
+
+
+def _tapCapsLock():
+    global _corrective_uinput
+    try:
+        if _corrective_uinput is None:
+            _corrective_uinput = evdev.UInput(
+                {ecodes.EV_KEY: [ecodes.KEY_CAPSLOCK]},
+                name=utils.UINPUT_DEVICE_NAME)
+            time.sleep(0.2)  # let the compositor pick the device up
+        for value in (1, 0):
+            _corrective_uinput.write(ecodes.EV_KEY, ecodes.KEY_CAPSLOCK,
+                                     value)
+            _corrective_uinput.syn()
+    except Exception:
+        logging.exception("Couldn't tap Caps Lock to undo its toggle.")
+
 
 def getKeyState(keyCode):
     """Queries the current keyboard state, with win32 GetKeyState()
@@ -384,6 +404,7 @@ class InputManager(object):
         self.__isModal = False
         self.__inQuasimode = False
         self.__currentlyModal = False
+        self.__capsBaseline = None
         self.__listener = None
         self.__keySink = None
         self.__tickIntervalMs = TICK_INTERVAL_MS_SLOW
@@ -470,6 +491,14 @@ class InputManager(object):
             return
         self.__inQuasimode = True
         self.__currentlyModal = self.__isModal
+        # The Caps Lock state the user actually wants, read before
+        # KWin's LED update for this press can land; used to detect and
+        # undo a toggle when the caps:none suppression is not in effect
+        # (non-KDE compositor, kwriteconfig missing, ...).
+        if self.__triggerKeycode() == KEYCODE_CAPITAL and self.__listener:
+            self.__capsBaseline = self.__listener.led_is_on(ecodes.LED_CAPSL)
+        else:
+            self.__capsBaseline = None
         self.__keySink.grab_keyboard()
         self.onKeypress(EVENT_KEY_QUASIMODE, KEYCODE_QUASIMODE_START)
 
@@ -501,6 +530,25 @@ class InputManager(object):
             self.__inQuasimode = False
             if self.__keySink:
                 self.__keySink.ungrab_keyboard()
+            if self.__capsBaseline is not None:
+                # Give the compositor time to process the trigger
+                # release before checking for Caps Lock drift.
+                GLib.timeout_add(250, self.__fixCapsLockDrift)
+
+    def __fixCapsLockDrift(self):
+        """Safety net: undoes a Caps Lock toggle caused by the trigger.
+        With caps:none in effect the trigger cannot toggle the lock and
+        this never fires; when the suppression is unavailable, a
+        corrective Caps Lock tap from a uinput device (ignored by the
+        evdev listener) puts the state back."""
+        if self.__capsBaseline is not None and not self.__inQuasimode \
+                and self.__listener:
+            current = self.__listener.led_is_on(ecodes.LED_CAPSL)
+            if current != self.__capsBaseline:
+                logging.debug("Caps Lock toggled by the trigger; "
+                              "tapping it back.")
+                _tapCapsLock()
+        return GLib.SOURCE_REMOVE
 
     def _onSomeKey(self):
         if not self.__inQuasimode and self.__mouseEventsEnabled:
