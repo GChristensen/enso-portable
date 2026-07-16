@@ -39,8 +39,12 @@ _uinput = None
 _uinput_warned = False
 
 
-def _run(argv, input_text=None):
-    return subprocess.run(argv, input=input_text, capture_output=True,
+def _run(argv, input_text=None, capture=True):
+    # wl-copy forks a child that keeps serving the clipboard; that child
+    # inherits captured stdout/stderr pipes and run() would then block on
+    # them until the timeout, so callers spawning wl-copy pass capture=False.
+    out = subprocess.PIPE if capture else subprocess.DEVNULL
+    return subprocess.run(argv, input=input_text, stdout=out, stderr=out,
                           text=True, timeout=5)
 
 
@@ -125,8 +129,8 @@ def set(seldict):
 
     if shutil.which("wl-copy"):
         try:
-            _run(["wl-copy"], input_text=text)
-            _run(["wl-copy", "--primary"], input_text=text)
+            _run(["wl-copy"], input_text=text, capture=False)
+            _run(["wl-copy", "--primary"], input_text=text, capture=False)
         except (OSError, subprocess.TimeoutExpired):
             logging.exception("wl-copy failed")
             return False
