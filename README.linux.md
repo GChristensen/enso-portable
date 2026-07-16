@@ -7,17 +7,15 @@ backends:
 - **Wayland** sessions on **KDE Plasma** (tested on Plasma 6).
 
 The backend is detected automatically at startup (`WAYLAND_DISPLAY`
-wins over `DISPLAY`, since Wayland sessions usually run XWayland too);
-set `ENSO_LINUX_BACKEND=x11` or `ENSO_LINUX_BACKEND=kwayland` to
-override the detection.
+wins over `DISPLAY`, since Wayland sessions usually run XWayland too).
 
 ## Prerequisites
 
-Common, on openSUSE:
+Common packages, on openSUSE:
 
 ```
 sudo zypper install python3-gobject python3-gobject-Gdk \
-    typelib-1_0-Gtk-3_0 python3-cairo
+    typelib-1_0-Gtk-3_0 python3-cairo typelib-1_0-AyatanaAppIndicator3-0_1
 ```
 
 For **X11** sessions:
@@ -50,10 +48,9 @@ Log out and back in afterwards for the group membership to take
 effect.
 
 > **Security note:** membership in the `input` group grants read
-> access to all input devices — to Enso and to every other process
+> access to all input devices - to Enso and to every other process
 > running as your user. This is inherent to how a hold-a-key launcher
-> must work on Wayland, whose security model forbids global key grabs;
-> skip the Wayland setup if that trade-off is not acceptable to you.
+> must work on Wayland, whose security model forbids global key grabs.
 
 Optional:
 
@@ -73,7 +70,7 @@ Optional:
 
 After the distro packages above are in place, the install script sets
 up a virtual environment at `~/.enso/venv` (sharing the system GTK
-bindings) with the pure-Python extras (flask for the web UI, evdev for
+bindings) with the pure-python extras (flask for the web UI, evdev for
 the Wayland backend).
 The install script also can optionally register an XDG autostart entry
 so Enso starts with the desktop session:
@@ -114,7 +111,7 @@ on KDE the port composes different mechanisms:
   regardless of window focus.
 - While the quasimode is held, an invisible layer-shell surface takes
   *exclusive keyboard focus*, so your keystrokes go to Enso and never
-  reach the application below — the Wayland counterpart of the X11
+  reach the application below - the Wayland counterpart of the X11
   keyboard grab.
 - The overlays are wlr-layer-shell surfaces on the overlay layer,
   which keeps them above all windows, including fullscreen ones.
@@ -130,7 +127,21 @@ on KDE the port composes different mechanisms:
 ## Notes on specific commands
 
 - `open {name}` lists installed applications (desktop entries) plus
-  anything learned via `learn as open`.
+  anything learned via `learn as open`. Installed applications are
+  enumerated with `Gio.AppInfo` (every visible `.desktop` entry) and
+  launched through their desktop entry; learned shortcuts are launched
+  with `xdg-open`, so the desktop's default handler decides which
+  program actually opens them.
+- `learn as open {name}` turns your current selection into a new
+  `open {name}` command. On Linux the selection is always the
+  highlighted text (the PRIMARY selection - see *Known limitations*);
+  Enso interprets that text as an existing file path, folder path, or
+  URL and rejects it otherwise. Each learned shortcut is saved as a
+  small JSON
+  file `~/.enso/commands/learned/{name}.json` recording its type
+  (`file`, `folder`, or `url`) and target; the new command becomes
+  available immediately, without a restart. `unlearn open {name}`
+  deletes that file (undoable with `undo unlearn`).
 - `go {window}` and the window commands (maximize, minimize, close,
   fullscreen, ...) use EWMH on X11 and work on KDE, LXQt and other
   standards-compliant window managers; on Wayland they use KWin
