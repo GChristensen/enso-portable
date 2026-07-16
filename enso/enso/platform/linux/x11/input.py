@@ -51,6 +51,13 @@ KEYCODE_QUASIMODE_CANCEL = 2
 _display = utils.get_display()
 
 KEYCODE_CAPITAL = utils.get_keycode("Caps_Lock", _display)
+if not KEYCODE_CAPITAL:
+    # KDE (and others) may remap Caps_Lock out of the X keymap via XKB
+    # options like caps:none or caps:ctrl_modifier; fall back to the
+    # standard hardware scancode (66 = scancode 58 + 8).
+    logging.warning("Caps_Lock keysym not found in keymap (desktop may have "
+                    "remapped it); falling back to hardware keycode 66.")
+    KEYCODE_CAPITAL = 66
 KEYCODE_RETURN = utils.get_keycode("Return", _display)
 KEYCODE_ESCAPE = utils.get_keycode("Escape", _display)
 KEYCODE_TAB = utils.get_keycode("Tab", _display)
