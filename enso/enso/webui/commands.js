@@ -55,7 +55,7 @@ function compareByName(a, b) {
 function fillTableRowForCmd(row, cmd, className) {
     var {name, names} = cmd;
 
-    var checkBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
+    var checkBoxCell = $('<td class="command-check"><input type="checkbox" title="Enabled" /></td>');
     (checkBoxCell.find("input")
         .val(cmd.id)
         .bind("change", (e) => {
@@ -67,7 +67,7 @@ function fillTableRowForCmd(row, cmd, className) {
         })
         [cmd.disabled ? "removeAttr" : "attr"]("checked", "checked"));
 
-    var voiceCheckBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
+    var voiceCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice Command"/></td>');
     (voiceCheckBoxCell.find("input")
         .val(cmd.id)
         .bind("change", (e) => {
@@ -79,7 +79,7 @@ function fillTableRowForCmd(row, cmd, className) {
         })
         [cmd.voice ? "attr" : "removeAttr"]("checked", "checked"));
 
-    var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
+    var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice-Only Command"/></td>');
     (voiceOnlyCheckBoxCell.find("input")
         .val(cmd.id)
         .bind("change", (e) => {

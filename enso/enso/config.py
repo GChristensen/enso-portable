@@ -78,7 +78,8 @@ PLUGINS = ["enso.contrib.scriptotron",
            "enso.contrib.help",
            "enso.contrib.google",
            "enso.contrib.evaluate",
-           "enso.contrib.voice"]
+           "enso.contrib.voice"
+           ]
 
 # Detect default system locale and use it for google search.
 # If set to False, no locale is forced.dddasdfasdf

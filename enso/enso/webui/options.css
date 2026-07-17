@@ -382,10 +382,20 @@ ul#command-feed-graveyard ul li:last-child:after {
 
 .command-check {
   padding-top: 4px;
+  width: 22px;
+  text-align: center;
 }
 
-th.voice-header {
-  text-align: right;
+th.command-check {
+  font-size: 15px;
+  font-weight: normal;
+  font-variant: normal;
+  vertical-align: middle;
+  padding: 0;
+}
+
+td.command-check input[type="checkbox"] {
+  margin: 0;
 }
 
 table {
