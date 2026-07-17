@@ -19,3 +19,6 @@ __pycache__
 /enso-open-source-*
 /enso/python*
 /.claude/
+/platform/win32/VoiceCmd/.claude/
+/platform/win32/VoiceCmd/build-msvc/
+/platform/win32/VoiceCmd/cmake-build-debug/

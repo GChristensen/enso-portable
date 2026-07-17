@@ -126,6 +126,31 @@ VOICE_COMMANDS = []
 VOICE_ONLY_COMMANDS = []
 VOICE_COMMANDS_CHANGED = False
 
+# Native voicecmd engine tuning (consumed by enso.contrib.voice). The keyword
+# must prefix every command when VOICE_KEYWORD_REQUIRED is set. Confidence
+# thresholds are normalized 0..1; recognitions below reject are discarded,
+# between reject and accept require confirmation, at/above accept dispatch.
+VOICE_KEYWORD = "computer"
+VOICE_KEYWORD_REQUIRED = True
+VOICE_ACCEPT_CONFIDENCE = 0.85
+VOICE_REJECT_CONFIDENCE = 0.5
+VOICE_BACKEND = "sapi"
+VOICE_LANGUAGE = "en-US"
+# When true, print what the recognizer hears (rejections + state changes + raw
+# confidence diagnostics) to aid calibration during bring-up.
+VOICE_DEBUG = True
+# Recognition-quality tuning:
+#  - VOICE_TRUST_GRAMMAR_MATCH True: dispatch on any grammar match regardless of
+#    confidence (best recall, but SAPI force-matches noise onto commands). Set
+#    False to gate on the confidence bands (VOICE_ACCEPT/REJECT_CONFIDENCE).
+#  - VOICE_SHARED_RECOGNIZER True: use the shared recognizer (trained Windows
+#    Speech profile + configured mic) -- best confidence discrimination, but
+#    requires Windows Speech Recognition to be set up.
+#  - VOICE_GARBAGE_RULE: add a wildcard rule to absorb out-of-grammar speech.
+VOICE_TRUST_GRAMMAR_MATCH = True
+VOICE_SHARED_RECOGNIZER = True
+VOICE_GARBAGE_RULE = True
+
 from . import usercfg
 
 usercfg.init(globals())
