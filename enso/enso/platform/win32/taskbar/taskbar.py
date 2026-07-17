@@ -128,14 +128,19 @@ class SysTrayIcon(object):
             # TaskbarCreated message.
 
     def _on_load(self, hwnd, msg, wparam, lparam):
-        pass
+        # WNDPROC handlers must return an integer LRESULT; returning
+        # None makes pywin32 raise "WPARAM is simple, so must be an int
+        # object (got NoneType)" on Python 3.
+        return 0
 
     def _on_restart(self, hwnd, msg, wparam, lparam):
         self._create_icons()
+        return 0
 
     def _on_destroy(self, hwnd, msg, wparam, lparam):
         win32gui.PostQuitMessage(0) # Terminate the current thread.
         win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, self.notify_id)
+        return 0
 
     def _on_taskbar_notify(self, hwnd, msg, wparam, lparam):
         if lparam == win32con.WM_LBUTTONUP:
@@ -171,6 +176,7 @@ class SysTrayIcon(object):
                     logging.error(e)
         else:
             print("Unknown command -", id)
+        return 0
 
 
     def on_quit(self, systray):

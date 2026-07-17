@@ -188,6 +188,7 @@ class Quasimode:
         # plays on the empty, invisible surfaces now, well before the
         # user's first CapsLock press.
         try:
+            from enso.platform import PlatformUnsupportedError
             from enso.platform.linux import BACKEND
             if BACKEND == "kwayland":
                 logging.info( "Pre-creating quasimode window (KDE "
@@ -195,7 +196,9 @@ class Quasimode:
                               "first activation)." )
                 self.__quasimodeWindow = TheQuasimodeWindow()
                 self.__quasimodeWindow.hide()
-        except ImportError:
+        except ( ImportError, PlatformUnsupportedError ):
+            # Not on Linux (e.g. win32/darwin): no KWin scale effect to
+            # work around, so skip the eager window creation.
             pass
 
     def setQuasimodeKeyByName( self, function_name, key_name ):
@@ -414,9 +417,14 @@ class Quasimode:
         # replaying on every quasimode activation.  On other backends
         # the original delete-and-recreate behaviour is preserved.
         try:
+            from enso.platform import PlatformUnsupportedError
             from enso.platform.linux import BACKEND
             _is_kwayland = (BACKEND == "kwayland")
-        except ImportError:
+        except ( ImportError, PlatformUnsupportedError ):
+            # Not on Linux (e.g. win32/darwin): importing the linux
+            # backend raises PlatformUnsupportedError, which is not an
+            # ImportError.  Treat it as "not KWayland" instead of letting
+            # it escape into the InputManager event handler.
             _is_kwayland = False
         if _is_kwayland:
             logging.info( "Hiding the quasimode window." )
