@@ -204,7 +204,8 @@ class GenericPrefixFactory( AbstractCommandFactory ):
                 config.COMMAND_STATE_CHANGED = False
                 self.__postfixesChanged = True
             filtered_postfixes = [p for p in self.__postfixes
-                                  if p not in config.DISABLED_COMMANDS]
+                                  if p not in config.DISABLED_COMMANDS
+                                  and p not in config.VOICE_ONLY_COMMANDS]
         else:
             filtered_postfixes = self.__postfixes
 
@@ -242,7 +243,8 @@ class GenericPrefixFactory( AbstractCommandFactory ):
         """
 
         if hasattr(self, "NAME"):
-            if str(self.NAME) in config.DISABLED_COMMANDS:
+            if (str(self.NAME) in config.DISABLED_COMMANDS
+                    or str(self.NAME) in config.VOICE_ONLY_COMMANDS):
                 return []
 
         pattern = userText[len(self.PREFIX):]
@@ -276,7 +278,8 @@ class GenericPrefixFactory( AbstractCommandFactory ):
         match.  Otherwise, returns None.
         """
 
-        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+        if hasattr(self, "NAME") and (str(self.NAME) in config.DISABLED_COMMANDS
+                                       or str(self.NAME) in config.VOICE_ONLY_COMMANDS):
             return None
 
         if self.PREFIX.startswith( userText ):
@@ -381,7 +384,8 @@ class ArbitraryPostfixFactory( GenericPrefixFactory ):
         Returns None otherwise.
         """
 
-        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+        if hasattr(self, "NAME") and (str(self.NAME) in config.DISABLED_COMMANDS
+                                       or str(self.NAME) in config.VOICE_ONLY_COMMANDS):
             return None
 
         if self.PREFIX.startswith( seedText ):
@@ -404,7 +408,8 @@ class ArbitraryPostfixFactory( GenericPrefixFactory ):
         prefix.
         """
 
-        if hasattr(self, "NAME") and str(self.NAME) in config.DISABLED_COMMANDS:
+        if hasattr(self, "NAME") and (str(self.NAME) in config.DISABLED_COMMANDS
+                                       or str(self.NAME) in config.VOICE_ONLY_COMMANDS):
             return []
 
         if userText in self.PREFIX:

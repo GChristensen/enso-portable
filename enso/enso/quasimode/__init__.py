@@ -195,7 +195,7 @@ class Quasimode:
                               "first activation)." )
                 self.__quasimodeWindow = TheQuasimodeWindow()
                 self.__quasimodeWindow.hide()
-        except ImportError:
+        except (ImportError, providers.ProviderUnavailableError):
             pass
 
     def setQuasimodeKeyByName( self, function_name, key_name ):

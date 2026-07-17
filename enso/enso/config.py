@@ -77,7 +77,8 @@ PROVIDERS.extend(DEFAULT_PLATFORMS)
 PLUGINS = ["enso.contrib.scriptotron",
            "enso.contrib.help",
            "enso.contrib.google",
-           "enso.contrib.evaluate"]
+           "enso.contrib.evaluate",
+           "enso.contrib.voice"]
 
 # Detect default system locale and use it for google search.
 # If set to False, no locale is forced.dddasdfasdf
@@ -116,6 +117,13 @@ CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
 
 DISABLED_COMMANDS = []
 COMMAND_STATE_CHANGED = False
+
+# Commands enabled for voice recognition, and commands that should be
+# hidden from the quasimode's typed UI (voice-only). Both are toggled
+# from the webui commands table.
+VOICE_COMMANDS = []
+VOICE_ONLY_COMMANDS = []
+VOICE_COMMANDS_CHANGED = False
 
 from . import usercfg
 

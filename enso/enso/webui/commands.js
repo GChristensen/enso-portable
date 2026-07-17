@@ -67,6 +67,30 @@ function fillTableRowForCmd(row, cmd, className) {
         })
         [cmd.disabled ? "removeAttr" : "attr"]("checked", "checked"));
 
+    var voiceCheckBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
+    (voiceCheckBoxCell.find("input")
+        .val(cmd.id)
+        .bind("change", (e) => {
+            cmd.voice = e.target.checked;
+            if (cmd.voice)
+                ensoGet("/api/enso/commands/voice/enable/" + name);
+            else
+                ensoGet("/api/enso/commands/voice/disable/" + name);
+        })
+        [cmd.voice ? "attr" : "removeAttr"]("checked", "checked"));
+
+    var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"/></td>');
+    (voiceOnlyCheckBoxCell.find("input")
+        .val(cmd.id)
+        .bind("change", (e) => {
+            cmd.voiceOnly = e.target.checked;
+            if (cmd.voiceOnly)
+                ensoGet("/api/enso/commands/voice_only/enable/" + name);
+            else
+                ensoGet("/api/enso/commands/voice_only/disable/" + name);
+        })
+        [cmd.voiceOnly ? "attr" : "removeAttr"]("checked", "checked"));
+
     var cmdElement = jQuery(
         '<td class="command">'
         //'<img class="favicon" src="'
@@ -79,6 +103,8 @@ function fillTableRowForCmd(row, cmd, className) {
 
     if (className) {
         checkBoxCell.addClass(className);
+        voiceCheckBoxCell.addClass(className);
+        voiceOnlyCheckBoxCell.addClass(className);
         cmdElement.addClass(className);
     }
 
@@ -91,7 +117,7 @@ function fillTableRowForCmd(row, cmd, className) {
         }
     }
 
-    return row.append(checkBoxCell, cmdElement);
+    return row.append(checkBoxCell, voiceCheckBoxCell, voiceOnlyCheckBoxCell, cmdElement);
 }
 
 function insertNamespace(namespace, subtext, commands, table) {
@@ -115,7 +141,8 @@ function insertNamespace(namespace, subtext, commands, table) {
         });
     }
     else
-        aRow.append("<td class=\"topcell command\">&nbsp</td><td class=\"topcell command\">&nbsp</td>");
+        aRow.append("<td class=\"topcell command\">&nbsp</td><td class=\"topcell command\">&nbsp</td>"
+            + "<td class=\"topcell command\">&nbsp</td><td class=\"topcell command\">&nbsp</td>");
 }
 
 function buildTable() {

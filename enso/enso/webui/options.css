@@ -384,6 +384,10 @@ ul#command-feed-graveyard ul li:last-child:after {
   padding-top: 4px;
 }
 
+th.voice-header {
+  text-align: right;
+}
+
 table {
   border-collapse: collapse;
 }

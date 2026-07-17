@@ -167,6 +167,12 @@ def get_enso_get_commands():
         if name in config.DISABLED_COMMANDS:
             cmdJSON["disabled"] = "true"
 
+        if name in config.VOICE_COMMANDS:
+            cmdJSON["voice"] = "true"
+
+        if name in config.VOICE_ONLY_COMMANDS:
+            cmdJSON["voiceOnly"] = "true"
+
         output = output + [cmdJSON]
     return json.dumps(output)
 
@@ -227,6 +233,44 @@ def get_enso_commands_enable(command):
         config.DISABLED_COMMANDS.remove(command)
         config.COMMAND_STATE_CHANGED = True
         config.storeValue("DISABLED_COMMANDS", config.DISABLED_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice/disable/<command>')
+@requires_auth
+def get_enso_commands_voice_disable(command):
+    if command in config.VOICE_COMMANDS:
+        config.VOICE_COMMANDS.remove(command)
+        config.VOICE_COMMANDS_CHANGED = True
+        config.storeValue("VOICE_COMMANDS", config.VOICE_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice/enable/<command>')
+@requires_auth
+def get_enso_commands_voice_enable(command):
+    if command not in config.VOICE_COMMANDS:
+        config.VOICE_COMMANDS += [command]
+        config.VOICE_COMMANDS_CHANGED = True
+        config.storeValue("VOICE_COMMANDS", config.VOICE_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice_only/disable/<command>')
+@requires_auth
+def get_enso_commands_voice_only_disable(command):
+    if command in config.VOICE_ONLY_COMMANDS:
+        config.VOICE_ONLY_COMMANDS.remove(command)
+        config.storeValue("VOICE_ONLY_COMMANDS", config.VOICE_ONLY_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice_only/enable/<command>')
+@requires_auth
+def get_enso_commands_voice_only_enable(command):
+    if command not in config.VOICE_ONLY_COMMANDS:
+        config.VOICE_ONLY_COMMANDS += [command]
+        config.storeValue("VOICE_ONLY_COMMANDS", config.VOICE_ONLY_COMMANDS)
     return ""
 
 
