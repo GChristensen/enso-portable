@@ -24,7 +24,6 @@
 # Imports
 # ----------------------------------------------------------------------------
 
-import logging
 import threading
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
@@ -140,10 +139,10 @@ class VoiceRecognitionManager:
         # lock-protected queue, matching the real library's contract.
         matched = self.__matchVerb(self.MOCK_UTTERANCE)
         if matched is not None:
-            logging.info(
-                "voicecmd: mock recognized '%s' (matched verb '%s')",
-                self.MOCK_UTTERANCE, matched.name,
-            )
+            # print() rather than logging.info() so it is visible even at
+            # Enso's default ERROR log level (mock/debug signal only).
+            print("voicecmd: mock recognized '%s' (matched verb '%s')"
+                  % (self.MOCK_UTTERANCE, matched.name))
             with self.__lock:
                 self.__queue.append(
                     RecognitionEvent(text=self.MOCK_UTTERANCE, verb=matched.name)
@@ -151,12 +150,10 @@ class VoiceRecognitionManager:
         else:
             with self.__lock:
                 verb_count = len(self.__config.verbs)
-            logging.info(
-                "voicecmd: mock heartbeat -- '%s' matched no verb "
-                "(%d verb(s) in grammar; enable a command for voice "
-                "with the microphone checkbox)",
-                self.MOCK_UTTERANCE, verb_count,
-            )
+            print("voicecmd: mock heartbeat -- '%s' matched no verb "
+                  "(%d verb(s) in grammar; enable a command for voice "
+                  "with the microphone checkbox)"
+                  % (self.MOCK_UTTERANCE, verb_count))
         self.__scheduleNext()
 
     def __matchVerb(self, utterance: str) -> Optional[VerbPhrase]:
