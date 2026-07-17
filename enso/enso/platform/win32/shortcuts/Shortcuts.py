@@ -726,14 +726,18 @@ class Shortcuts:
             for package in output.strip().split("\n\n"):
                 # collect all the properties into a dict
                 props = {}
-                try:
-                    for line in package.splitlines():
-                        idx = line.index(":")
-                        key = line[:idx].strip()
-                        value = line[idx+1:].strip()
-                        props[key] = value
-                except Exception as e:
-                    logging.error(e)
+                for line in package.splitlines():
+                    # Get-AppxPackage prints "Key : Value" lines, but the
+                    # output also contains blank and wrapped continuation
+                    # lines that have no separator; skip those rather than
+                    # letting str.index() raise "substring not found" (and
+                    # abort parsing the rest of the package).
+                    idx = line.find(":")
+                    if idx < 0:
+                        continue
+                    key = line[:idx].strip()
+                    value = line[idx+1:].strip()
+                    props[key] = value
 
                 app = AppXPackage(props)
 
