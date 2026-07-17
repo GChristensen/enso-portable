@@ -13,6 +13,7 @@
 # Imports
 # ----------------------------------------------------------------------------
 
+import atexit
 import logging
 
 from enso import config
@@ -49,7 +50,27 @@ def load():
     _voiceManager = VoiceRecognitionManager(VoiceConfig(verbs=_buildVerbs()))
     _voiceManager.start()
 
+    # Enso's quit and restart paths both end this process by stopping the
+    # event loop and letting the interpreter exit normally (restart spawns
+    # a fresh process via subprocess, it does not exec over this one), so
+    # atexit reliably fires for both. Shut the engine down there, blocking
+    # until its background thread has actually terminated.
+    atexit.register(_shutdown)
+
     EventManager.get().registerResponder(_onTick, "timer")
+
+
+def _shutdown():
+    """Blocking shutdown of the voice engine; runs at interpreter exit."""
+    global _voiceManager
+    if _voiceManager is None:
+        return
+    try:
+        _voiceManager.stop()
+    except Exception:
+        logging.error("enso.contrib.voice: shutdown failed", exc_info=True)
+    finally:
+        _voiceManager = None
 
 
 def _buildVerbs():

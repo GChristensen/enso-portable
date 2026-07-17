@@ -96,19 +96,34 @@ class VoiceRecognitionManager:
         """
         Starts the background recognition timer.
         """
-        if self.__running:
-            return
-        self.__running = True
+        with self.__lock:
+            if self.__running:
+                return
+            self.__running = True
         self.__scheduleNext()
 
-    def stop(self):
+    def stop(self, timeout: float = 5.0):
         """
-        Stops the background recognition timer.
+        Stops the background recognition timer and blocks until the
+        engine thread has actually terminated (any in-flight recognition
+        callback runs to completion first), waiting at most `timeout`
+        seconds. Idempotent and safe to call from atexit.
         """
-        self.__running = False
-        if self.__timer is not None:
-            self.__timer.cancel()
+        with self.__lock:
+            self.__running = False
+            timer = self.__timer
             self.__timer = None
+
+        if timer is not None:
+            # Cancel a pending (not-yet-fired) wait, then block until the
+            # timer thread exits. Never join our own thread -- stop() may
+            # be reached from within the recognition callback.
+            timer.cancel()
+            if timer is not threading.current_thread():
+                timer.join(timeout)
+            # print() rather than logging so it is visible at Enso's
+            # default ERROR log level (mock/debug signal only).
+            print("voicecmd: recognition stopped")
 
     def update_verbs(self, verbs: List[VerbPhrase]):
         """
@@ -127,11 +142,14 @@ class VoiceRecognitionManager:
         return events
 
     def __scheduleNext(self):
-        if not self.__running:
-            return
-        self.__timer = threading.Timer(self.MOCK_INTERVAL, self.__onMockRecognition)
-        self.__timer.daemon = True
-        self.__timer.start()
+        with self.__lock:
+            if not self.__running:
+                return
+            self.__timer = threading.Timer(
+                self.MOCK_INTERVAL, self.__onMockRecognition
+            )
+            self.__timer.daemon = True
+            self.__timer.start()
 
     def __onMockRecognition(self):
         # Runs on the mock "engine thread" -- must behave as if it can
