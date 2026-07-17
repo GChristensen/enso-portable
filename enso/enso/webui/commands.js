@@ -1,3 +1,7 @@
+// Whether the voicecmd library is installed; when false the voice
+// checkbox columns are omitted entirely. Set in onReady().
+var voiceAvailable = false;
+
 let escapeHtml = function(s) {
     return String(s).replace(escapeHtml.re, escapeHtml.fn)
 };
@@ -55,6 +59,8 @@ function compareByName(a, b) {
 function fillTableRowForCmd(row, cmd, className) {
     var {name, names} = cmd;
 
+    var cells = [];
+
     var checkBoxCell = $('<td class="command-check"><input type="checkbox" title="Enabled" /></td>');
     (checkBoxCell.find("input")
         .val(cmd.id)
@@ -66,30 +72,45 @@ function fillTableRowForCmd(row, cmd, className) {
                 ensoGet("/api/enso/commands/enable/" + name);
         })
         [cmd.disabled ? "removeAttr" : "attr"]("checked", "checked"));
+    cells.push(checkBoxCell);
 
-    var voiceCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice Command"/></td>');
-    (voiceCheckBoxCell.find("input")
-        .val(cmd.id)
-        .bind("change", (e) => {
-            cmd.voice = e.target.checked;
-            if (cmd.voice)
-                ensoGet("/api/enso/commands/voice/enable/" + name);
-            else
-                ensoGet("/api/enso/commands/voice/disable/" + name);
-        })
-        [cmd.voice ? "attr" : "removeAttr"]("checked", "checked"));
+    // The voice columns are only present when the voicecmd library is
+    // installed (see onReady / voiceAvailable).
+    if (voiceAvailable) {
+        var voiceCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice Command"/></td>');
+        (voiceCheckBoxCell.find("input")
+            .val(cmd.id)
+            .bind("change", (e) => {
+                cmd.voice = e.target.checked;
+                if (cmd.voice)
+                    ensoGet("/api/enso/commands/voice/enable/" + name);
+                else
+                    ensoGet("/api/enso/commands/voice/disable/" + name);
+            })
+            [cmd.voice ? "attr" : "removeAttr"]("checked", "checked"));
+        cells.push(voiceCheckBoxCell);
 
-    var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice-Only Command"/></td>');
-    (voiceOnlyCheckBoxCell.find("input")
-        .val(cmd.id)
-        .bind("change", (e) => {
-            cmd.voiceOnly = e.target.checked;
-            if (cmd.voiceOnly)
-                ensoGet("/api/enso/commands/voice_only/enable/" + name);
-            else
-                ensoGet("/api/enso/commands/voice_only/disable/" + name);
-        })
-        [cmd.voiceOnly ? "attr" : "removeAttr"]("checked", "checked"));
+        var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice-Only Command"/></td>');
+        (voiceOnlyCheckBoxCell.find("input")
+            .val(cmd.id)
+            .bind("change", (e) => {
+                cmd.voiceOnly = e.target.checked;
+                if (cmd.voiceOnly) {
+                    ensoGet("/api/enso/commands/voice_only/enable/" + name);
+                    // Voice-only implies the command is a voice command;
+                    // check the voice box too if it isn't already.
+                    if (!cmd.voice) {
+                        cmd.voice = true;
+                        voiceCheckBoxCell.find("input").prop("checked", true);
+                        ensoGet("/api/enso/commands/voice/enable/" + name);
+                    }
+                } else {
+                    ensoGet("/api/enso/commands/voice_only/disable/" + name);
+                }
+            })
+            [cmd.voiceOnly ? "attr" : "removeAttr"]("checked", "checked"));
+        cells.push(voiceOnlyCheckBoxCell);
+    }
 
     var cmdElement = jQuery(
         '<td class="command">'
@@ -100,12 +121,11 @@ function fillTableRowForCmd(row, cmd, className) {
         '<span class="description"></span>' +
         '<div class="help"></div>' +
         '</td>');
+    cells.push(cmdElement);
 
     if (className) {
-        checkBoxCell.addClass(className);
-        voiceCheckBoxCell.addClass(className);
-        voiceOnlyCheckBoxCell.addClass(className);
-        cmdElement.addClass(className);
+        for (let cell of cells)
+            cell.addClass(className);
     }
 
     for (let key of ["description", "help"]) if (key in cmd) {
@@ -117,7 +137,7 @@ function fillTableRowForCmd(row, cmd, className) {
         }
     }
 
-    return row.append(checkBoxCell, voiceCheckBoxCell, voiceOnlyCheckBoxCell, cmdElement);
+    return row.append.apply(row, cells);
 }
 
 function insertNamespace(namespace, subtext, commands, table) {
@@ -140,9 +160,14 @@ function insertNamespace(namespace, subtext, commands, table) {
             table.append(aRow);
         });
     }
-    else
-        aRow.append("<td class=\"topcell command\">&nbsp</td><td class=\"topcell command\">&nbsp</td>"
-            + "<td class=\"topcell command\">&nbsp</td><td class=\"topcell command\">&nbsp</td>");
+    else {
+        // One empty cell per checkbox column plus the command column:
+        // enable (+ voice, voice-only when available) + command.
+        let emptyCell = "<td class=\"topcell command\">&nbsp</td>";
+        let empties = emptyCell + (voiceAvailable ? emptyCell + emptyCell : "")
+            + emptyCell;
+        aRow.append(empties);
+    }
 }
 
 function buildTable() {
@@ -176,5 +201,19 @@ function buildTable() {
 
 jQuery(function onReady() {
     setupHelp("#show-hide-help", "#cmdlist-help-div");
-    buildTable();
+
+    // Discover whether the voice checkbox columns should be shown, then
+    // build the table. Uses $.ajax's "complete" so the table is always
+    // built even if the availability probe fails (defaulting to hidden).
+    $.ajax({
+        url: "/api/enso/voice/available",
+        headers: makeEnsoAuthHeader(),
+        dataType: "json",
+        success: function (data) { voiceAvailable = (data === true); },
+        complete: function () {
+            if (!voiceAvailable)
+                jQuery(".voice-header").remove();
+            buildTable();
+        }
+    });
 });

@@ -177,6 +177,23 @@ def get_enso_get_commands():
     return json.dumps(output)
 
 
+def _voicecmd_available():
+    """True if the voicecmd library is importable (the .py mock or the
+    compiled .pyd). Governs whether the voice checkbox columns are shown
+    in the commands web UI."""
+    try:
+        import enso.contrib.voicecmd  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+@app.route('/api/enso/voice/available')
+@requires_auth
+def get_enso_voice_available():
+    return json.dumps(_voicecmd_available())
+
+
 @app.route('/api/enso/get/user_command_categories')
 @requires_auth
 def get_enso_commands_categories():
