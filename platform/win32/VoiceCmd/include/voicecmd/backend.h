@@ -44,6 +44,11 @@ struct RawRecognition {
     ControlPhrase control = ControlPhrase::None;  // valid when kind == Control
     YesNoAnswer answer = YesNoAnswer::None;       // valid when kind == YesNo
 
+    // Dictated tail for a free_text verb, verbatim as transcribed and NOT
+    // normalized (spoken "two plus two" stays "two plus two"). Empty unless the
+    // verb set free_text and the speaker actually said something after it.
+    std::string free_text;
+
     std::string text;         // fully-resolved utterance (for the host)
     double confidence = 0.0;  // normalized 0..1 (backend-owned mapping)
 };

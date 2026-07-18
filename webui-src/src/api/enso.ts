@@ -49,8 +49,14 @@ export const getCategories = () => getJSON<string[]>('/api/enso/get/user_command
 export const readCategory = (category: string) =>
   getText(`/api/enso/commands/read_category/${enc(category)}`)
 
-export const writeCategory = (category: string, code: string) =>
-  post(`/api/enso/commands/write_category/${enc(category)}`, { code })
+// The server refuses an empty payload over a non-empty file (409), because an
+// empty buffer is what the editor holds when a read failed. `allowEmpty` is the
+// caller saying "this emptiness is intentional" -- creating a new category.
+export const writeCategory = (category: string, code: string, allowEmpty = false) =>
+  post(
+    `/api/enso/commands/write_category/${enc(category)}`,
+    allowEmpty ? { code, allow_empty: '1' } : { code },
+  )
 
 export const deleteCategory = (category: string) =>
   post(`/api/enso/commands/delete_category/${enc(category)}`)

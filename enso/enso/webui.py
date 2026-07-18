@@ -1,4 +1,5 @@
 import threading, uuid, platform, logging, os, random, string, re, hmac
+import shutil, tempfile
 import enso.messages
 
 import enso
@@ -251,8 +252,9 @@ def get_enso_get_ensorc():
 @app.route('/api/enso/set/ensorc', methods=["POST"])
 @requires_auth
 def post_enso_set_ensorc():
-    with open(os.path.join(config.ENSO_USER_DIR, "ensorc.py"), "wb") as ensorc:
-        ensorc.write(request.form["ensorc"].encode("utf-8"))
+    ensorc_file = os.path.join(config.ENSO_USER_DIR, "ensorc.py")
+    if not _write_user_file(ensorc_file, request.form["ensorc"]):
+        return "refused: empty payload would overwrite existing content", 409
     return ""
 
 
@@ -321,6 +323,75 @@ def get_enso_commands_categories():
     return jsonify(categories)
 
 
+def _write_user_file(path, text, allow_empty=False):
+    """Replace `path` with `text`, refusing to destroy content by accident.
+
+    These files are scripts the user typed by hand, and the editor autosaves
+    them on a debounce and on blur -- so a save fires at moments the user never
+    consciously chose. Three ways that used to lose work, all closed here:
+
+      * The old code opened the destination "wb" (which truncates) and only
+        then evaluated the payload. Anything failing in between -- a missing
+        form field, a dropped connection -- left a 0-byte file where the
+        script had been. The bytes are now materialized first, and the
+        destination is touched only once we hold them.
+
+      * An empty payload silently overwrote real content. The editor posts its
+        buffer, and its buffer is empty whenever a read failed (Enso
+        restarting, say), so a blur right after a failed load wiped the file.
+        An empty write over a non-empty file is now refused.
+
+      * A crash mid-write left a partial file. The write goes to a temp file in
+        the same directory, is flushed to disk, and is swapped in with
+        os.replace(), which is atomic -- readers see either the old file or
+        the new one, never a half-written one.
+
+    Returns True if written, False if refused as an empty overwrite.
+    """
+    data = text.encode("utf-8")
+
+    if not data and not allow_empty:
+        try:
+            if os.path.getsize(path) > 0:
+                logging.warning(
+                    "enso.webui: refused to overwrite %s with an empty "
+                    "payload (%d bytes on disk)", path, os.path.getsize(path))
+                return False
+        except OSError:
+            pass  # absent or unreadable: nothing to protect
+
+    directory = os.path.dirname(path) or "."
+    os.makedirs(directory, exist_ok=True)
+
+    # Same directory as the destination, so the os.replace() below is a true
+    # atomic rename (renaming across volumes is not).
+    fd, tmp = tempfile.mkstemp(dir=directory, prefix=".enso-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        # One generation of undo, for the case this whole function exists for:
+        # the user's own script being replaced by something they did not mean
+        # to save. Best-effort -- a backup we cannot write must not block a
+        # save the user did ask for.
+        try:
+            if os.path.getsize(path) > 0:
+                shutil.copy2(path, path + ".bak")
+        except OSError:
+            pass
+
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    return True
+
+
 def _commands_dir():
     return os.path.join(config.ENSO_USER_DIR, "commands")
 
@@ -355,8 +426,14 @@ def post_enso_commands_delete_category(value):
 def post_enso_commands_write_category(value):
     category_file = _category_path(value)
 
-    with open(category_file, "wb") as cat:
-        cat.write(request.form["code"].encode("utf-8"))
+    # An explicitly created, still-empty category is a legitimate empty write;
+    # a save of an empty buffer over an existing script is not. The client
+    # marks the former.
+    allow_empty = request.form.get("allow_empty") == "1"
+    if not _write_user_file(category_file, request.form["code"], allow_empty):
+        # 409: the request was understood and deliberately not applied. The
+        # editor turns this back into "reload, your file is intact".
+        return "refused: empty payload would overwrite existing content", 409
 
     ScriptTracker.get().setPendingChanges()
 
@@ -455,8 +532,8 @@ def post_enso_commands_voice_confirm_enable(command):
 def post_enso_commands_write_tasks():
     category_file = os.path.join(config.ENSO_USER_DIR, "tasks.py")
 
-    with open(category_file, "wb") as tasks:
-        tasks.write(request.form["code"].encode("utf-8"))
+    if not _write_user_file(category_file, request.form["code"]):
+        return "refused: empty payload would overwrite existing content", 409
     return ""
 
 

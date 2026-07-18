@@ -367,6 +367,67 @@ void test_trust_grammar_match_dispatches_low_confidence() {
     f.eng->close();
 }
 
+// A verb with a dictated tail carries the transcription through as the event's
+// argument, verbatim and unnormalized.
+void test_free_text_verb_reports_dictated_argument() {
+    Config c = makeConfig();
+    c.trust_grammar_match = true;
+    Verb calc;
+    calc.name = "calculate";
+    calc.free_text = true;  // no nouns to enumerate
+    c.verbs.push_back(calc);
+    const int vi = (int)c.verbs.size() - 1;
+
+    Fixture f(c);
+    f.eng->start().get();
+
+    RawRecognition r = cmd(vi, -1, 0.40, "calculate two plus two");
+    r.free_text = "two plus two";
+    f.fb->feed(r);
+    flush(*f.eng);
+
+    auto evs = f.eng->drain();
+    const auto* e = first<RecognitionEvent>(evs);
+    CHECK(e != nullptr);
+    if (e) {
+        CHECK(e->verb == "calculate");
+        // The dictated tail lands in `noun` -- it is the command's argument,
+        // even though no Noun object backs it.
+        CHECK(e->noun == "two plus two");
+        CHECK(e->noun_data == nullptr);
+        CHECK(e->text == "calculate two plus two");
+    }
+    f.eng->close();
+}
+
+// The tail is optional: the bare verb still dispatches, with no argument. This
+// is what keeps selection-driven commands ("computer calculate" on selected
+// text) working after dictation is enabled for them.
+void test_free_text_verb_without_tail_dispatches_bare() {
+    Config c = makeConfig();
+    c.trust_grammar_match = true;
+    Verb calc;
+    calc.name = "calculate";
+    calc.free_text = true;
+    c.verbs.push_back(calc);
+    const int vi = (int)c.verbs.size() - 1;
+
+    Fixture f(c);
+    f.eng->start().get();
+    f.fb->feed(cmd(vi, -1, 0.40, "calculate"));  // free_text left empty
+    flush(*f.eng);
+
+    auto evs = f.eng->drain();
+    const auto* e = first<RecognitionEvent>(evs);
+    CHECK(e != nullptr);
+    if (e) {
+        CHECK(e->verb == "calculate");
+        CHECK(e->noun.empty());
+        CHECK(e->text == "calculate");
+    }
+    f.eng->close();
+}
+
 void test_push_sink_and_grammar_update() {
     Fixture f;
     std::atomic<int> pushed{0};
@@ -401,6 +462,8 @@ int main() {
     RUN(test_auto_recovery_on_backend_end);
     RUN(test_no_recovery_when_host_stops);
     RUN(test_trust_grammar_match_dispatches_low_confidence);
+    RUN(test_free_text_verb_reports_dictated_argument);
+    RUN(test_free_text_verb_without_tail_dispatches_bare);
     RUN(test_push_sink_and_grammar_update);
 
     std::printf("\n%d checks, %d failures\n", vctest::checks(), vctest::failures());

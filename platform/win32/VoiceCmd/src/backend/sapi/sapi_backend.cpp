@@ -45,6 +45,10 @@ constexpr ULONGLONG kGrammarId = 1;
 // Garbage rule is a low-weight fallback so real commands win when spoken.
 constexpr float kGarbageWeight = 0.30f;
 
+// Dictation likewise sits below the fixed rules: a free-text tail must never
+// out-compete an enumerated noun on the same verb.
+constexpr float kDictationWeight = 0.50f;
+
 std::wstring toWide(const std::string& s) {
     if (s.empty()) return {};
     int n = ::MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), nullptr, 0);
@@ -63,7 +67,14 @@ std::string toUtf8(const wchar_t* w) {
 }
 
 void check(HRESULT hr, const char* what) {
-    if (FAILED(hr)) throw std::runtime_error(std::string("SAPI: ") + what);
+    if (FAILED(hr)) {
+        // Carry the HRESULT: without it a failure here is undiagnosable from a
+        // log ("SAPI: GetRule(verb)" says nothing about *why*).
+        char buf[192];
+        std::snprintf(buf, sizeof(buf), "SAPI: %s failed (hr=0x%08lX)", what,
+                      (unsigned long)hr);
+        throw std::runtime_error(buf);
+    }
 }
 
 // Native (tri-level + engine float) -> normalized 0..1. SREngineConfidence
@@ -100,14 +111,21 @@ ComPtr<ISpObjectToken> defaultToken(const wchar_t* category) {
     return SUCCEEDED(hr) ? token : nullptr;
 }
 
+// Depth-first search for a phrase property node by name; null if absent.
+const SPPHRASEPROPERTY* findPropNode(const SPPHRASEPROPERTY* p,
+                                     const wchar_t* name) {
+    for (; p; p = p->pNextSibling) {
+        if (p->pszName && wcscmp(p->pszName, name) == 0) return p;
+        if (const SPPHRASEPROPERTY* c = findPropNode(p->pFirstChild, name))
+            return c;
+    }
+    return nullptr;
+}
+
 // Depth-first search for a phrase property by name; returns its ulId or -1.
 int findProp(const SPPHRASEPROPERTY* p, const wchar_t* name) {
-    for (; p; p = p->pNextSibling) {
-        if (p->pszName && wcscmp(p->pszName, name) == 0) return (int)p->ulId;
-        int c = findProp(p->pFirstChild, name);
-        if (c >= 0) return c;
-    }
-    return -1;
+    const SPPHRASEPROPERTY* n = findPropNode(p, name);
+    return n ? (int)n->ulId : -1;
 }
 
 }  // namespace
@@ -125,6 +143,7 @@ struct SapiBackend::Impl {
     std::atomic<bool> com_init{false};
     int verb_count = 0;
     bool has_garbage = false;
+    bool dictation_loaded = false;
 
     void log(LogLevel lvl, std::string msg) {
         if (sink) sink->onLog(lvl, std::move(msg));
@@ -156,9 +175,26 @@ struct SapiBackend::Impl {
         return hMid;
     }
 
+    // The dictation topic is loaded lazily and only once: it is needed solely
+    // by SPRULETRANS_DICTATION, and loading it costs memory + startup time.
+    void ensureDictation() {
+        if (dictation_loaded) return;
+        check(grammar->LoadDictation(nullptr, SPLO_STATIC), "LoadDictation");
+        dictation_loaded = true;
+    }
+
     void buildVerbRule(int index, const Verb& v) {
         SPSTATEHANDLE hInit = nullptr;
-        check(grammar->GetRule(toWide(v.name).c_str(), kVerbBase + index,
+        // The rule NAME is derived from the index, never from the verb. SAPI
+        // binds name<->id for the life of the grammar and ClearRule empties a
+        // rule body WITHOUT unbinding it, so naming the rule "google" at id
+        // 1001 makes every later grammar update that puts a different verb at
+        // index 1 fail with SPERR_RULE_NAME_ID_CONFLICT. Since nothing reads
+        // the name back (handleResult dispatches on Rule.ulId), an id-derived
+        // name costs nothing and makes updates order-independent.
+        const std::wstring rule_name =
+            L"__verb" + std::to_wstring(index) + L"__";
+        check(grammar->GetRule(rule_name.c_str(), kVerbBase + index,
                                SPRAF_TopLevel, TRUE, &hInit),
               "GetRule(verb)");
         SPSTATEHANDLE hMid = addKeywordPrefix(hInit);
@@ -168,7 +204,7 @@ struct SapiBackend::Impl {
         vprop.ulId = (ULONG)index;
 
         std::wstring verb = toWide(v.name);
-        if (v.nouns.empty()) {
+        if (v.nouns.empty() && !v.free_text) {
             check(grammar->AddWordTransition(hMid, nullptr, verb.c_str(), L" ",
                                              SPWT_LEXICAL, 1.0f, &vprop),
                   "verb-only transition");
@@ -187,6 +223,24 @@ struct SapiBackend::Impl {
             check(grammar->AddWordTransition(hAfterVerb, nullptr, noun.c_str(),
                                              L" ", SPWT_LEXICAL, 1.0f, &nprop),
                   "noun transition");
+        }
+        if (v.free_text) {
+            ensureDictation();
+            // Tagged so handleResult can recover the element range and ask for
+            // just the dictated words back, rather than the whole utterance.
+            SPPROPERTYINFO dprop{};
+            dprop.pszName = L"D";
+            dprop.ulId = 0;
+            check(grammar->AddRuleTransition(hAfterVerb, nullptr,
+                                             SPRULETRANS_DICTATION,
+                                             kDictationWeight, &dprop),
+                  "dictation transition");
+            // Epsilon to final: the dictated tail is OPTIONAL, so the bare verb
+            // still matches (e.g. "computer calculate" acting on a selection).
+            check(grammar->AddWordTransition(hAfterVerb, nullptr, nullptr,
+                                             nullptr, SPWT_LEXICAL, 1.0f,
+                                             nullptr),
+                  "free-text epsilon");
         }
     }
 
@@ -341,13 +395,31 @@ struct SapiBackend::Impl {
             r.kind = RawKind::Command;
             r.verb_index = vi;
             r.noun_index = findProp(phrase->pProperties, L"N");
+            // A dictated tail is transcribed speech, so it is the ONE part of
+            // the utterance that cannot come from the configured strings. Ask
+            // for exactly the elements the dictation transition consumed.
+            const SPPHRASEPROPERTY* dict =
+                findPropNode(phrase->pProperties, L"D");
+            if (dict != nullptr && dict->ulCountOfElements > 0) {
+                wchar_t* dtext = nullptr;
+                if (SUCCEEDED(result->GetText(dict->ulFirstElement,
+                                              dict->ulCountOfElements, TRUE,
+                                              &dtext, nullptr))) {
+                    r.free_text = toUtf8(dtext);
+                    if (dtext) ::CoTaskMemFree(dtext);
+                }
+            }
             // Resolved utterance from CONFIGURED strings (original casing, no
-            // keyword) so the host resolves it directly.
+            // keyword) so the host resolves it directly -- except the dictated
+            // tail, which is passed through verbatim and unnormalized.
             r.text = cfg.verbs[vi].name;
             if (r.noun_index >= 0 &&
                 r.noun_index < (int)cfg.verbs[vi].nouns.size()) {
                 r.text += " ";
                 r.text += cfg.verbs[vi].nouns[r.noun_index].name;
+            } else if (!r.free_text.empty()) {
+                r.text += " ";
+                r.text += r.free_text;
             }
         } else if (ruleId == kIdCtlStop) {
             r.kind = RawKind::Control;
@@ -504,6 +576,8 @@ void SapiBackend::dispose() {
     p_->recognizer.Reset();
     if (p_->com_init.exchange(false)) ::CoUninitialize();
     p_->verb_count = 0;
+    // The grammar is gone, so the dictation topic must be reloaded on re-create.
+    p_->dictation_loaded = false;
 }
 
 }  // namespace voicecmd

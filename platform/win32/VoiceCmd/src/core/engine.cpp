@@ -422,6 +422,11 @@ void Engine::classify(const RawRecognition& r) {
     if (n) {
         e.noun = n->name;
         e.noun_data = n->user_data;
+    } else if (!r.free_text.empty()) {
+        // Dictated argument: it is the command's parameter, so it belongs in
+        // `noun` like a grammar noun would. There is no Noun behind it, hence
+        // no noun_data.
+        e.noun = r.free_text;
     }
     e.text = r.text;
     e.confidence = r.confidence;
@@ -472,6 +477,8 @@ void Engine::resolveConfirmation(bool yes) {
         if (n) {
             e.noun = n->name;
             e.noun_data = n->user_data;
+        } else if (!pending_.free_text.empty()) {
+            e.noun = pending_.free_text;
         }
         e.text = pending_.text;
         e.confidence = pending_.confidence;

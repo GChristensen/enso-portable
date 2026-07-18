@@ -36,6 +36,38 @@ int main() {
                     e.what());
     }
 
+    // Regression guard: verb rules are keyed by INDEX, so any grammar update
+    // that moves a verb to a different index used to hit
+    // SPERR_RULE_NAME_ID_CONFLICT (rules were named after the verb, and SAPI
+    // binds name<->id for the grammar's lifetime). Removing a verb from the
+    // middle is the case the webui hits every time a command is unticked.
+    {
+        Verb google;
+        google.name = "google";
+        Noun tshoot;
+        tshoot.name = "troubleshooter";
+        google.nouns.push_back(tshoot);
+        Verb calc;
+        calc.name = "calculate";
+        calc.free_text = true;
+
+        struct { const char* what; std::vector<Verb> verbs; } steps[] = {
+            {"grow (open, google, calculate)", {open, google, calc}},
+            {"remove the middle verb",         {open, calc}},
+            {"reorder",                        {calc, open}},
+            {"empty",                          {}},
+            {"repopulate",                     {google, open, calc}},
+        };
+        for (const auto& s : steps) {
+            try {
+                eng.updateGrammar(s.verbs).get();
+                std::printf("updateGrammar %-32s OK\n", s.what);
+            } catch (const std::exception& e) {
+                std::printf("updateGrammar %-32s FAILED: %s\n", s.what, e.what());
+            }
+        }
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
     for (const auto& ev : eng.drain()) {
         if (auto* p = std::get_if<LogEvent>(&ev))

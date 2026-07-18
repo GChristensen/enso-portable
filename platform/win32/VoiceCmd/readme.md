@@ -8,10 +8,13 @@
 
 Enso normally takes commands from the keyboard. `voicecmd` adds a second input
 path for the same commands. The thing to understand before anything else is that
-**this is not speech-to-text.** The system is handed a closed list of phrases —
-built from exactly those Enso commands you ticked in the webui — and it will only
-ever recognize phrases on that list. Say something not on the list and there is
-nothing for it to match against. Nearly every design decision below falls out of
+**this is mostly not speech-to-text.** The system is handed a closed list of
+phrases — built from exactly those Enso commands you ticked in the webui — and
+that list is what it recognizes. Say something not on it and there is nothing to
+match against. (The one deliberate exception is §4.11: a command whose argument
+cannot be enumerated gets a dictated tail, which *is* free transcription. It is
+opt-in per command and costs precision, which is why it is the exception rather
+than the model.) Nearly every design decision below falls out of
 that single choice: because the list is closed, a match is trustworthy enough to
 act on without second-guessing the confidence score; because the list changes
 whenever you tick a checkbox, it has to be rebuildable while running; and because
@@ -368,6 +371,7 @@ graph TB
         subgraph VR["Verb rules — id = kVerbBase(1000) + index"]
             V0["'open' → prop V=0<br/>├ 'notepad' → prop N=0<br/>├ 'chrome'  → prop N=1<br/>└ …up to 300 nouns"]
             V1["'help' → prop V=1<br/><i>(verb-only, no nouns)</i>"]
+            V2["'calculate' → prop V=2<br/>└ SPRULETRANS_DICTATION → prop D<br/>&nbsp;&nbsp;+ ε to final (tail optional)<br/><i>free_text: arbitrary argument</i>"]
         end
         C1["__ctl_stop__ (id 1)<br/>'stop listening' → prop C=1"]
         C2["__ctl_resume__ (id 2)<br/>'resume listening' → prop C=2"]
@@ -614,7 +618,8 @@ mid-shutdown cannot post to a dying engine.
 `voice.py::_buildVerbs` only includes commands present in
 `config.VOICE_COMMANDS`. A parameterized command (`open {object}`) becomes a verb
 plus one noun per concrete argument enumerated from its factory; commands that
-accept arbitrary arguments yield no nouns and are recognized by verb alone.
+accept arbitrary arguments enumerate nothing; `_buildVerbs` reads that empty
+list as "needs dictation" and sets `free_text` on the verb instead (§4.11).
 Nouns are capped at `_MAX_NOUNS_PER_VERB = 300` so a factory with a huge learned
 list cannot balloon the grammar.
 
@@ -726,6 +731,48 @@ bands, confirmation begin/resolve/timeout/stop, and unexpected-end auto-recovery
 — runs deterministically in a plain console executable.
 
 `Engine::sync()` is what makes the assertions race-free.
+
+### 4.11 Dictated tails for arbitrary arguments **[confirmed]**
+
+Some commands take a parameter that cannot be listed in advance — `calculate
+{expression}` is the canonical case. Enso registers these as `arbitrary-arg`
+(`cmdretriever.py:73`), and their factory (`ArbitraryPostfixFactory`) enumerates
+nothing, so `getCommandList()` returns an empty list.
+
+Left alone, such a command produces a **verb-only** grammar rule. Saying
+"computer calculate 2+2" then matches only `computer calculate`; the "2+2" is
+out-of-grammar audio and is discarded, the host receives the text `"calculate"`,
+and the command runs with no argument at all. That is a confusing failure, not a
+useful one.
+
+So a verb may set `free_text`, which changes its rule in two ways
+(`sapi_backend.cpp::buildVerbRule`):
+
+1. a `SPRULETRANS_DICTATION` transition after the verb, tagged with property
+   `D`, backed by `LoadDictation` (loaded lazily, once, only if some verb needs
+   it);
+2. an **epsilon transition to final**, which keeps the tail *optional*.
+
+Step 2 matters: `calculate` falls back to the current selection when given no
+argument (`calc.py:41-44`), so "computer calculate" with text selected has to
+keep working. Making dictation mandatory would have broken it.
+
+`handleResult` recovers the dictated words by reading the `D` property's
+`ulFirstElement` / `ulCountOfElements` and asking `GetText` for exactly that
+range — not the whole utterance, which would still contain the keyword and verb.
+
+**The transcription is passed through verbatim and is not normalized.** Say
+"computer calculate two plus two" and the host receives exactly
+`calculate two plus two`. Enso's calculator will reject that, because it wants
+`2+2`. Mapping spoken math onto operators is a host concern and is deliberately
+not attempted here.
+
+**The tradeoff is real and is why this is opt-in per verb.** A dictation
+transition matches almost any audio, so every free-text verb weakens the
+precision guard that §4.4 leans on. `kDictationWeight` (0.50) keeps it below the
+fixed rules so an enumerated noun always wins on the same verb, but it does not
+eliminate the effect. Only commands that genuinely cannot enumerate should set
+it — which is exactly what `_buildVerbs` does, and nothing else.
 
 ---
 

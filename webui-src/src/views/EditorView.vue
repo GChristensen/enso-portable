@@ -42,8 +42,33 @@ const code = ref('')
 const expanded = ref(false)
 const editor = ref<InstanceType<typeof CodeEditorComponent> | null>(null)
 
+/**
+ * Set when a read failed for any reason other than "no file yet".
+ *
+ * The buffer then does NOT hold the file's contents, and autosave must not
+ * write it back: a blur would replace the user's script with an empty buffer.
+ * Cleared by the next successful load.
+ */
+const loadFailed = ref(false)
+
 async function save() {
-  await writeCategory(category.value, code.value)
+  // Never write a buffer we could not read. The server refuses empty
+  // overwrites too, but this stops the request being made at all -- and it
+  // also covers a partial buffer, which the server cannot recognise.
+  if (loadFailed.value) return
+  try {
+    await writeCategory(category.value, code.value)
+  } catch (e) {
+    // Autosave fires from a debounce, a blur and onBeforeUnmount, and nothing
+    // awaits it -- so a rejection here would surface only as an unhandled
+    // promise rejection, and would poison autosave.settled().
+    if (e instanceof Response && e.status === 409) {
+      // The server refused an empty overwrite, i.e. our buffer was empty when
+      // the file was not. The file is intact; stop trying to save this buffer.
+      loadFailed.value = true
+    }
+    console.error(`could not save category "${category.value}"`, e)
+  }
 }
 
 const autosave = useAutosave(save)
@@ -58,14 +83,24 @@ function setCode(text: string) {
 }
 
 async function load(name: string) {
-  let text = ''
   try {
-    text = await readCategory(name)
-  } catch {
-    // A category with no file yet (just created) 404s; start empty.
-    text = ''
+    setCode(await readCategory(name))
+    loadFailed.value = false
+  } catch (e) {
+    // A category with no file yet (just created) 404s: genuinely empty.
+    if (e instanceof Response && e.status === 404) {
+      setCode('')
+      loadFailed.value = false
+      return
+    }
+    // Anything else and we do not know what is in that file. Showing an empty
+    // editor would be a lie, and the next blur would autosave that lie over
+    // the user's script -- which is exactly how files got emptied. Leave the
+    // buffer visibly empty but disarm saving until a load succeeds.
+    setCode('')
+    loadFailed.value = true
+    console.error(`could not read category "${name}"`, e)
   }
-  setCode(text)
 }
 
 /** Switch to `name` without writing the current buffer anywhere. */
@@ -90,8 +125,11 @@ async function createCategory() {
   category.value = name
   localStorage.setItem(LAST_CATEGORY_KEY, name)
   // Write immediately so the category exists server-side even if left empty.
+  // This is the one place an empty write is meant, so it says so explicitly --
+  // otherwise the server refuses it as a possible overwrite.
   setCode('')
-  await save()
+  loadFailed.value = false
+  await writeCategory(category.value, '', true)
 }
 
 async function removeCategory() {
@@ -118,6 +156,9 @@ async function removeCategory() {
 
 function onUpload(text: string) {
   setCode(text)
+  // The user just supplied the content explicitly, so there is nothing left to
+  // protect -- re-arm saving even if the previous read had failed.
+  loadFailed.value = false
   void save()
 }
 
@@ -198,6 +239,13 @@ watch(category, (name) => {
       </EditorToolbar>
     </div>
 
+    <div v-if="loadFailed" class="editor-page__warning" role="alert">
+      <strong>Could not read &ldquo;{{ category }}&rdquo;.</strong>
+      This editor is empty because the file could not be loaded, not because the
+      file is empty &mdash; autosave is switched off so it cannot overwrite your
+      script. Reload the page once Enso is responding again.
+    </div>
+
     <div class="editor-page__panel">
       <CodeEditor
         ref="editor"
@@ -209,7 +257,9 @@ watch(category, (name) => {
     </div>
 
     <div class="editor-page__footer">
-      <div class="editor-page__info">Saving is done automatically.</div>
+      <div class="editor-page__info">
+        {{ loadFailed ? 'Autosave disabled — file could not be read.' : 'Saving is done automatically.' }}
+      </div>
       <div class="editor-page__buttons">
         Insert template commands:
         <a href="#" class="action" @click.prevent="editor?.insert(STUBS.simple)">NO ARGS</a> |
@@ -221,6 +271,24 @@ watch(category, (name) => {
 </template>
 
 <style scoped>
+.editor-page__warning {
+  padding: 0.5em 0.75em;
+  border: 1px solid #b58900;
+  border-left-width: 4px;
+  background: #fdf6e3;
+  color: #5c4400;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  .editor-page__warning {
+    background: #3a3320;
+    border-color: #b58900;
+    color: #f0e0b0;
+  }
+}
+
 #script-namespaces {
   margin-right: 2px;
 }

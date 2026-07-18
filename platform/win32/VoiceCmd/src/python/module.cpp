@@ -74,6 +74,7 @@ struct VerbSpec {
     std::vector<NounSpec> nouns;
     bool confirm = false;
     bool disabled = false;
+    bool free_text = false;
     std::string description;
     nb::object data = nb::none();
 };
@@ -109,6 +110,7 @@ Verb toVerb(const VerbSpec& v) {
     o.name = v.name;
     o.confirm = v.confirm;
     o.disabled = v.disabled;
+    o.free_text = v.free_text;
     o.description = v.description;
     o.user_data = wrapData(v.data);
     for (const auto& n : v.nouns) o.nouns.push_back(toNoun(n));
@@ -405,19 +407,22 @@ NB_MODULE(voicecmdlib, m) {
         .def(
             "__init__",
             [](VerbSpec* self, std::string name, std::vector<NounSpec> nouns,
-               bool confirm, bool disabled, std::string description,
-               nb::object data) {
+               bool confirm, bool disabled, bool free_text,
+               std::string description, nb::object data) {
                 new (self) VerbSpec{std::move(name),        std::move(nouns),
                                     confirm,                disabled,
-                                    std::move(description), std::move(data)};
+                                    free_text,              std::move(description),
+                                    std::move(data)};
             },
             nb::arg("name"), nb::arg("nouns") = std::vector<NounSpec>{},
             nb::arg("confirm") = false, nb::arg("disabled") = false,
+            nb::arg("free_text") = false,
             nb::arg("description") = "", nb::arg("data") = nb::none())
         .def_rw("name", &VerbSpec::name)
         .def_rw("nouns", &VerbSpec::nouns)
         .def_rw("confirm", &VerbSpec::confirm)
         .def_rw("disabled", &VerbSpec::disabled)
+        .def_rw("free_text", &VerbSpec::free_text)
         .def_rw("description", &VerbSpec::description)
         .def_rw("data", &VerbSpec::data);
 

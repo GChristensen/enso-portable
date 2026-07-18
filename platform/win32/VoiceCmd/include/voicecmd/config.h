@@ -41,6 +41,13 @@ struct Verb {
     std::vector<Noun> nouns;                 // may be empty (verb-only command)
     bool confirm = false;                    // force confirmation for this verb
     bool disabled = false;                   // excluded from the active grammar
+    // Accept an arbitrary spoken argument after the verb, transcribed by the
+    // engine's dictation topic rather than matched against `nouns`. For hosts
+    // whose command takes a free-form parameter that cannot be enumerated
+    // ("calculate {expression}"). The tail stays OPTIONAL, so the bare verb
+    // still matches. Costs precision: a dictation transition will match almost
+    // any audio, so enable it only for verbs that genuinely need it.
+    bool free_text = false;
     std::string description;
     UserData user_data;                      // opaque
 };

@@ -69,8 +69,13 @@ def load():
             sample = [n.name for n in v.nouns]
             if len(sample) > 8:
                 sample = sample[:8] + ["..."]
-            print("voicecmd: grammar verb '%s'%s"
-                  % (v.name, (" nouns=%r" % sample) if v.nouns else " (verb-only)"))
+            if v.nouns:
+                shape = " nouns=%r" % sample
+            elif v.free_text:
+                shape = " (dictated argument)"
+            else:
+                shape = " (verb-only)"
+            print("voicecmd: grammar verb '%s'%s" % (v.name, shape))
 
     _voiceManager = Recognizer(cfg)
     _voiceManager.start()
@@ -196,11 +201,16 @@ def _buildVerbs():
     via the webui checkbox. Filtering happens here -- voicecmd has no per-verb
     "enabled" flag.
 
-    A plain command becomes a verb-only phrase. A parameterized command
-    ("open {object}") becomes a verb ("open") plus one noun per concrete
-    argument enumerated from its command factory ("notepad", "google chrome",
-    ...), so "computer open notepad" is a full grammar phrase that both
-    recognizes and resolves.
+    Three shapes come out of this:
+
+    * A plain command ("help") becomes a verb-only phrase.
+    * A parameterized command whose factory enumerates its arguments
+      ("open {object}") becomes a verb plus one noun per concrete value
+      ("notepad", "google chrome", ...), so "computer open notepad" is a full
+      grammar phrase that both recognizes and resolves.
+    * A parameterized command with arbitrary arguments ("calculate
+      {expression}") becomes a verb with a dictated tail, since there is
+      nothing to enumerate.
     """
     commands = CommandManager.get().getCommands()
     verbs = []
@@ -210,10 +220,19 @@ def _buildVerbs():
         prefix = name.split("{", 1)[0].strip()
         if not prefix:
             continue
-        nouns = _buildNouns(name, command) if "{" in name else []
+        parameterized = "{" in name
+        nouns = _buildNouns(name, command) if parameterized else []
+        # A parameterized command whose factory enumerates nothing takes an
+        # arbitrary argument ("calculate {expression}"). There is no finite noun
+        # list to put in the grammar, so let the engine dictate the tail instead
+        # -- otherwise the verb matches alone and the command runs with no
+        # argument at all. The tail stays optional, so commands that fall back
+        # to the selection still work when only the verb is spoken.
+        free_text = parameterized and not nouns
         verbs.append(Verb(
             name=prefix,
             nouns=nouns,
+            free_text=free_text,
             # Engine holds the command until the user says "yes" (or the
             # confirm timeout drops it). Honored regardless of the confidence
             # bands, so it works with trust_grammar_match too.
@@ -228,8 +247,11 @@ def _buildNouns(name, command):
     """
     Enumerate the concrete argument values of a parameterized command from its
     factory (GenericPrefixFactory.getCommandList() -> ["open notepad", ...]) and
-    turn each into a spoken noun. Factories that accept arbitrary arguments (no
-    finite list) yield nothing, so such commands are recognized by verb alone.
+    turn each into a spoken noun.
+
+    Factories that accept arbitrary arguments (ArbitraryPostfixFactory, whose
+    postfix list stays empty) yield nothing. The caller reads that empty result
+    as "this one needs dictation" and sets free_text on the verb.
     """
     get_list = getattr(command, "getCommandList", None)
     if not callable(get_list):
@@ -259,6 +281,44 @@ def _buildNouns(name, command):
 # Tick pump (main thread)
 # ----------------------------------------------------------------------------
 
+# Consecutive failed grammar rebuilds. Capped so a permanent failure logs a few
+# times instead of once per tick, forever.
+_grammarRetry = 0
+_MAX_GRAMMAR_RETRIES = 3
+
+
+def _rebuildGrammar():
+    """
+    Pushes the current voice-command selection down to the engine.
+
+    Clears the dirty flag only on SUCCESS. Clearing it up front (as this used
+    to) means a failed rebuild leaves the engine running the previous grammar
+    forever, with the user's checkbox having silently done nothing -- the retry
+    is what makes a transient failure self-heal on the next tick.
+
+    Swallows its own errors so a bad rebuild doesn't also cost us the event
+    drain below it.
+    """
+    global _grammarRetry
+    try:
+        _voiceManager.update_grammar(_buildVerbs())
+    except Exception:
+        _grammarRetry += 1
+        giving_up = _grammarRetry >= _MAX_GRAMMAR_RETRIES
+        logging.error(
+            "enso.contrib.voice: grammar update failed (attempt %d/%d)%s",
+            _grammarRetry, _MAX_GRAMMAR_RETRIES,
+            "; giving up -- the engine keeps the previous grammar" if giving_up
+            else "",
+            exc_info=True)
+        if giving_up:
+            config.VOICE_COMMANDS_CHANGED = False
+            _grammarRetry = 0
+        return
+    config.VOICE_COMMANDS_CHANGED = False
+    _grammarRetry = 0
+
+
 def _onTick(msPassed):
     # enso.events.EventManager.onTick() calls "timer" responders with no
     # exception handling of its own -- anything raised here propagates straight
@@ -266,8 +326,7 @@ def _onTick(msPassed):
     # loop. Never let that happen; log and move on.
     try:
         if config.VOICE_COMMANDS_CHANGED:
-            config.VOICE_COMMANDS_CHANGED = False
-            _voiceManager.update_grammar(_buildVerbs())
+            _rebuildGrammar()
 
         debug = getattr(config, "VOICE_DEBUG", False)
         for event in _voiceManager.poll_events():
