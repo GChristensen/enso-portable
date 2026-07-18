@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(VOICECMD_BUILD_TESTS  "Build core unit tests"              ON)
 option(VOICECMD_BUILD_SAPI   "Build the SAPI backend (Windows)"   OFF)
-option(VOICECMD_BUILD_PYTHON "Build the pybind11 abi3 module"     OFF)
+option(VOICECMD_BUILD_PYTHON "Build the nanobind abi3 module"     OFF)
 option(VOICECMD_PY_ABI3      "Python module: single portable abi3 binary" ON)
 
 find_package(Threads REQUIRED)
@@ -59,10 +59,12 @@ endif()
 
 # ---- nanobind module (M3) ----
 # nanobind (not pybind11) because pybind11 under Py_LIMITED_API triggers an MSVC
-# 14.44 internal compiler error. Default: STABLE_ABI => a single portable abi3
-# binary importable on any CPython >= 3.10. nanobind_add_module handles the
-# stable-ABI define, python3.lib linkage, MSVC conformance flags, bigobj and the
-# extension suffix. Fallback (VOICECMD_PY_ABI3=OFF): a version-specific module.
+# 14.44 internal compiler error. Default: STABLE_ABI => a single abi3 binary.
+# Note abi3 is FORWARD-compatible only: it is built against the headers of the
+# interpreter found below and will not load on an older one, whatever the
+# Py_LIMITED_API floor implies. nanobind_add_module handles the stable-ABI
+# define, python3.lib linkage, MSVC conformance flags, bigobj and the extension
+# suffix. Fallback (VOICECMD_PY_ABI3=OFF): a version-specific module.
 if (VOICECMD_BUILD_PYTHON)
     set(_py_components Interpreter Development.Module)
     if (VOICECMD_PY_ABI3)

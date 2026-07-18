@@ -1,63 +1,46 @@
 # voicecmd — voice recognition architecture
 
-Grammar-constrained voice command recognition for Enso. A C++20 core drives a
-pluggable recognizer backend (SAPI 5 in-process on Windows), and is exposed to
-Enso as a single abi3 extension module, `voicecmdlib.pyd`.
-
-### The layers
-
-Bottom to top, each layer depends only on the one below it:
-
-| Layer | CMake target | Responsibility |
-|---|---|---|
-| **Backend** | `voicecmd_sapi`, `FakeBackend` (header-only) | Owns the speech engine and its grammars. Turns a recognition into a `RawRecognition` — *what was said*, identified semantically — and posts it. All COM lives here, behind a pimpl. |
-| **Core** | `voicecmd_core` | The `Engine`: lifecycle state machine, message queue, classification, confirmation. Portable, COM-free, Python-free. Talks to backends only through `IRecognizerBackend` / `BackendSink`. |
-| **Platform** | `voicecmd_win32` | `SessionMonitor` — workstation lock/unlock notifications. Kept out of the core (not portable) and out of the backend (not a recognition concern). |
-| **Binding** | `voicecmdlib` (nanobind) | The `Recognizer` facade: Python-shaped config mirrors, `UserData` ⇄ `nb::object`, and `poll_events()`. The only layer that touches CPython. |
-| **Host** | `enso.contrib.voice` | Builds the grammar from Enso's registered commands, pumps events on the main-loop tick, dispatches to `CommandManager`, draws the confirmation prompt. |
-
-### The design commitments
-
-Three commitments explain nearly every structural decision below:
-
-1. **Single owner.** All engine state lives on one worker thread. Every
-   transition is a message on one queue. Backends and UI only *post*.
-2. **Pull-mode delivery.** The native threads never call into Python. Enso
-   drains events on its own main-loop tick, so a voice command runs on exactly
-   the same thread as a keyboard-triggered one.
-3. **One engine, swapped rulesets.** There is exactly one recognizer and one
-   grammar. Everything the user can say — every enabled command, the two
-   pause-control phrases, and yes/no — is a top-level rule in it. A "mode" is
-   just which of those rules are currently active:
-
-   | Ruleset | Active rules | When |
-   |---|---|---|
-   | `Commands` | all enabled verb rules + `stop listening` | normal listening |
-   | `ResumeOnly` | `resume listening`, and nothing else | soft-paused |
-   | `YesNo` | `yes` / `no`, and nothing else | confirmation prompt is up |
-
-   Switching mode is a set of `SetRuleIdState` calls on the grammar already
-   loaded — never a second recognizer. That is what keeps the microphone
-   handover deterministic and avoids audio-device contention entirely.
-
-   Spoken verbatim, the pause-control commands are:
-
-   - **"computer stop listening"** — suspends command recognition. The mic stays
-     open but the grammar shrinks to the single resume phrase.
-   - **"computer resume listening"** — the only phrase recognized while paused.
-     Accepted at any confidence, so a paused engine can always be recovered.
-
-   Both take the keyword prefix (`computer` by default, configurable, and
-   optional if `keyword_required` is false), exactly like command phrases.
-   **"yes"** and **"no"** are the exception: they are spoken bare, with no
-   keyword, because they are only ever live inside a confirmation window.
+*Audience: an engineer picking this subsystem up for the first time.*
 
 ---
 
-## 1. Layering
+## 1. The mental model
 
-The core is portable, Python-free and COM-free. Windows-specific code is confined
-to two leaf libraries; the binding layer is the only place that touches CPython.
+Enso normally takes commands from the keyboard. `voicecmd` adds a second input
+path for the same commands. The thing to understand before anything else is that
+**this is not speech-to-text.** The system is handed a closed list of phrases —
+built from exactly those Enso commands you ticked in the webui — and it will only
+ever recognize phrases on that list. Say something not on the list and there is
+nothing for it to match against. Nearly every design decision below falls out of
+that single choice: because the list is closed, a match is trustworthy enough to
+act on without second-guessing the confidence score; because the list changes
+whenever you tick a checkbox, it has to be rebuildable while running; and because
+Windows delivers recognitions on its own threads while Enso commands must run on
+Enso's thread, there is a queue in the middle doing the handover.
+
+**Vocabulary used throughout.** A **verb** is a command's leading words
+(`open`). A **noun** is one concrete argument for it (`notepad`). Together they
+form a **phrase** the user can say. A **grammar** is the whole set of phrases the
+recognizer will accept. A **ruleset** is the subset of the grammar that is
+switched on right now.
+
+---
+
+## 2. System map
+
+Five components, bottom to top. Each depends only on the one below it.
+
+| Component | CMake target | One-line purpose |
+|---|---|---|
+| **Backend** | `voicecmd_sapi`, `FakeBackend` | Talks to the actual speech engine. Turns "the user said something" into a structured `RawRecognition`. All COM lives here. |
+| **Core** | `voicecmd_core` | The `Engine`. Decides what a recognition *means* and what state the system is in. Portable — no COM, no Python. |
+| **Platform** | `voicecmd_win32` | `SessionMonitor` — tells the engine when the workstation locks. |
+| **Binding** | `voicecmdlib` (nanobind) | Makes the core importable from Python and converts types across the boundary. The only component that touches CPython. |
+| **Host** | `enso.contrib.voice` | The Enso plugin. Builds the grammar from Enso's commands, pumps events, runs the recognized command. |
+
+Two seams matter more than the rest. `IRecognizerBackend` / `BackendSink`
+(`backend.h`) is where a speech engine plugs in — SAPI today, Vosk reserved, a
+fake one for tests. `Recognizer` (`module.cpp`) is where C++ becomes Python.
 
 ```mermaid
 graph TB
@@ -121,16 +104,24 @@ graph TB
     style plugin fill:none,stroke:#888,stroke-dasharray:4 3
 ```
 
-**Why `voicecmdlib` and not `voicecmd`:** an extension module shadows a same-named
-`.py` in the package. The `lib` suffix keeps the native binary distinct from
-`enso/contrib/voice.py` around it (same convention as `retreatlib`).
+**A naming trap.** Four similar names, deliberately distinct:
+`VoiceCmd/` (this directory), `voicecmd` (the C++ namespace), `voicecmdlib.pyd`
+(the built binary), `enso/contrib/voice.py` (the Enso plugin). The binary is
+*not* called `voicecmd.pyd` because an extension module shadows a same-named
+`.py` in the same package — the `lib` suffix keeps them apart. Confirmed by the
+comment at `CMakeLists.txt:76-81`; same convention as `retreatlib`.
 
 ---
 
-## 2. Threading model
+## 3. A representative flow
 
-Four threads, with a strict rule about who may touch what. The queue is the only
-crossing point into engine state; the event list is the only crossing point out.
+Follow one utterance — *"computer open notepad"* — from microphone to the Notepad launch.
+It crosses three threads, and where those boundaries fall is the whole story.
+
+### 3.1 The threads
+
+Four, with a strict rule about who may touch what. The **command queue** is the
+only way into engine state; the **event buffer** is the only way out.
 
 ```mermaid
 graph LR
@@ -170,148 +161,40 @@ graph LR
     style EVENTS fill:#d4edda,stroke:#155724
 ```
 
-Invariants worth stating explicitly:
+Invariants (confirmed by the header comment at `engine.cpp:3-6`):
 
 - Every `backend_->…` call and every mutation of `created_ / started_ /
   confirming_ / pending_` happens on ② and nowhere else.
-- ③ and ④ never block on ②. The session-monitor callback drops its future on the
-  floor deliberately — it comes from a `promise`, not `std::async`, so dropping
-  it never blocks and never stalls the message pump.
-- Push delivery (`event_sink_`) is invoked *outside* every internal lock, and a
-  throwing handler is swallowed so the worker can never die on host code.
+- ③ and ④ never block on ②. The session-monitor callback drops its future
+  deliberately — it comes from a `promise`, not `std::async`, so dropping it
+  never blocks and never stalls the message pump.
 - Python callbacks fire only inside `poll_events()`, on ①, with the GIL already
-  held. There is no cross-thread GIL acquisition anywhere on the hot path.
+  held. Nothing acquires the GIL from a foreign thread.
 
----
+### 3.2 Step 1 — the backend hears something (thread ③)
 
-## 3. Engine state machine
+SAPI signals its notify handle. `SapiBackend::Impl::drainEvents()`
+(`sapi_backend.cpp:285`) pulls the event and `handleResult()` (`:319`) turns it
+into a `RawRecognition`.
 
-`Config → Engine` starts the worker immediately but does **not** create the
-backend. `Idle` means constructed-but-not-realized; `Stopped` retains the engine
-and compiled grammars so a re-start is cheap.
+The important trick: **identity comes from the matched rule id, never from word
+positions.** The grammar assigned `open` rule id `1000 + index`, and tagged the
+noun with an `SPPROPERTYINFO` named `N`. So `handleResult` reads
+`phrase->Rule.ulId` to get the verb and `findProp(…, L"N")` to get the noun.
+Multi-word verbs, multi-word nouns and the optional `computer` prefix all work
+without slicing a single string.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Idle : Engine(cfg, backend, ui)<br/>worker thread starts
+It also rebuilds `r.text` from the *configured* strings rather than what the
+recognizer transcribed — so the host receives exactly `"open notepad"`, keyword
+stripped, in the original casing, ready to hand to `CommandManager`.
 
-    Idle --> Listening : start()<br/><i>ensureCreated() → backend.create()<br/>setActiveRuleset(Commands) → backend.start()</i>
-    Listening --> SoftPaused : pause() or "stop listening"<br/><i>ruleset → ResumeOnly</i>
-    SoftPaused --> Listening : resume() / start() / "resume listening"<br/><i>ruleset → Commands</i>
+Then it calls `sink->onRecognition(...)`, which only enqueues and returns.
 
-    Listening --> Stopped : stop()<br/><i>backend.stop(), engine + grammars RETAINED</i>
-    SoftPaused --> Stopped : stop()
-    Stopped --> Listening : start()<br/><i>cheap: no re-create</i>
+### 3.3 Step 2 — the core decides what it means (thread ②)
 
-    Listening --> Restarting : SPEI_END_SR_STREAM<br/>(unexpected, !host_stopping_)
-    Restarting --> Idle : doStop(keep_engine=false)<br/><i>dispose()</i>
-    Restarting --> Listening : after restart_delay_sec back-off<br/><i>interruptible wait, close() cuts it short</i>
-
-    Listening --> Idle : shutdown()<br/><i>dispose(), engine released</i>
-    Stopped --> Idle : shutdown()
-
-    Idle --> Closed : close()
-    Listening --> Closed : close()
-    Stopped --> Closed : close()
-    SoftPaused --> Closed : close()
-    Closed --> [*] : worker joined (terminal)
-
-    note right of SoftPaused
-        Mic stays OPEN. Grammar reduced to
-        "resume listening" only. This is the
-        tray toggle and the spoken pause.
-    end note
-
-    note right of Stopped
-        Mic RELEASED (SPRST_INACTIVE_WITH_PURGE).
-        This is what the session lock uses —
-        a soft pause would leave the mic live
-        at the lock screen.
-    end note
-```
-
-`Starting` / `Stopping` / `ShuttingDown` exist in the `State` enum as
-transitional labels; the current transitions are short enough to be atomic on the
-worker, so they are not dwelt in.
-
----
-
-## 4. Grammar and ruleset swapping
-
-One `ISpRecoGrammar` holds every rule. Semantic identity is read from the matched
-**rule id** and from `SPPROPERTYINFO` tags — never from word positions — so
-multi-word verbs, multi-word nouns and the optional keyword prefix all work
-without any string slicing.
-
-```mermaid
-graph TB
-    subgraph G["Single dynamic grammar (kGrammarId = 1)"]
-        direction TB
-        subgraph VR["Verb rules — id = kVerbBase(1000) + index"]
-            V0["'open' → prop V=0<br/>├ 'notepad' → prop N=0<br/>├ 'chrome'  → prop N=1<br/>└ …up to 300 nouns"]
-            V1["'help' → prop V=1<br/><i>(verb-only, no nouns)</i>"]
-        end
-        C1["__ctl_stop__ (id 1)<br/>'stop listening' → prop C=1"]
-        C2["__ctl_resume__ (id 2)<br/>'resume listening' → prop C=2"]
-        Y["__yes__ (id 3) → prop Y=1"]
-        N["__no__ (id 4) → prop Y=2"]
-        GB["__garbage__ (id 5)<br/>SPRULETRANS_WILDCARD, weight 0.30<br/><i>opt-in: use_garbage_rule</i>"]
-    end
-
-    KW["keyword prefix state<br/>'computer' + optional ε transition<br/><i>prepended to verb & control rules;<br/>yes/no are spoken bare</i>"]
-    KW -.-> VR
-    KW -.-> C1
-    KW -.-> C2
-
-    style GB fill:#eee,stroke:#999,stroke-dasharray:3 3
-```
-
-A **ruleset** is a named subset of those rules that is active at one moment.
-`setActiveRuleset(r)` simply walks the rule ids and calls `SetRuleIdState` with
-`SPRS_ACTIVE` or `SPRS_INACTIVE` on each — nothing is created, compiled or
-destroyed, so the swap is effectively free and cannot fail halfway.
-
-Each ruleset exists to make one class of misrecognition *structurally
-impossible* rather than filtering it after the fact:
-
-- **`Commands`** — the normal state. Verb rules are live, and so is
-  `stop listening`. `resume listening` is deliberately **off**: saying it while
-  already listening should do nothing, and leaving it active would let it
-  compete with real commands for a match.
-- **`ResumeOnly`** — the soft pause. Every verb rule is off, so a command spoken
-  while paused cannot possibly be matched; the engine has nothing to match it
-  *to*. Only `resume listening` remains.
-- **`YesNo`** — the confirmation window. Both command and control rules are off,
-  so an answer can never be misheard as a new command, and a command spoken
-  during the prompt cannot queue up behind it. Only `yes` and `no` are live.
-
-The `__garbage__` wildcard, when enabled, stays active in all three — its job is
-to absorb out-of-grammar speech in whatever mode the engine is in.
-
-```mermaid
-graph LR
-    subgraph RS["Ruleset → which rules are ACTIVE"]
-        direction TB
-        R1["<b>Commands</b><br/>✅ all enabled verb rules<br/>✅ __ctl_stop__<br/>❌ __ctl_resume__<br/>❌ yes / no"]
-        R2["<b>ResumeOnly</b> (soft-paused)<br/>❌ verb rules<br/>❌ __ctl_stop__<br/>✅ __ctl_resume__<br/>❌ yes / no"]
-        R3["<b>YesNo</b> (confirming)<br/>❌ verb rules<br/>❌ both control rules<br/>✅ __yes__ / __no__"]
-    end
-    R1 -->|"pause() / 'stop listening'"| R2
-    R2 -->|"resume() / 'resume listening'"| R1
-    R1 -->|"beginConfirmation()"| R3
-    R3 -->|"resolved / timed out / stop()"| R1
-```
-
-`updateGrammar()` (fired when the webui voice checkboxes change) clears the verb
-rule bodies, rebuilds them, re-commits and reapplies `Commands` — the recognizer,
-the context and the audio binding all survive untouched.
-
----
-
-## 5. Recognition path and classification
-
-`handleResult()` on the listener thread turns a SAPI phrase into a
-`RawRecognition` — kind, verb/noun indices, resolved text, normalized confidence
-— and posts it. `Engine::classify()` on the worker decides what it means.
+`Engine::classify()` (`engine.cpp:339`) runs the decision tree below. Control
+phrases are checked first, then confirmation state, then pause state, then the
+command itself.
 
 ```mermaid
 flowchart TD
@@ -355,26 +238,281 @@ flowchart TD
     style P fill:#f8d7da,stroke:#721c24
 ```
 
-**Why `trust_grammar_match` defaults to true:** SAPI's per-recognition confidence
-is unreliable for command-and-control grammars — it reports correct, fully-matched
-command phrases at the same low confidence as noise. The required keyword plus the
-closed grammar are the precision guard instead. Set it false for a backend with a
-confidence signal worth gating on (Vosk).
+For our utterance: not control, not confirming, not paused, valid command,
+`trust_grammar_match` is on and neither verb nor noun demands confirmation — so
+`emit(RecognitionEvent{...})`. The worker moves to its next message immediately.
+Nothing has been delivered anywhere yet.
 
-**Why the in-process recognizer still gets good confidence:** `create()` explicitly
-loads the default SR engine token *and the user's trained recognition profile*
-(`SPCAT_RECOGNIZERS` / `SPCAT_RECOPROFILES`) into `CLSID_SpInprocRecognizer`. That
-buys the calibration of the shared recognizer without launching the Windows Speech
-Recognition app. `shared_recognizer=true` switches to `CLSID_SpSharedRecognizer`
-if the system-wide engine is wanted instead.
+### 3.4 Step 3 — the event waits
+
+`emit()` (`engine.cpp:109`) appends to `events_` under `emx_`. That is the whole
+step. The event now sits in C++ memory until the host comes to collect it.
+
+This parking is what buys the guarantee in §4.2 — nothing has touched Python yet.
+
+### 3.5 Step 4 — Enso collects and runs it (thread ①)
+
+Milliseconds later Enso's main loop fires `_onTick(msPassed)` (`voice.py:262`),
+which calls `poll_events()` (`module.cpp:258`). That:
+
+1. calls `drain()`, which **swaps** the buffer out under the lock and returns the
+   whole batch — O(1), nothing copied, and the worker immediately starts filling
+   a fresh one;
+2. converts each variant alternative to its Python mirror via `toPy()`;
+3. fires any registered `on_*` callback;
+4. returns the list.
+
+`_onTick` does a flat `isinstance` dispatch, reaches `_handleRecognition`
+(`voice.py:337`), and calls `CommandManager.get().getCommand("open notepad").run()`
+— on the main thread, exactly as if you had typed it.
+
+```mermaid
+graph LR
+    subgraph V["std::variant&lt;Event&gt;"]
+        E1["RecognitionEvent<br/>verb, noun, text, confidence,<br/>verb_data, noun_data, confirmed"]
+        E2["RejectionEvent<br/>text, confidence"]
+        E3["StateChangeEvent<br/>old_state, new_state"]
+        E4["PauseChangeEvent<br/>paused"]
+        E5["ConfirmationEvent<br/>active, phrase"]
+        E6["LogEvent<br/>level, message"]
+    end
+
+    E1 --> D[["Engine::emit()<br/>→ events_ (pull)<br/>→ event_sink_ (push, optional)"]]
+    E2 --> D
+    E3 --> D
+    E4 --> D
+    E5 --> D
+    E6 --> D
+
+    D -->|"drain() swaps the vector"| PE["Recognizer::poll_events()<br/><i>caller's thread, GIL held</i>"]
+    PE -->|"toPy(): variant visit → nb::cast"| PY["Python event objects"]
+    PE -->|"callbackFor(e.index())"| CB["on_recognized / on_rejected /<br/>on_state_change / on_pause_change /<br/>on_confirmation / on_log"]
+    PY --> TICK["_onTick(msPassed) — isinstance dispatch"]
+
+    TICK --> R1["RecognitionEvent → CommandManager.getCommand(text).run()"]
+    TICK --> R2["ConfirmationEvent → displayMessage / dismissal"]
+    TICK --> R3["Rejection/State/Log → VOICE_DEBUG console"]
+
+    style D fill:#d4edda,stroke:#155724
+```
+
+Three properties of the buffer, worth knowing before you debug it:
+
+- **Latency** is bounded by the tick interval, not by recognition. The engine
+  never blocks on the host.
+- **Ordering is FIFO and load-bearing.** `resolveConfirmation()` emits the
+  closing `ConfirmationEvent` *before* the `RecognitionEvent`, so within one
+  batch Enso always retracts the prompt before running the command it asked
+  about. *(Inferred from the emit order at `engine.cpp:458-480`; no comment
+  states the host-facing consequence.)*
+- **The buffer is unbounded.** A host that stops polling accumulates rather than
+  drops. Acceptable because the only consumer runs as long as Enso does.
+
+There is also an optional **push** channel, `event_sink_`, called directly on the
+worker thread. Enso does not set one. It exists for hosts that want immediate
+notification and can cope with a foreign thread.
+
+### 3.6 What else `_onTick` does
+
+Before draining, it checks `config.VOICE_COMMANDS_CHANGED`. If the webui toggled
+a voice checkbox, the grammar is rebuilt from scratch and pushed down first.
 
 ---
 
-## 6. Confirmation
+## 4. Design decisions and why
 
-Confirmation is *host-rendered*: the engine emits bracketing events and owns the
-timeout; `IConfirmationUI` is optional and Enso passes null. The answer is spoken,
-so there is nothing to click.
+### 4.1 Single owner: one thread mutates everything
+
+All lifecycle transitions are messages on one queue consumed by one worker
+thread. Control methods return `std::future<void>`, so a caller can block, wait
+with a timeout, or ignore the result.
+
+The rationale is stated at `engine.cpp:3-6`: backend callbacks and the
+confirmation UI *only post* — they never mutate engine state inline. The payoff
+is that there are no lock-ordering questions anywhere in the core, and the state
+machine can be tested with no threads racing it.
+
+**Exception propagation comes free with this.** `handle()` (`engine.cpp:196-205`)
+wraps every transition in try/catch and forwards a failure via
+`promise::set_exception`. `Recognizer::await()` (`module.cpp:318`) then calls
+`fut.get()` with the GIL held, so a C++ handler failure surfaces in Python as a
+normal exception rather than a silent no-op.
+
+`Engine::sync()` is the same mechanism used as a barrier: it resolves only once
+every message queued before it has been handled. That is what makes the tests
+deterministic, and it is available to any caller.
+
+### 4.2 Pull-mode delivery: native threads never call Python
+
+Stated at `module.cpp:13-16`. Events are parked in C++ and collected on Enso's
+tick. The alternative — calling into Python from the SAPI listener thread —
+would mean acquiring the GIL from a foreign thread and running Enso commands
+off-main-thread.
+
+**Tradeoff:** latency is bounded by the tick interval rather than being
+immediate. For a voice command that is imperceptible, and it buys the single
+most valuable property in the design: a voice-triggered command and a
+keyboard-triggered command run on the same thread, through the same code, with
+no concurrency difference between them.
+
+### 4.3 One engine, swapped rulesets
+
+There is exactly one recognizer and one grammar. Every phrase the user can say —
+each enabled command, both pause-control phrases, and yes/no — is a top-level
+rule in it. Rationale at `sapi_backend.cpp:3-8`.
+
+```mermaid
+graph TB
+    subgraph G["Single dynamic grammar (kGrammarId = 1)"]
+        direction TB
+        subgraph VR["Verb rules — id = kVerbBase(1000) + index"]
+            V0["'open' → prop V=0<br/>├ 'notepad' → prop N=0<br/>├ 'chrome'  → prop N=1<br/>└ …up to 300 nouns"]
+            V1["'help' → prop V=1<br/><i>(verb-only, no nouns)</i>"]
+        end
+        C1["__ctl_stop__ (id 1)<br/>'stop listening' → prop C=1"]
+        C2["__ctl_resume__ (id 2)<br/>'resume listening' → prop C=2"]
+        Y["__yes__ (id 3) → prop Y=1"]
+        N["__no__ (id 4) → prop Y=2"]
+        GB["__garbage__ (id 5)<br/>SPRULETRANS_WILDCARD, weight 0.30<br/><i>opt-in: use_garbage_rule</i>"]
+    end
+
+    KW["keyword prefix state<br/>'computer' + optional ε transition<br/><i>prepended to verb & control rules;<br/>yes/no are spoken bare</i>"]
+    KW -.-> VR
+    KW -.-> C1
+    KW -.-> C2
+
+    style GB fill:#eee,stroke:#999,stroke-dasharray:3 3
+```
+
+A **ruleset** is which of those rules are switched on right now.
+`setActiveRuleset(r)` walks the rule ids calling `SetRuleIdState` — nothing is
+created, compiled or destroyed, so the swap is effectively free and cannot fail
+halfway.
+
+Each ruleset makes one class of misrecognition *structurally impossible* rather
+than filtering it afterwards:
+
+- **`Commands`** — normal listening. Verb rules live, plus `stop listening`.
+  `resume listening` is deliberately off so it cannot compete with real commands.
+- **`ResumeOnly`** — soft-paused. Every verb rule off, so a command spoken while
+  paused cannot be matched — there is nothing to match it *to*.
+- **`YesNo`** — confirmation window. Commands and control both off, so an answer
+  can never be misheard as a command, nor a command queue up behind the prompt.
+
+```mermaid
+graph LR
+    subgraph RS["Ruleset → which rules are ACTIVE"]
+        direction TB
+        R1["<b>Commands</b><br/>✅ all enabled verb rules<br/>✅ __ctl_stop__<br/>❌ __ctl_resume__<br/>❌ yes / no"]
+        R2["<b>ResumeOnly</b> (soft-paused)<br/>❌ verb rules<br/>❌ __ctl_stop__<br/>✅ __ctl_resume__<br/>❌ yes / no"]
+        R3["<b>YesNo</b> (confirming)<br/>❌ verb rules<br/>❌ both control rules<br/>✅ __yes__ / __no__"]
+    end
+    R1 -->|"pause() / 'stop listening'"| R2
+    R2 -->|"resume() / 'resume listening'"| R1
+    R1 -->|"beginConfirmation()"| R3
+    R3 -->|"resolved / timed out / stop()"| R1
+```
+
+**The spoken control phrases, verbatim:**
+
+- **"computer stop listening"** — suspends command recognition; mic stays open.
+- **"computer resume listening"** — the only phrase live while paused, accepted
+  at any confidence so a paused engine is always recoverable.
+
+Both take the keyword prefix (`computer` by default, optional when
+`keyword_required` is false). **"yes"** and **"no"** are spoken bare — they are
+only ever live inside a confirmation window, so a prefix would be noise.
+
+The `__garbage__` wildcard, when enabled, stays active in all three. It is **off
+by default**: `config.h:71-75` records that in practice it over-matches and wins
+against real command rules, and SAPI already rejects out-of-vocabulary speech via
+`SPEI_FALSE_RECOGNITION`.
+
+`updateGrammar()` clears the verb rule bodies, rebuilds, re-commits and reapplies
+`Commands`. The recognizer, context and audio binding all survive untouched.
+
+### 4.4 Trust the grammar match, not the confidence score
+
+`config.h:85-92` states it plainly: SAPI's per-recognition confidence is
+unreliable for command-and-control grammars — it reports correct, fully-matched
+command phrases at the same low confidence as noise. So `trust_grammar_match`
+defaults to **true**, and a grammar match is the accept signal. The required
+keyword plus the closed grammar are the precision guard instead.
+
+**Tradeoff, and it is a real one:** maximum recall, at the cost of accepting
+whatever SAPI force-matches onto a command rule. Set it false for a backend whose
+confidence means something (Vosk) to get three-band gating instead. See §5.2 —
+this default silently disables several config knobs.
+
+Relatedly, `create()` (`sapi_backend.cpp:413-430`) explicitly loads the default
+SR engine token *and the user's trained recognition profile* into
+`CLSID_SpInprocRecognizer`. That buys the shared recognizer's calibration
+**without launching the Windows Speech Recognition window** — which was the
+original motivation for going in-process at all.
+
+### 4.5 Lifecycle: four verbs with different retention
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle : Engine(cfg, backend, ui)<br/>worker thread starts
+
+    Idle --> Listening : start()<br/><i>ensureCreated() → backend.create()<br/>setActiveRuleset(Commands) → backend.start()</i>
+    Listening --> SoftPaused : pause() or "stop listening"<br/><i>ruleset → ResumeOnly</i>
+    SoftPaused --> Listening : resume() / start() / "resume listening"<br/><i>ruleset → Commands</i>
+
+    Listening --> Stopped : stop()<br/><i>backend.stop(), engine + grammars RETAINED</i>
+    SoftPaused --> Stopped : stop()
+    Stopped --> Listening : start()<br/><i>cheap: no re-create</i>
+
+    Listening --> Idle : SPEI_END_SR_STREAM<br/>(unexpected, !host_stopping_)<br/><i>doRestart() → doStop(keep_engine=false) → dispose()</i>
+    Idle --> Restarting : doRestart() continues<br/><i>setState(Restarting)</i>
+    Restarting --> Listening : after restart_delay_sec back-off<br/><i>interruptible wait, close() cuts it short</i>
+
+    Listening --> Idle : shutdown()<br/><i>dispose(), engine released</i>
+    Stopped --> Idle : shutdown()
+
+    Idle --> Closed : close()
+    Listening --> Closed : close()
+    Stopped --> Closed : close()
+    SoftPaused --> Closed : close()
+    Closed --> [*] : worker joined (terminal)
+
+    note right of SoftPaused
+        Mic stays OPEN. Grammar reduced to
+        "resume listening" only. This is the
+        tray toggle and the spoken pause.
+    end note
+
+    note right of Stopped
+        Mic RELEASED (SPRST_INACTIVE_WITH_PURGE).
+        This is what the session lock uses —
+        a soft pause would leave the mic live
+        at the lock screen.
+    end note
+```
+
+`Idle` means constructed-but-not-realized: the worker thread is running, but the
+backend has not been created. `Stopped` retains the engine and compiled grammars,
+so restarting is cheap. See §5.1 for the four teardown verbs, which are the most
+commonly confused part of this diagram.
+
+**Auto-recovery.** If SAPI ends the stream unexpectedly, the engine restarts
+itself. The `host_stopping_` flag (`engine.cpp:254`) is what distinguishes
+"the audio device died" from "the host asked us to stop" — without it, every
+deliberate `stop()` would trigger a spurious restart. The back-off before
+re-starting is an interruptible timed wait, so `close()` cuts it short rather
+than making shutdown wait out the delay.
+
+**[inferred]** `Starting`, `Stopping` and `ShuttingDown` exist in the `State`
+enum but are never passed to `setState()`. The transitions are short enough to be
+atomic on the worker, so these states are never observed. Treat them as reserved.
+
+### 4.6 Confirmation is host-rendered
+
+The engine emits bracketing events and owns the timeout. `IConfirmationUI` is
+optional and Enso passes null — the answer is spoken, so there is nothing to
+click. `events.h:57-61` confirms the intent: emitted regardless of whether a UI
+is attached, so a host drawing its own prompt needs no in-library dialog.
 
 ```mermaid
 sequenceDiagram
@@ -426,15 +564,20 @@ sequenceDiagram
     end
 ```
 
-Every exit from `confirming_` funnels through `endConfirmation()` — the one place
-that clears the flag, hides any attached UI and emits the closing event — so the
-UI and the host-visible event can never drift apart. Enso's `_shutdown()` calls
-`_hideConfirmation()` *before* checking whether the engine still exists, because a
-prompt left up at exit would otherwise outlive the process that can dismiss it.
+Note the four exits, and that **all of them funnel through `endConfirmation()`**
+(`engine.h:105-108`) — the one place that clears the flag, hides any attached UI
+and emits the closing event. That is why the UI and the host-visible event cannot
+drift apart.
 
----
+The timeout is implemented without a timer thread: `workerLoop()` uses
+`wait_until(confirm_deadline_)` instead of `wait()` while confirming, so an empty
+wakeup *is* the timeout.
 
-## 7. Session lock
+On the Enso side, `_shutdown()` calls `_hideConfirmation()` *before* checking
+whether the engine still exists — a prompt left up at exit would otherwise
+outlive the process that could dismiss it.
+
+### 4.7 Session lock is a hard stop, not a pause
 
 ```mermaid
 sequenceDiagram
@@ -457,130 +600,31 @@ sequenceDiagram
     Note over B: cheap re-start — no create,<br/>no grammar rebuild
 ```
 
-A hard `stop()` is the only correct answer here. `pause()` keeps the recognizer
-and the microphone alive and leaves "resume listening" in the grammar — live to
-anyone standing at the lock screen.
+`module.cpp:293-300` spells out why `pause()` would be wrong: it keeps the
+recognizer and the microphone alive and leaves `resume listening` in the grammar
+— live to anyone standing at the lock screen. `stop()` releases the audio device
+while retaining the compiled grammars, so unlocking is cheap.
 
-Teardown order matters: `monitor_` is declared *after* `eng_` so it is destroyed
-first, and `close()` resets it explicitly, so a lock event arriving mid-shutdown
-can never post to a dying engine. The destructor posts `WM_QUIT` to the monitor
-thread and joins it.
+Teardown order is deliberate: `monitor_` is declared *after* `eng_` so it is
+destroyed first, and `close()` resets it explicitly, so a lock event arriving
+mid-shutdown cannot post to a dying engine.
 
----
+### 4.8 The host filters the grammar, not the library
 
-## 8. Event delivery into Enso
+`voice.py::_buildVerbs` only includes commands present in
+`config.VOICE_COMMANDS`. A parameterized command (`open {object}`) becomes a verb
+plus one noun per concrete argument enumerated from its factory; commands that
+accept arbitrary arguments yield no nouns and are recognized by verb alone.
+Nouns are capped at `_MAX_NOUNS_PER_VERB = 300` so a factory with a huge learned
+list cannot balloon the grammar.
 
-### The pieces
-
-Six things carry an event from the engine to a running Enso command. Only three
-of them are on the hot path; the rest are there to explain the shape.
-
-| Piece | Lives on | Role |
-|---|---|---|
-| `Event` | — | The payload. One `std::variant` with six alternatives, so "an event" is always exactly one type, never a tagged struct with unused fields. |
-| `Engine::emit()` | worker thread | The single exit door. Every event in the system leaves through this one function. |
-| `events_` + `emx_` | worker ↔ host | The buffer between the two threads. A plain `vector<Event>` behind a mutex. |
-| `Engine::drain()` | host thread | The handoff. *Swaps* the buffer out and returns the whole batch. |
-| `Recognizer::poll_events()` | host thread, GIL held | The pump, in the binding layer. Drains, converts, dispatches. |
-| `_onTick(msPassed)` | Enso main thread | The consumer. Enso's `"timer"` responder, which calls the pump. |
-
-There is also `event_sink_`, an **optional** push channel: if a host sets one,
-`emit()` calls it directly on the worker thread. Enso does not set one — it is
-there for hosts that want immediate notification and can cope with a foreign
-thread. Everything below describes the pull path.
-
-### The journey of one event
-
-Take a recognized command. It crosses two thread boundaries:
-
-1. The SAPI listener thread recognizes something and posts it to the engine's
-   command queue (§2). It does not produce an event.
-2. The **worker thread** classifies it and calls `emit(RecognitionEvent{…})`,
-   which appends to `events_` under `emx_`. The worker is now done and moves to
-   the next message — it never waits for the host to look.
-3. Some milliseconds later Enso's main loop fires **`_onTick`**, which calls
-   **`poll_events()`**.
-4. `poll_events()` calls **`drain()`**. Under the lock it swaps `events_` with an
-   empty vector and returns the batch — O(1), nothing copied, and the worker
-   immediately starts filling the fresh one.
-5. Still on the main thread, with the GIL already held, `poll_events()` walks the
-   batch: `toPy()` converts each variant alternative into its Python mirror
-   object, and any registered `on_*` callback for that alternative is fired.
-6. The list comes back to `_onTick`, which does a flat `isinstance` dispatch and
-   calls `CommandManager.get().getCommand(text).run()`.
-
-Step 2 is where commitment #2 is actually paid for. The event is *parked* in C++,
-not delivered, so nothing touches Python until step 5. That is why `cmd.run()`
-ends up on the same thread as a keyboard-triggered command, and why no code on
-this path ever has to acquire the GIL from a foreign thread.
-
-Before draining, `_onTick` does one other thing: if
-`config.VOICE_COMMANDS_CHANGED` is set — the webui toggled a voice checkbox — it
-rebuilds the grammar and pushes it down first.
-
-### What the buffer buys and costs
-
-- **Latency** is bounded by the tick interval, not by recognition. The engine
-  never blocks on the host.
-- **Ordering is FIFO, and that is load-bearing.** `resolveConfirmation()` emits
-  the closing `ConfirmationEvent` *before* the `RecognitionEvent`. Because both
-  land in the same batch in that order, Enso is guaranteed to retract the prompt
-  before running the command it was asking about.
-- **The buffer is unbounded.** A host that stops polling accumulates events
-  rather than dropping them. That is the right trade here because the only
-  consumer is a tick that runs for as long as Enso is alive.
-
-```mermaid
-graph LR
-    subgraph V["std::variant&lt;Event&gt;"]
-        E1["RecognitionEvent<br/>verb, noun, text, confidence,<br/>verb_data, noun_data, confirmed"]
-        E2["RejectionEvent<br/>text, confidence"]
-        E3["StateChangeEvent<br/>old_state, new_state"]
-        E4["PauseChangeEvent<br/>paused"]
-        E5["ConfirmationEvent<br/>active, phrase"]
-        E6["LogEvent<br/>level, message"]
-    end
-
-    E1 --> D[["Engine::emit()<br/>→ events_ (pull)<br/>→ event_sink_ (push, optional)"]]
-    E2 --> D
-    E3 --> D
-    E4 --> D
-    E5 --> D
-    E6 --> D
-
-    D -->|"drain() swaps the vector"| PE["Recognizer::poll_events()<br/><i>caller's thread, GIL held</i>"]
-    PE -->|"toPy(): variant visit → nb::cast"| PY["Python event objects"]
-    PE -->|"callbackFor(e.index())"| CB["on_recognized / on_rejected /<br/>on_state_change / on_pause_change /<br/>on_confirmation / on_log"]
-    PY --> TICK["_onTick(msPassed) — isinstance dispatch"]
-
-    TICK --> R1["RecognitionEvent → CommandManager.getCommand(text).run()"]
-    TICK --> R2["ConfirmationEvent → displayMessage / dismissal"]
-    TICK --> R3["Rejection/State/Log → VOICE_DEBUG console"]
-
-    style D fill:#d4edda,stroke:#155724
-```
-
-Two details that are load-bearing:
-
-- **`callbackFor()` resolves the variant index at compile time**
-  (`variantIndex<T, Event>()`), not from hard-coded ordinals. Inserting a new
-  alternative into `Event` therefore cannot silently reroute callbacks to the
-  wrong handler.
-- **`UserData` is a `shared_ptr<void>` whose deleter re-acquires the GIL**, since
-  a grammar replacement can drop the last reference to a Python object on the
-  worker thread. The core never inspects the payload; Enso stores the original
-  command expression there and gets it back on every event.
-- **`_onTick` catches everything.** `EventManager.onTick()` has no exception
-  handling of its own, so an escape would propagate through the native
-  `InputManager` callback and take down the whole Enso event loop.
-
----
-
-## 9. Host integration (Enso)
+Note the redundancy: `Verb::disabled` exists in `config.h` and is honored by the
+backend, but `voice.py` never sets it — filtering happens host-side instead. Both
+mechanisms work; only one is used.
 
 ```mermaid
 graph TB
-    WEBUI["webui commands page<br/>🎤 voice · 👂 voice-only · 🆗 confirm"] -->|"GET /api/enso/commands/voice/*"| CFG["config.VOICE_COMMANDS<br/>VOICE_ONLY_COMMANDS<br/>VOICE_CONFIRM_COMMANDS<br/>VOICE_COMMANDS_CHANGED"]
+    WEBUI["webui commands table (CommandsTable.vue)<br/>⏻ enabled · 🎙️ voice · 👂🏻 voice-only · 🆗 confirm"] -->|"GET /api/enso/commands/voice{,_only,_confirm}/*"| CFG["config.VOICE_COMMANDS<br/>VOICE_ONLY_COMMANDS<br/>VOICE_CONFIRM_COMMANDS<br/>VOICE_COMMANDS_CHANGED"]
     CFG -->|"persisted"| USERCFG["~/.enso/enso.cfg<br/><i>usercfg LIST_CONFIG_KEYS</i>"]
     CFG -->|"dirty flag read on tick"| TICK["_onTick → update_grammar(_buildVerbs())"]
 
@@ -598,25 +642,43 @@ graph TB
     style DEGRADE fill:#f8f9fa,stroke:#ccc
 ```
 
+**The three voice checkboxes are independent.** They live in
+`webui-src/src/components/CommandsTable.vue`, rendered only when the native
+module is installed (`v-if="voiceAvailable"`), to the right of the always-present
+⏻ enabled column:
+
+| Checkbox | Config list | Effect |
+|---|---|---|
+| 🎙️ voice | `VOICE_COMMANDS` | Command joins the voice grammar. |
+| 👂🏻 voice-only | `VOICE_ONLY_COMMANDS` | Command is *hidden from the typed quasimode UI* — five checks in `commands/factories.py` suppress it from suggestions while leaving it resolvable. |
+| 🆗 confirm | `VOICE_CONFIRM_COMMANDS` | Sets `Verb.confirm`, so it needs a spoken "yes". Its header carries the `?` link to the tutorial's voice section. |
+
+Route names are centralized in `webui-src/src/api/types.ts`
+(`commands/voice`, `commands/voice_only`, `commands/voice_confirm`).
+
+**Two switches gate the plugin entirely.** `config.VOICE_ENABLED` (default
+`True`) — `load()` returns immediately if false, and the native module is never
+started. And the import itself: the `.pyd` is an optional install component
+(NSIS `Section /o "Voice Recognition"`), so `voice.py` imports it defensively and
+no-ops on `ImportError`. That matters because `plugins.py` logs *and re-raises*,
+which would otherwise abort every plugin queued after this one.
+
 `set_listening(True)` calls `start()` rather than `resume()` on purpose:
 `resume()` only lifts a soft pause, while `start()` also covers the engine having
-been stopped outright — which is exactly what the session lock does.
+been stopped outright — which is what the session lock does.
 
-The `.pyd` is an optional install component (NSIS `Section /o "Voice Recognition"`),
-so its absence must be survivable: `voice.py` imports it defensively and no-ops,
-because `plugins.py` logs *and re-raises*, which would otherwise abort every
-plugin queued after it.
+**Note:** `config.VOICE_DEBUG` currently defaults to `True`, so rejection,
+state-change and raw-confidence diagnostics print to the console out of the box.
+That is a bring-up default, not a permanent one.
 
----
-
-## 10. Build
+### 4.9 nanobind and the abi3 build
 
 ```mermaid
 graph TB
     CORE["voicecmd_core (STATIC)<br/>src/core/engine.cpp<br/>C++20, /W4 /permissive-"]
     SAPILIB["voicecmd_sapi (STATIC)<br/>+ ole32 oleaut32<br/><i>GUIDs via initguid.h — no sapi.lib</i>"]
     WIN32LIB["voicecmd_win32 (STATIC)<br/>+ wtsapi32"]
-    TESTS["voicecmd_tests<br/>core + FakeBackend<br/><i>76 checks</i>"]
+    TESTS["voicecmd_tests<br/>core + FakeBackend<br/><i>17 test cases</i>"]
     SMOKE["voicecmd_sapi_smoke<br/><i>link + runtime check</i>"]
     PYD["<b>voicecmdlib</b> (nanobind_add_module)<br/>STABLE_ABI + NB_STATIC"]
     DEPLOY["POST_BUILD → enso/enso/contrib/voicecmdlib.pyd<br/><i>non-fatal if Enso holds the file</i>"]
@@ -631,13 +693,21 @@ graph TB
     D2["VOICECMD_HAS_SESSION_MONITOR=1"] -.-> PYD
 ```
 
+nanobind rather than pybind11 because pybind11 under `Py_LIMITED_API` triggers an
+internal compiler error on MSVC 14.44 (`CMakeLists.txt:61-67`).
+
+**On abi3, precisely:** `STABLE_ABI` is *forward*-compatible only. `Py_LIMITED_API`
+sets an API floor, but the binary is built against the headers of whichever
+interpreter CMake resolved — Enso's bundled Python — and will not load on an older
+one. It doesn't matter in practice: the `.pyd` only ever loads inside Enso's own
+interpreter. The header comment at `module.cpp:1-8` says the same.
+
 `build.ps1` is machine-independent by construction: Visual Studio and its bundled
 CMake are located with **vswhere**; the target interpreter is Enso's own bundled
-Python found *relative to the script*, passed as `-DPython_ROOT_DIR` (an embedded
-distribution has no registry entry, so `find_package(Python)` cannot locate it
-otherwise); and nanobind — a build-time source dependency — is probed across
-candidate interpreters and otherwise auto-provisioned at a pinned version into
-`build-msvc\.tools`.
+Python found relative to the script and passed as `-DPython_ROOT_DIR` (an
+embedded distribution has no registry entry, so `find_package(Python)` cannot
+find it otherwise); and nanobind is probed across candidate interpreters and
+auto-provisioned at a pinned version if absent.
 
 ```
 .\build.ps1              # incremental build + deploy
@@ -646,20 +716,52 @@ candidate interpreters and otherwise auto-provisioned at a pinned version into
 .\build.ps1 -Tests       # build and run the core unit tests
 ```
 
-**nanobind, not pybind11:** pybind11 under `Py_LIMITED_API` triggers an internal
-compiler error on MSVC 14.44. Note that abi3 is *forward*-compatible only — the
-binary is built against Enso's bundled 3.14 headers and is not loadable on an
-older interpreter, which is fine given it only ever loads inside Enso.
-
----
-
-## 11. Testing
+### 4.10 Testability
 
 `FakeBackend` is a header-only `IRecognizerBackend` with atomic counters and a
 `feed()` / `endUnexpectedly()` interface, standing in for the SAPI callback
-thread. It needs no audio, no COM and no host, so the entire state machine —
-lifecycle transitions, ruleset swaps, classification bands, confirmation
-begin/resolve/timeout/stop, and unexpected-end auto-recovery — is exercised
-deterministically by `voicecmd_tests`. `Engine::sync()` provides the FIFO barrier
-that makes those assertions race-free: it resolves only once every message queued
-before it has been handled.
+thread. No audio, no COM, no host. Because the core is COM-free and Python-free,
+the entire state machine — lifecycle transitions, ruleset swaps, confidence
+bands, confirmation begin/resolve/timeout/stop, and unexpected-end auto-recovery
+— runs deterministically in a plain console executable.
+
+`Engine::sync()` is what makes the assertions race-free.
+
+---
+
+## 5. Where it gets confusing
+
+### 5.1 Four teardown verbs that are not synonyms
+
+The single most common source of confusion. They differ in *what survives*:
+
+| Call | Mic | Backend engine + grammars | Worker thread | Getting back |
+|---|---|---|---|---|
+| `pause()` | **open** | kept | running | `resume()` / `start()` — instant |
+| `stop()` | released | **kept** | running | `start()` — cheap, no rebuild |
+| `shutdown()` | released | **disposed** | running | `start()` — full re-create |
+| `close()` | released | disposed | **joined; terminal** | never — construct a new one |
+
+`pause()` is a *grammar* change, not an audio change — that is why it is wrong
+for the lock screen (§4.7). `close()` is the only irreversible one, and it must
+never be called from the worker thread itself.
+
+### 5.2 Grammar membership is decided in two places
+
+Whether a command is in the voice grammar can be controlled from either end, and
+only one end is actually wired up:
+
+- **Host-side filter (used).** `voice.py::_buildVerbs` skips any command not in
+  `config.VOICE_COMMANDS`, so unticked commands never become a `Verb` at all.
+- **`Verb::disabled` (not used).** The field exists in `config.h:44` and is
+  honored by the backend — `sapi_backend.cpp:236` skips disabled verbs when
+  building rules, `:259` skips them when activating. But `_buildVerbs` never
+  sets it.
+
+Both work. If you are debugging "why is this command not recognized", check
+`VOICE_COMMANDS` first — `disabled` will always be `false`. **[inferred** from
+cross-referencing the two files; no comment marks either as canonical.**]**
+
+The same split exists one level up: `VOICE_COMMANDS` controls the *grammar*,
+while `VOICE_ONLY_COMMANDS` controls the *typed* UI. A command can be in one,
+both, or neither, and the two are independent (§4.8).

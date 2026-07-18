@@ -136,9 +136,14 @@ VOICE_CONFIRM_COMMANDS = []
 VOICE_COMMANDS_CHANGED = False
 
 # Native voicecmd engine tuning (consumed by enso.contrib.voice). The keyword
-# must prefix every command when VOICE_KEYWORD_REQUIRED is set. Confidence
-# thresholds are normalized 0..1; recognitions below reject are discarded,
-# between reject and accept require confirmation, at/above accept dispatch.
+# must prefix every command when VOICE_KEYWORD_REQUIRED is set.
+#
+# NOTE: VOICE_ACCEPT_CONFIDENCE and VOICE_REJECT_CONFIDENCE apply ONLY when
+# VOICE_TRUST_GRAMMAR_MATCH is False. Under the default (True) a grammar match
+# is the accept signal and neither threshold is ever read -- changing them has
+# no effect. When the bands ARE active they are normalized 0..1: below reject is
+# discarded, between reject and accept requires confirmation, at/above accept
+# dispatches.
 VOICE_KEYWORD = "computer"
 VOICE_KEYWORD_REQUIRED = True
 VOICE_ACCEPT_CONFIDENCE = 0.85

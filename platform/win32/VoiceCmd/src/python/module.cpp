@@ -1,6 +1,11 @@
-// voicecmd — nanobind bindings (built with STABLE_ABI => single abi3 voicecmd.pyd
-// importable on any CPython >= 3.10). nanobind is used instead of pybind11 because
-// pybind11 under Py_LIMITED_API triggers an internal compiler error on MSVC 14.44.
+// voicecmd — nanobind bindings, built with STABLE_ABI into a single abi3
+// voicecmdlib.pyd. Note that abi3 is FORWARD-compatible only: Py_LIMITED_API
+// sets an API floor, but the binary is built against the headers of whichever
+// interpreter CMake resolved (Enso's bundled Python) and will not load on an
+// older one. That is fine here -- this module only ever loads inside Enso.
+//
+// nanobind is used instead of pybind11 because pybind11 under Py_LIMITED_API
+// triggers an internal compiler error on MSVC 14.44.
 //
 // Canonical spec-named API: Config / Verb / Noun / Recognizer, @on_recognized-style
 // callbacks, pull-mode poll_events().
@@ -83,7 +88,9 @@ struct ConfigSpec {
     std::string language = "en-US";
     bool session_lock = true;
     bool rejection_events = true;
-    bool use_garbage_rule = true;
+    // Off by default, matching Config::use_garbage_rule and the bound __init__
+    // default: the wildcard over-matches and beats real command rules.
+    bool use_garbage_rule = false;
     bool trust_grammar_match = true;
     bool shared_recognizer = false;
     double confirm_timeout_sec = 10.0;
@@ -309,15 +316,23 @@ private:
 #endif
 
     void await(std::future<void> fut, double timeout) {
+        // Every wait happens with the GIL RELEASED. fut.get() below must never
+        // be the thing that blocks: it runs with the GIL held, so waiting there
+        // would freeze every Python thread until the worker finished.
         {
             nb::gil_scoped_release rel;
             if (timeout > 0.0) {
                 if (fut.wait_for(secs(timeout)) != std::future_status::ready) {
                     throw std::runtime_error("voicecmd: operation timed out");
                 }
+            } else {
+                // No deadline requested -- still wait here, not in get().
+                fut.wait();
             }
         }
-        fut.get();  // propagate any handler exception (GIL held here)
+        // Ready by now, so this returns at once; its only job is to re-throw the
+        // handler's exception (GIL held, as the translation to Python needs it).
+        fut.get();
     }
 
     // Resolved from the Event variant itself rather than hard-coded ordinals,
