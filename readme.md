@@ -2,8 +2,6 @@
 
 A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/MacOS). 
 
-This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
-
 #### History
 
 At first there was a proprietary closed-source Enso Launcher from Humanized. 
