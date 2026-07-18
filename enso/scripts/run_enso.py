@@ -19,7 +19,6 @@ lu.preflight()
 
 import enso
 from enso import config
-from enso.contrib import retreat
 from enso.user import import_package_by_path
 
 lu.platform_bootstrap()
@@ -47,13 +46,11 @@ def main(argv = None):
     user_lib_index = os.path.join(config.ENSO_USER_DIR, "lib")
     import_package_by_path(user_lib_index)
 
-    retreat.start()
-
+    # Retreat is an enso.config.PLUGINS entry now; it starts on the init event
+    # and stops via its own atexit handler.
     enso.run()
 
     lu.stop_platform_extras()
-
-    retreat.stop()
 
     logging.shutdown()
 

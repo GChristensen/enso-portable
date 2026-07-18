@@ -71,37 +71,43 @@ if (VOICECMD_BUILD_PYTHON)
     find_package(Python 3.10 REQUIRED COMPONENTS ${_py_components})
     find_package(nanobind CONFIG REQUIRED)
 
+    # The extension target name IS the module filename (voicecmdlib.pyd) and
+    # must match NB_MODULE(voicecmdlib) in src/python/module.cpp, or the import
+    # fails looking for PyInit_voicecmdlib. Named "voicecmdlib" rather than
+    # "voicecmd" for the same reason enso.contrib.retreatlib is: an extension
+    # module shadows a same-named .py in the package, and the "lib" suffix
+    # keeps the native library distinct from the Python modules around it.
     if (VOICECMD_PY_ABI3)
-        nanobind_add_module(voicecmd STABLE_ABI NB_STATIC src/python/module.cpp)
+        nanobind_add_module(voicecmdlib STABLE_ABI NB_STATIC src/python/module.cpp)
     else()
-        nanobind_add_module(voicecmd NB_STATIC src/python/module.cpp)
+        nanobind_add_module(voicecmdlib NB_STATIC src/python/module.cpp)
     endif()
 
-    target_link_libraries(voicecmd PRIVATE voicecmd_core)
+    target_link_libraries(voicecmdlib PRIVATE voicecmd_core)
     # Fake backend is header-only; SAPI is the real one on Windows.
-    target_include_directories(voicecmd PRIVATE src/backend/fake)
+    target_include_directories(voicecmdlib PRIVATE src/backend/fake)
     if (_build_sapi AND WIN32)
-        target_link_libraries(voicecmd PRIVATE voicecmd_sapi)
-        target_include_directories(voicecmd PRIVATE src/backend/sapi)
-        target_compile_definitions(voicecmd PRIVATE VOICECMD_HAS_SAPI=1)
+        target_link_libraries(voicecmdlib PRIVATE voicecmd_sapi)
+        target_include_directories(voicecmdlib PRIVATE src/backend/sapi)
+        target_compile_definitions(voicecmdlib PRIVATE VOICECMD_HAS_SAPI=1)
     endif()
     if (WIN32)
-        target_link_libraries(voicecmd PRIVATE voicecmd_win32)
-        target_compile_definitions(voicecmd PRIVATE VOICECMD_HAS_SESSION_MONITOR=1)
+        target_link_libraries(voicecmdlib PRIVATE voicecmd_win32)
+        target_compile_definitions(voicecmdlib PRIVATE VOICECMD_HAS_SESSION_MONITOR=1)
     endif()
 
-    # Optional deploy: drop the built voicecmd.pyd into Enso's contrib package
-    # (shadowing the renamed voicecmd_mock.py). Defaults to the sibling checkout.
+    # Optional deploy: drop the built voicecmdlib.pyd into Enso's contrib
+    # package. Defaults to the sibling checkout.
     set(VOICECMD_ENSO_CONTRIB_DIR "${CMAKE_SOURCE_DIR}/../../../enso/enso/contrib"
-        CACHE PATH "Enso contrib dir to copy voicecmd.pyd into (empty to skip)")
+        CACHE PATH "Enso contrib dir to copy voicecmdlib.pyd into (empty to skip)")
     if (VOICECMD_ENSO_CONTRIB_DIR AND EXISTS "${VOICECMD_ENSO_CONTRIB_DIR}")
         # Non-fatal: a running Enso holds the .pyd, which must not break the build.
-        add_custom_command(TARGET voicecmd POST_BUILD
+        add_custom_command(TARGET voicecmdlib POST_BUILD
             COMMAND ${CMAKE_COMMAND}
-                    -DSRC=$<TARGET_FILE:voicecmd>
-                    -DDST=${VOICECMD_ENSO_CONTRIB_DIR}/voicecmd.pyd
+                    -DSRC=$<TARGET_FILE:voicecmdlib>
+                    -DDST=${VOICECMD_ENSO_CONTRIB_DIR}/voicecmdlib.pyd
                     -P ${CMAKE_SOURCE_DIR}/cmake/deploy_pyd.cmake
-            COMMENT "Deploying voicecmd.pyd -> ${VOICECMD_ENSO_CONTRIB_DIR}")
+            COMMENT "Deploying voicecmdlib.pyd -> ${VOICECMD_ENSO_CONTRIB_DIR}")
     endif()
 endif()
 

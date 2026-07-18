@@ -1,6 +1,10 @@
 # ----------------------------------------------------------------------------
 #
-#   enso.contrib.voicecmd
+#   enso.contrib.voicecmd_mock
+#
+#   Pure-Python stand-in for the native voicecmdlib module. Nothing imports
+#   this while voicecmdlib.pyd is deployed; rename it to voicecmdlib.py to
+#   run enso.contrib.voice without the compiled library.
 #
 # ----------------------------------------------------------------------------
 

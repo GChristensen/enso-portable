@@ -350,7 +350,8 @@ private:
 
 }  // namespace
 
-NB_MODULE(voicecmd, m) {
+// Must match the CMake target name, i.e. the voicecmdlib.pyd filename.
+NB_MODULE(voicecmdlib, m) {
     m.doc() = "Grammar-constrained voice command recognition (native).";
 
     nb::enum_<State>(m, "State")

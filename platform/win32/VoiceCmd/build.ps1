@@ -1,4 +1,4 @@
-# Rebuild + deploy the voicecmd native module (voicecmd.pyd) into Enso's contrib.
+# Rebuild + deploy the voicecmd native module (voicecmdlib.pyd) into Enso's contrib.
 #
 # Usage (from this directory):
 #   .\build.ps1                 # incremental build of the module + auto-deploy
@@ -20,7 +20,7 @@
 #     needs no manual setup. Changing the target interpreter never requires
 #     reinstalling it.
 #
-# NOTE: the deploy step copies voicecmd.pyd into Enso's contrib package. A
+# NOTE: the deploy step copies voicecmdlib.pyd into Enso's contrib package. A
 # running Enso holds that file open, so either close Enso or pass -StopEnso; the
 # build itself still succeeds (the deploy just warns) if it's locked.
 param(
@@ -161,7 +161,7 @@ if ($Configure -or -not (Test-Path "$build\CMakeCache.txt")) {
     if ($LASTEXITCODE -ne 0) { throw "cmake configure failed." }
 }
 
-$target = if ($Tests) { "voicecmd_tests" } else { "voicecmd" }
+$target = if ($Tests) { "voicecmd_tests" } else { "voicecmdlib" }
 & $cmake --build $build --config $Config --target $target
 if ($LASTEXITCODE -ne 0) { throw "build failed." }
 

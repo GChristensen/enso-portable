@@ -78,6 +78,7 @@ PLUGINS = ["enso.contrib.scriptotron",
            "enso.contrib.help",
            "enso.contrib.google",
            "enso.contrib.evaluate",
+           "enso.contrib.retreat",
            "enso.contrib.voice"
            ]
 

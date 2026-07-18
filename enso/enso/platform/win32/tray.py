@@ -116,7 +116,7 @@ def run(enso_config):
     # running: the menu is built once here, and the voice plugin may not have
     # loaded yet at this point.
     if voice.is_installed():
-        enso_config.SYSTRAY_ICON.add_menu_item("&Voice Recognition",
+        enso_config.SYSTRAY_ICON.add_menu_item("&Listen",
                                                _on_voice_recognition)
     if not config.ENSO_EXECUTABLE.endswith("run-enso.exe"):
         enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", _on_exec_at_startup)

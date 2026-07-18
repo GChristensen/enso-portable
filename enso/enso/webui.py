@@ -88,7 +88,7 @@ def get_retreat_installed():
 @app.route('/api/retreat/show_options')
 @requires_auth
 def get_retreat_show_settings():
-    retreat.options()
+    retreat.settings()
     return ""
 
 
@@ -181,11 +181,10 @@ def get_enso_get_commands():
 
 
 def _voicecmd_available():
-    """True if the voicecmd library is importable (the .py mock or the
-    compiled .pyd). Governs whether the voice checkbox columns are shown
-    in the commands web UI."""
+    """True if the native voicecmdlib module is importable. Governs whether
+    the voice checkbox columns are shown in the commands web UI."""
     try:
-        import enso.contrib.voicecmd  # noqa: F401
+        import enso.contrib.voicecmdlib  # noqa: F401
         return True
     except ImportError:
         return False

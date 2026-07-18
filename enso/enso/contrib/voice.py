@@ -30,13 +30,13 @@ from enso.messages import displayMessage
 
 try:
     # The native module exposes the spec-named API (Config/Verb/Noun/Recognizer).
-    from enso.contrib.voicecmd import (
+    from enso.contrib.voicecmdlib import (
         Config, Verb, Noun, Recognizer, State, RecognitionEvent, RejectionEvent,
         StateChangeEvent, ConfirmationEvent, LogEvent,
     )
     _VOICECMD_AVAILABLE = True
 except ImportError:
-    # The native voicecmd.pyd may legitimately be absent (unsupported platform,
+    # The native voicecmdlib.pyd may legitimately be absent (unsupported platform,
     # partial install) -- degrade gracefully rather than abort loading of every
     # plugin listed after this one.
     _VOICECMD_AVAILABLE = False
