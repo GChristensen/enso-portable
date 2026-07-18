@@ -48,7 +48,11 @@ def run():
         from . import webui
     except ImportError:
         webui = None
-        logging.warning( "Web UI is unavailable (flask is not installed)." )
+        # Don't claim a cause we haven't checked: any failed import anywhere
+        # in webui's chain lands here, and blaming flask sends people looking
+        # in the wrong place. Log the real traceback instead.
+        logging.warning( "Web UI is unavailable; enso.webui failed to import.",
+                         exc_info = True )
 
     eventManager = EventManager.get()
     Quasimode.install( eventManager )

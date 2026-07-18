@@ -21,7 +21,9 @@ const flags = reactive(
     props.commands.map((c) => [
       c.name,
       {
-        disabled: Boolean(c.disabled),
+        // The server sends `disabled`; flip it here, once, so that everything
+        // downstream reads positively and `true` always means "enable".
+        enabled: !c.disabled,
         voice: Boolean(c.voice),
         voiceOnly: Boolean(c.voiceOnly),
         voiceConfirm: Boolean(c.voiceConfirm),
@@ -51,11 +53,6 @@ function setFlag(name: string, flag: CommandFlag, on: boolean) {
   if (!state) return
   state[flag] = on
   void setCommandFlag(flag, name, on)
-}
-
-/** The Enabled checkbox is the inverse of the `disabled` flag. */
-function setEnabled(name: string, enabled: boolean) {
-  setFlag(name, 'disabled', !enabled)
 }
 
 /**
@@ -110,8 +107,8 @@ function setDependent(name: string, flag: 'voiceOnly' | 'voiceConfirm', on: bool
           <input
             type="checkbox"
             title="Enabled"
-            :checked="!flags.get(cmd.name)?.disabled"
-            @change="setEnabled(cmd.name, ($event.target as HTMLInputElement).checked)"
+            :checked="flags.get(cmd.name)?.enabled"
+            @change="setFlag(cmd.name, 'enabled', ($event.target as HTMLInputElement).checked)"
           />
         </td>
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
-import CodeEditor from '@/components/CodeEditor.vue'
 import { useAutosave } from '@/composables/useAutosave'
 import {
   getColorThemes,
@@ -11,10 +10,17 @@ import {
   getEnsorc,
   getPythonVersion,
   getRetreatInstalled,
+  getVoiceAvailable,
   openConfigDir,
   setConfig,
   setEnsorc,
 } from '@/api/enso'
+
+// Loaded on demand: this is what pulls in ace, and keeping it out of the
+// main bundle means pages with no editor never download or parse it.
+const CodeEditor = defineAsyncComponent(
+  () => import('@/components/CodeEditor.vue'),
+)
 
 const ensoVersion = ref('')
 const pythonVersion = ref('')
@@ -22,9 +28,14 @@ const pythonVersion = ref('')
 const themes = ref<string[]>([])
 const theme = ref('')
 
+// Optional features. Each is shown only when its native module is present:
+// retreatlib.pyd for Retreat, voicecmdlib.pyd for voice recognition.
 const retreatInstalled = ref(false)
 const retreatEnabled = ref(false)
 const retreatShowIcon = ref(false)
+
+const voiceAvailable = ref(false)
+const voiceEnabled = ref(false)
 
 const configDir = ref('')
 
@@ -52,6 +63,15 @@ onMounted(async () => {
   }
 
   try {
+    voiceAvailable.value = (await getVoiceAvailable()) === true
+  } catch {
+    voiceAvailable.value = false
+  }
+  if (voiceAvailable.value) {
+    voiceEnabled.value = (await getConfig('VOICE_ENABLED')) !== 'False'
+  }
+
+  try {
     ensorc.value = (await getEnsorc()).trim()
   } catch {
     ensorc.value = '' // no ensorc.py yet
@@ -64,8 +84,23 @@ function onThemeChange(value: string) {
   void setConfig('COLOR_THEME', value)
 }
 
-watch(retreatEnabled, (on) => void setConfig('RETREAT_DISABLE', on ? 'False' : 'True'))
-watch(retreatShowIcon, (on) => void setConfig('RETREAT_SHOW_ICON', on ? 'True' : 'False'))
+// Explicit handlers rather than v-model + watch: a watch also fires when the
+// initial value is read in onMounted, which would POST the setting straight
+// back to the server on every page load.
+function onRetreatEnabledChange(on: boolean) {
+  retreatEnabled.value = on
+  void setConfig('RETREAT_DISABLE', on ? 'False' : 'True')
+}
+
+function onRetreatShowIconChange(on: boolean) {
+  retreatShowIcon.value = on
+  void setConfig('RETREAT_SHOW_ICON', on ? 'True' : 'False')
+}
+
+function onVoiceEnabledChange(on: boolean) {
+  voiceEnabled.value = on
+  void setConfig('VOICE_ENABLED', on ? 'True' : 'False')
+}
 </script>
 
 <template>
@@ -115,24 +150,46 @@ watch(retreatShowIcon, (on) => void setConfig('RETREAT_SHOW_ICON', on ? 'True' :
         </p>
       </div>
 
-      <!-- Only rendered when Retreat is actually installed. The old page kept
-           the block in the DOM and flipped visibility, so it reserved space. -->
-      <template v-if="retreatInstalled">
-        <h2>Enso Retreat</h2>
-        <div class="advanced vertically-aligned">
-          <input id="retreat-enable" v-model="retreatEnabled" type="checkbox" />
-          <label for="retreat-enable">Enable Enso Retreat</label>
-        </div>
-        <div class="advanced vertically-aligned">
-          <input
-            id="retreat-show-icon"
-            v-model="retreatShowIcon"
-            type="checkbox"
-            :disabled="!retreatEnabled"
-          />
-          <label for="retreat-show-icon">Show Enso Retreat icon</label>
-        </div>
-      </template>
+      <!-- Optional features, side by side. Each is rendered only when its
+           native module is present; the old page kept Retreat in the DOM and
+           flipped visibility, so it reserved space even when absent. -->
+      <div v-if="retreatInstalled || voiceAvailable" class="feature-columns">
+        <section v-if="retreatInstalled" class="feature-column">
+          <h2>Enso Retreat</h2>
+          <div class="advanced vertically-aligned">
+            <input
+              id="retreat-enable"
+              type="checkbox"
+              :checked="retreatEnabled"
+              @change="onRetreatEnabledChange(($event.target as HTMLInputElement).checked)"
+            />
+            <label for="retreat-enable">Enable Enso Retreat</label>
+          </div>
+          <div class="advanced vertically-aligned">
+            <input
+              id="retreat-show-icon"
+              type="checkbox"
+              :checked="retreatShowIcon"
+              :disabled="!retreatEnabled"
+              @change="onRetreatShowIconChange(($event.target as HTMLInputElement).checked)"
+            />
+            <label for="retreat-show-icon">Show Enso Retreat icon</label>
+          </div>
+        </section>
+
+        <section v-if="voiceAvailable" class="feature-column feature-column--right">
+          <h2>Voice Recognition</h2>
+          <div class="advanced vertically-aligned">
+            <input
+              id="voice-enable"
+              type="checkbox"
+              :checked="voiceEnabled"
+              @change="onVoiceEnabledChange(($event.target as HTMLInputElement).checked)"
+            />
+            <label for="voice-enable">Enable voice recognition</label>
+          </div>
+        </section>
+      </div>
 
       <h2>Backup/Restore</h2>
       <div class="advanced">
@@ -149,6 +206,31 @@ watch(retreatShowIcon, (on) => void setConfig('RETREAT_SHOW_ICON', on ? 'True' :
 </template>
 
 <style scoped>
+.feature-columns {
+  display: flex;
+  gap: var(--enso-gap);
+  align-items: flex-start;
+}
+
+.feature-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* margin-left:auto rather than relying on being the second flex item, so it
+   stays right-aligned even when Retreat is not installed and this is the
+   only column present. */
+.feature-column--right {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* The label sits left of the checkbox on the right-hand column so the two
+   read as a mirrored pair rather than drifting away from the heading. */
+.feature-column--right .vertically-aligned {
+  justify-content: flex-end;
+}
+
 #ensorc-box {
   width: 100%;
   height: 410px;

@@ -17,16 +17,19 @@ export default defineConfig({
     target: 'es2020',
     sourcemap: false,
     assetsDir: 'assets',
+    // One stylesheet rather than one per view.
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
-        // Ace is by far the largest dependency. Give it its own named chunk
-        // so it is obvious in the output what the weight is, and so the
-        // routes that have no editor (Commands, Tutorial, About) never
-        // fetch it.
-        manualChunks: (id) => (id.includes('node_modules/ace-builds') ? 'ace' : undefined),
+        // No manualChunks on purpose. ace-builds is imported only by
+        // CodeEditor.vue, which is only ever imported dynamically, so Rollup
+        // already isolates the pair into one lazy chunk. Naming it explicitly
+        // here made things worse: forcing CodeEditor.vue into a manual chunk
+        // pulled Vue in after it and turned the chunk into a *static* import
+        // of the entry, so every page downloaded all of ace.
       },
     },
   },

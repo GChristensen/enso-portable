@@ -20,6 +20,11 @@ from enso.contrib import retreat
 try:
     from enso import webui
 except ImportError:
+    # Log it: this disables the Settings menu entry entirely, and a bare
+    # swallow makes that look like the entry was never added rather than a
+    # missing dependency somewhere in webui's import chain.
+    logging.warning("Settings menu unavailable; enso.webui failed to import.",
+                    exc_info=True)
     webui = None
 
 

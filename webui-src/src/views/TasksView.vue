@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
-import CodeEditor from '@/components/CodeEditor.vue'
+// Loaded on demand: this is what pulls in ace, and keeping it out of the
+// main bundle means pages with no editor never download or parse it.
+// The type import is erased at build time, so it costs nothing.
+import type CodeEditorComponent from '@/components/CodeEditor.vue'
 import EditorToolbar from '@/components/EditorToolbar.vue'
 import { useAutosave } from '@/composables/useAutosave'
 import { downloadText } from '@/composables/useFileIO'
 import { readTasks, writeTasks } from '@/api/enso'
 import '@/assets/editor.css'
 
+const CodeEditor = defineAsyncComponent(
+  () => import('@/components/CodeEditor.vue'),
+)
+
 const PLACEHOLDER = '# Tasks is a block of code executed in a separate thread on Enso start.'
 
 const code = ref('')
 const expanded = ref(false)
-const editor = ref<InstanceType<typeof CodeEditor> | null>(null)
+const editor = ref<InstanceType<typeof CodeEditorComponent> | null>(null)
 
 /** True while the buffer holds the placeholder rather than real content. */
 const showingPlaceholder = ref(false)
@@ -25,15 +32,23 @@ async function save() {
 
 const autosave = useAutosave(save)
 
+/** Put text into the editor without it counting as an edit. */
+function setCode(text: string) {
+  code.value = text
+  // No-op before the async editor mounts; it seeds itself from `code`.
+  editor.value?.resetHistory()
+  autosave.cancel()
+}
+
 function showPlaceholder() {
   showingPlaceholder.value = true
-  editor.value?.reset(PLACEHOLDER)
+  setCode(PLACEHOLDER)
 }
 
 function onFocus() {
   if (!showingPlaceholder.value) return
   showingPlaceholder.value = false
-  editor.value?.reset('')
+  setCode('')
 }
 
 function onBlur() {
@@ -43,8 +58,8 @@ function onBlur() {
 
 function onUpload(text: string) {
   showingPlaceholder.value = false
-  editor.value?.reset(text)
-  autosave.flush()
+  setCode(text)
+  void save()
 }
 
 onMounted(async () => {
@@ -55,7 +70,7 @@ onMounted(async () => {
     text = '' // no tasks.py yet
   }
 
-  if (text) editor.value?.reset(text)
+  if (text) setCode(text)
   else showPlaceholder()
 })
 

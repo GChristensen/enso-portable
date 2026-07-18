@@ -4,11 +4,42 @@ A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/Mac
 
 This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
 
+#### History
+
+At first there was a proprietary closed-source Enso Launcher from Humanized. 
+This version was extensible by many programming languages, but one day it went 
+open (Enso Community Edition) and became extensible only in Python. 
+By some reasons it has also ceased.
+
+At the moment Enso Open-Source is the most feature-rich descendant of 
+Enso Community Edition. 
+
+
+#### Additional features not found in the original Enso
+
+* Python 3 support.
+* Option pages with a built-in command editor.
+* Ability to disable commands.
+* It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
+* Mediaprobes (templates for automatic command generation from file-system).
+* Ability to restart using tray menu or 'enso restart' command.
+* Enso Retreat - a break reminder utility.
+* Voice-based command.
+
+Known issues
+
+* The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state 
+  if it's wrong). This problem could be mitigated by digitally signing the
+  bundled Python binary. See the section below for details
+* Some security tools may consider run-enso.exe as a potentially unwanted program.  
+  These are false-positive claims, since the launcher uses API needed to run other programs.
+
+
 #### Digitally signing Python binary to make Enso work properly with elevated processes
 
 **Prerequisites**
 
-Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a [standalone package.
+Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a standalone package.
 * Installed [Microsoft Visual Studio](https://visualstudio.microsoft.com) with Windows Platform SDK.
 Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a
 [standalone package](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/).
@@ -99,11 +130,6 @@ cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 ```
 
 Of course, you may construct dictionaries in various ways.
-
-#### License
-
-This fork of Enso Launcher combines code under BSD and MPL licenses. Currently the only MPL-licensed part is the 
-markup of the settings UI pages. It is possible to disable web-based option pages in the config.py if necessary.
 
 #### Contributors
 

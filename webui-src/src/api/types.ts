@@ -20,9 +20,16 @@ export interface ColorThemes {
   all: Record<string, unknown>
 }
 
-/** The four independent per-command flags, and the API path segment for each. */
+/**
+ * The four independent per-command flags, and the API path segment for each.
+ *
+ * Every one is expressed positively, so `true` always means the enable
+ * endpoint. Note the server reports the first of these the other way round,
+ * as `disabled`; that inversion is resolved once when the payload is read and
+ * must not leak into the toggle logic.
+ */
 export const COMMAND_FLAGS = {
-  disabled: 'commands',
+  enabled: 'commands',
   voice: 'commands/voice',
   voiceOnly: 'commands/voice_only',
   voiceConfirm: 'commands/voice_confirm',

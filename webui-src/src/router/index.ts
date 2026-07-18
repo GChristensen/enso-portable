@@ -1,5 +1,16 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
+// Views are imported statically so they all land in the single app bundle.
+// The one thing kept out of it is the code editor, which drags in ace (by far
+// the largest dependency) and is loaded on demand from the views that use it.
+import AboutView from '@/views/AboutView.vue'
+import ApiRefView from '@/views/ApiRefView.vue'
+import CommandsView from '@/views/CommandsView.vue'
+import EditorView from '@/views/EditorView.vue'
+import SettingsView from '@/views/SettingsView.vue'
+import TasksView from '@/views/TasksView.vue'
+import TutorialView from '@/views/TutorialView.vue'
+
 /**
  * Route paths are also the nav order.
  *
@@ -12,43 +23,43 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/settings',
     name: 'settings',
-    component: () => import('@/views/SettingsView.vue'),
+    component: SettingsView,
     meta: { title: 'Settings' },
   },
   {
     path: '/commands',
     name: 'commands',
-    component: () => import('@/views/CommandsView.vue'),
+    component: CommandsView,
     meta: { title: 'Your Commands' },
   },
   {
     path: '/tasks',
     name: 'tasks',
-    component: () => import('@/views/TasksView.vue'),
+    component: TasksView,
     meta: { title: 'Tasks' },
   },
   {
     path: '/editor',
     name: 'editor',
-    component: () => import('@/views/EditorView.vue'),
+    component: EditorView,
     meta: { title: 'Command Editor' },
   },
   {
     path: '/api-ref',
     name: 'api-ref',
-    component: () => import('@/views/ApiRefView.vue'),
+    component: ApiRefView,
     meta: { title: 'API Reference' },
   },
   {
     path: '/tutorial',
     name: 'tutorial',
-    component: () => import('@/views/TutorialView.vue'),
+    component: TutorialView,
     meta: { title: 'Tutorial' },
   },
   {
     path: '/about',
     name: 'about',
-    component: () => import('@/views/AboutView.vue'),
+    component: AboutView,
     meta: { title: 'About' },
   },
   { path: '/:pathMatch(.*)*', redirect: '/settings' },

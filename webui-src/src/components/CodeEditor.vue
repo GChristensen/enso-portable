@@ -103,15 +103,16 @@ defineExpose({
     editor.session.insert(editor.getCursorPosition(), text)
     editor.focus()
   },
-  /** Replace the buffer and drop undo history, for load/upload. */
-  reset: (text: string) => {
-    if (!editor) return
-    applying = true
-    editor.setValue(text, -1)
-    editor.getSession().setUndoManager(new ace.UndoManager())
-    applying = false
-    emit('update:modelValue', text)
-  },
+  /**
+   * Drop undo history after the document has been swapped out from under us.
+   *
+   * The content itself arrives through `modelValue`, so callers do not have to
+   * wait for this component to exist -- it seeds itself from the prop on
+   * mount. That matters because this component is loaded asynchronously, and
+   * a caller loading a file in onMounted would otherwise find it not there
+   * yet and silently drop the content.
+   */
+  resetHistory: () => editor?.getSession().setUndoManager(new ace.UndoManager()),
 })
 </script>
 

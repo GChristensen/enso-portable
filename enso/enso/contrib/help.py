@@ -53,6 +53,12 @@ from enso import config
 try:
     from enso import webui
 except ImportError:
+    # Log it: without this the help command silently falls back to the old
+    # temp-file HTML view, which looks like the web UI being disabled in
+    # config rather than a failed import.
+    logging.warning("Web UI unavailable; enso.webui failed to import. "
+                    "The help command will use the offline HTML view.",
+                    exc_info=True)
     webui = None
 from enso.commands import CommandManager, CommandObject
 from enso.contrib.scriptotron.tracebacks import safetyNetted
