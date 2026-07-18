@@ -470,42 +470,65 @@ thread and joins it.
 
 ## 8. Event delivery into Enso
 
-Everything the engine wants to tell the host is one `Event` — a
-`std::variant` of six alternatives — and everything goes out through a single
-funnel, `Engine::emit()`. That funnel feeds two independent channels:
+### The pieces
 
-- **Pull (what Enso uses).** `emit()` appends to `events_` under `emx_`. The host
-  calls `drain()`, which *swaps* the vector out under the lock and hands back the
-  whole batch — O(1), no copying, and the engine starts accumulating into a fresh
-  one immediately.
-- **Push (optional).** `emit()` also invokes `event_sink_`, if one is set, on the
-  worker thread — *outside* every internal lock, with a `catch (...)` around it so
-  a throwing handler can never kill the worker. Enso does not set one; it exists
-  for hosts that want immediate notification and are prepared to handle it on a
-  foreign thread.
+Six things carry an event from the engine to a running Enso command. Only three
+of them are on the hot path; the rest are there to explain the shape.
 
-The pull channel is what makes commitment #2 work. `Recognizer::poll_events()`
-drains, converts each variant alternative to its Python mirror via `toPy()`,
-*and* fires any registered `on_*` callback — all on the caller's thread with the
-GIL already held. So a recognition that arrived on the SAPI listener thread at
-some arbitrary moment does not touch Python until Enso's `"timer"` responder
-picks it up, and `cmd.run()` then executes on the same thread as a
-keyboard-triggered command. No cross-thread GIL acquisition happens anywhere on
-this path.
+| Piece | Lives on | Role |
+|---|---|---|
+| `Event` | — | The payload. One `std::variant` with six alternatives, so "an event" is always exactly one type, never a tagged struct with unused fields. |
+| `Engine::emit()` | worker thread | The single exit door. Every event in the system leaves through this one function. |
+| `events_` + `emx_` | worker ↔ host | The buffer between the two threads. A plain `vector<Event>` behind a mutex. |
+| `Engine::drain()` | host thread | The handoff. *Swaps* the buffer out and returns the whole batch. |
+| `Recognizer::poll_events()` | host thread, GIL held | The pump, in the binding layer. Drains, converts, dispatches. |
+| `_onTick(msPassed)` | Enso main thread | The consumer. Enso's `"timer"` responder, which calls the pump. |
 
-Two consequences of the buffer sitting between the threads. **Latency** is
-bounded by the tick interval, not by recognition — the engine never waits on the
-host. **Ordering is FIFO and load-bearing**: `resolveConfirmation()` emits the
-closing `ConfirmationEvent` *before* the `RecognitionEvent`, so within a single
-`poll_events()` batch Enso is guaranteed to retract the prompt before it runs the
-command it was asking about. The queue is unbounded, so a host that stops polling
-accumulates rather than drops — acceptable here because the only consumer is a
-tick that runs as long as Enso is alive.
+There is also `event_sink_`, an **optional** push channel: if a host sets one,
+`emit()` calls it directly on the worker thread. Enso does not set one — it is
+there for hosts that want immediate notification and can cope with a foreign
+thread. Everything below describes the pull path.
 
-On the Python side `_onTick` is a flat `isinstance` dispatch over the batch, with
-one piece of work ahead of it: if `config.VOICE_COMMANDS_CHANGED` is set (the
-webui toggled a voice checkbox), the grammar is rebuilt and pushed down before
-the batch is drained.
+### The journey of one event
+
+Take a recognized command. It crosses two thread boundaries:
+
+1. The SAPI listener thread recognizes something and posts it to the engine's
+   command queue (§2). It does not produce an event.
+2. The **worker thread** classifies it and calls `emit(RecognitionEvent{…})`,
+   which appends to `events_` under `emx_`. The worker is now done and moves to
+   the next message — it never waits for the host to look.
+3. Some milliseconds later Enso's main loop fires **`_onTick`**, which calls
+   **`poll_events()`**.
+4. `poll_events()` calls **`drain()`**. Under the lock it swaps `events_` with an
+   empty vector and returns the batch — O(1), nothing copied, and the worker
+   immediately starts filling the fresh one.
+5. Still on the main thread, with the GIL already held, `poll_events()` walks the
+   batch: `toPy()` converts each variant alternative into its Python mirror
+   object, and any registered `on_*` callback for that alternative is fired.
+6. The list comes back to `_onTick`, which does a flat `isinstance` dispatch and
+   calls `CommandManager.get().getCommand(text).run()`.
+
+Step 2 is where commitment #2 is actually paid for. The event is *parked* in C++,
+not delivered, so nothing touches Python until step 5. That is why `cmd.run()`
+ends up on the same thread as a keyboard-triggered command, and why no code on
+this path ever has to acquire the GIL from a foreign thread.
+
+Before draining, `_onTick` does one other thing: if
+`config.VOICE_COMMANDS_CHANGED` is set — the webui toggled a voice checkbox — it
+rebuilds the grammar and pushes it down first.
+
+### What the buffer buys and costs
+
+- **Latency** is bounded by the tick interval, not by recognition. The engine
+  never blocks on the host.
+- **Ordering is FIFO, and that is load-bearing.** `resolveConfirmation()` emits
+  the closing `ConfirmationEvent` *before* the `RecognitionEvent`. Because both
+  land in the same batch in that order, Enso is guaranteed to retract the prompt
+  before running the command it was asking about.
+- **The buffer is unbounded.** A host that stops polling accumulates events
+  rather than dropping them. That is the right trade here because the only
+  consumer is a tick that runs for as long as Enso is alive.
 
 ```mermaid
 graph LR
