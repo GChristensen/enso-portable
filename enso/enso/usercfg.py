@@ -23,7 +23,7 @@ def storeValue(key, value):
     parser.optionxform = str
 
     if os.path.exists(CONFIG_VARS["CONFIG_FILE"]):
-        parser.read(CONFIG_VARS["CONFIG_FILE"])
+        parser.read(CONFIG_VARS["CONFIG_FILE"], encoding="utf-8")
     else:
         parser.add_section(CONFIG_SECTION)
 
@@ -37,7 +37,7 @@ def storeValue(key, value):
         except:
             CONFIG_VARS[key] = value
 
-    with open(CONFIG_VARS["CONFIG_FILE"], 'w') as stream:
+    with open(CONFIG_VARS["CONFIG_FILE"], 'w', encoding="utf-8") as stream:
         parser.write(stream)
 
 
@@ -53,7 +53,7 @@ def init(vars):
     if os.path.exists(configFile):
         parser = configparser.ConfigParser()
         parser.optionxform = str
-        parser.read(configFile)
+        parser.read(configFile, encoding="utf-8")
 
         for key in parser[CONFIG_SECTION].keys():
             if key in LIST_CONFIG_KEYS:

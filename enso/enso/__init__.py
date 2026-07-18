@@ -87,7 +87,7 @@ def runTasks():
 
             if os.path.exists(tasksFilePath):
                 try:
-                    with open( tasksFilePath, "r" ) as tasksFile:
+                    with open( tasksFilePath, "r", encoding="utf-8" ) as tasksFile:
                         contents = tasksFile.read()
                         compiled = compile( contents + "\n", tasksFilePath, "exec" )
                     exec(compiled, {}, {})

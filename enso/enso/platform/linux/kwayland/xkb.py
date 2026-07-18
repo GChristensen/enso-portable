@@ -47,7 +47,7 @@ _applied = False
 
 def _load_backup():
     try:
-        with open(_BACKUP_FILE) as f:
+        with open(_BACKUP_FILE, encoding="utf-8") as f:
             data = json.load(f)
         return data["options"], data["reset"]
     except (OSError, ValueError, KeyError):
@@ -57,7 +57,7 @@ def _load_backup():
 def _save_backup(options, reset):
     try:
         os.makedirs(os.path.dirname(_BACKUP_FILE), exist_ok=True)
-        with open(_BACKUP_FILE, "w") as f:
+        with open(_BACKUP_FILE, "w", encoding="utf-8") as f:
             json.dump({"options": options, "reset": reset}, f)
     except OSError:
         logging.exception("Couldn't write the XKB options backup; the "

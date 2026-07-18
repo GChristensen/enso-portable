@@ -156,8 +156,9 @@ class ScriptTracker:
 
         for f in commandFiles:
             try:
-                text = open( f, "r" ).read()
-            except:
+                text = open( f, "r", encoding="utf-8" ).read()
+            except Exception as e:
+                logging.error("Could not read command file '%s': %s" % (f, e))
                 continue
 
             if not _platformsSupported(text):

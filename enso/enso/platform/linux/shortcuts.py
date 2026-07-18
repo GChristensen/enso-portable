@@ -71,7 +71,7 @@ class Shortcuts:
                 continue
             path = os.path.join(LEARN_AS_DIR, entry)
             try:
-                with open(path) as f:
+                with open(path, encoding="utf-8") as f:
                     data = json.load(f)
                 shortcut_type = _LEARNED_TYPES.get(data.get("type"),
                                                    SHORTCUT_TYPE_DOCUMENT)
@@ -87,7 +87,7 @@ class Shortcuts:
 
     def add_shortcut(self, file_path):
         name = os.path.splitext(os.path.basename(file_path))[0].lower()
-        with open(file_path) as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
         shortcut_type = _LEARNED_TYPES.get(data.get("type"),
                                            SHORTCUT_TYPE_DOCUMENT)
@@ -142,7 +142,7 @@ def learn_shortcut(name, target, is_url):
         entry_type = "folder"
     else:
         entry_type = "file"
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump({"type": entry_type, "target": target}, f)
     return path
 
@@ -153,7 +153,7 @@ def unlearn_shortcut(name):
     path = _learned_path(name)
     if not os.path.isfile(path):
         return None
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         contents = f.read()
     os.remove(path)
     return (name, path, contents)
@@ -163,6 +163,6 @@ def restore_shortcut(token):
     """Restores a shortcut removed by unlearn_shortcut(); returns its
     name."""
     name, path, contents = token
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(contents)
     return name

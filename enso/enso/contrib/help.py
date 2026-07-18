@@ -85,7 +85,7 @@ class DefaultHtmlHelp( object ):
         self._cmdMan = commandManager
 
     def _render( self ):
-        with open( self.filename, "w" ) as fileobj:
+        with open( self.filename, "w", encoding="utf-8" ) as fileobj:
             fileobj.write( "<html><head><title>Enso Help</title>" )
             fileobj.write("""
                 <style>
