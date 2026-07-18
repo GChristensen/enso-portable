@@ -4,16 +4,53 @@ Grammar-constrained voice command recognition for Enso. A C++20 core drives a
 pluggable recognizer backend (SAPI 5 in-process on Windows), and is exposed to
 Enso as a single abi3 extension module, `voicecmdlib.pyd`.
 
-Three design commitments explain nearly every structural decision here:
+### The layers
+
+Bottom to top, each layer depends only on the one below it:
+
+| Layer | CMake target | Responsibility |
+|---|---|---|
+| **Backend** | `voicecmd_sapi`, `FakeBackend` (header-only) | Owns the speech engine and its grammars. Turns a recognition into a `RawRecognition` — *what was said*, identified semantically — and posts it. All COM lives here, behind a pimpl. |
+| **Core** | `voicecmd_core` | The `Engine`: lifecycle state machine, message queue, classification, confirmation. Portable, COM-free, Python-free. Talks to backends only through `IRecognizerBackend` / `BackendSink`. |
+| **Platform** | `voicecmd_win32` | `SessionMonitor` — workstation lock/unlock notifications. Kept out of the core (not portable) and out of the backend (not a recognition concern). |
+| **Binding** | `voicecmdlib` (nanobind) | The `Recognizer` facade: Python-shaped config mirrors, `UserData` ⇄ `nb::object`, and `poll_events()`. The only layer that touches CPython. |
+| **Host** | `enso.contrib.voice` | Builds the grammar from Enso's registered commands, pumps events on the main-loop tick, dispatches to `CommandManager`, draws the confirmation prompt. |
+
+### The design commitments
+
+Three commitments explain nearly every structural decision below:
 
 1. **Single owner.** All engine state lives on one worker thread. Every
    transition is a message on one queue. Backends and UI only *post*.
 2. **Pull-mode delivery.** The native threads never call into Python. Enso
    drains events on its own main-loop tick, so a voice command runs on exactly
    the same thread as a keyboard-triggered one.
-3. **One engine, swapped rulesets.** Commands, yes/no and pause-control live as
-   top-level rules in a single SAPI grammar. "Modes" are rule activations — never
-   a second recognizer, so there is no audio-device contention.
+3. **One engine, swapped rulesets.** There is exactly one recognizer and one
+   grammar. Everything the user can say — every enabled command, the two
+   pause-control phrases, and yes/no — is a top-level rule in it. A "mode" is
+   just which of those rules are currently active:
+
+   | Ruleset | Active rules | When |
+   |---|---|---|
+   | `Commands` | all enabled verb rules + `stop listening` | normal listening |
+   | `ResumeOnly` | `resume listening`, and nothing else | soft-paused |
+   | `YesNo` | `yes` / `no`, and nothing else | confirmation prompt is up |
+
+   Switching mode is a set of `SetRuleIdState` calls on the grammar already
+   loaded — never a second recognizer. That is what keeps the microphone
+   handover deterministic and avoids audio-device contention entirely.
+
+   Spoken verbatim, the pause-control commands are:
+
+   - **"computer stop listening"** — suspends command recognition. The mic stays
+     open but the grammar shrinks to the single resume phrase.
+   - **"computer resume listening"** — the only phrase recognized while paused.
+     Accepted at any confidence, so a paused engine can always be recovered.
+
+   Both take the keyword prefix (`computer` by default, configurable, and
+   optional if `keyword_required` is false), exactly like command phrases.
+   **"yes"** and **"no"** are the exception: they are spoken bare, with no
+   keyword, because they are only ever live inside a confirmation window.
 
 ---
 
@@ -25,7 +62,9 @@ to two leaf libraries; the binding layer is the only place that touches CPython.
 ```mermaid
 graph TB
     subgraph host["Host — Enso (Python, main thread)"]
-        VOICE["enso.contrib.voice<br/><i>plugin: grammar build, tick pump,<br/>command dispatch, confirm UI</i>"]
+        subgraph plugin["Enso plugin"]
+            VOICE["enso.contrib.voice<br/><i>grammar build, tick pump,<br/>command dispatch, confirm UI</i>"]
+        end
         CMDMGR["CommandManager"]
         MSG["messages.displayMessage"]
         TRAY["win32 tray menu"]
@@ -79,6 +118,7 @@ graph TB
 
     classDef dim fill:#eee,stroke:#999,stroke-dasharray:3 3,color:#555
     class VOSK,UI dim
+    style plugin fill:none,stroke:#888,stroke-dasharray:4 3
 ```
 
 **Why `voicecmdlib` and not `voicecmd`:** an extension module shadows a same-named
@@ -225,7 +265,27 @@ graph TB
     style GB fill:#eee,stroke:#999,stroke-dasharray:3 3
 ```
 
-`setActiveRuleset()` toggles `SPRS_ACTIVE`/`SPRS_INACTIVE` per rule id:
+A **ruleset** is a named subset of those rules that is active at one moment.
+`setActiveRuleset(r)` simply walks the rule ids and calls `SetRuleIdState` with
+`SPRS_ACTIVE` or `SPRS_INACTIVE` on each — nothing is created, compiled or
+destroyed, so the swap is effectively free and cannot fail halfway.
+
+Each ruleset exists to make one class of misrecognition *structurally
+impossible* rather than filtering it after the fact:
+
+- **`Commands`** — the normal state. Verb rules are live, and so is
+  `stop listening`. `resume listening` is deliberately **off**: saying it while
+  already listening should do nothing, and leaving it active would let it
+  compete with real commands for a match.
+- **`ResumeOnly`** — the soft pause. Every verb rule is off, so a command spoken
+  while paused cannot possibly be matched; the engine has nothing to match it
+  *to*. Only `resume listening` remains.
+- **`YesNo`** — the confirmation window. Both command and control rules are off,
+  so an answer can never be misheard as a new command, and a command spoken
+  during the prompt cannot queue up behind it. Only `yes` and `no` are live.
+
+The `__garbage__` wildcard, when enabled, stays active in all three — its job is
+to absorb out-of-grammar speech in whatever mode the engine is in.
 
 ```mermaid
 graph LR
@@ -239,10 +299,6 @@ graph LR
     R2 -->|"resume() / 'resume listening'"| R1
     R1 -->|"beginConfirmation()"| R3
     R3 -->|"resolved / timed out / stop()"| R1
-
-    note["__garbage__ stays active in every ruleset (when enabled)"]
-    RS -.- note
-    style note fill:#f8f9fa,stroke:#ccc
 ```
 
 `updateGrammar()` (fired when the webui voice checkboxes change) clears the verb
@@ -382,22 +438,23 @@ prompt left up at exit would otherwise outlive the process that can dismiss it.
 
 ```mermaid
 sequenceDiagram
-    participant OS as Windows / WTS
+    participant OS as Windows WTS
     participant M as SessionMonitor thread
     participant W as Engine worker
     participant B as SAPI backend
 
-    Note over M: message-only HWND (HWND_MESSAGE)<br/>WTSRegisterSessionNotification(NOTIFY_FOR_THIS_SESSION)<br/>callback ptr stored in GWLP_USERDATA
+    Note over M: message-only HWND<br/>WTSRegisterSessionNotification<br/>NOTIFY_FOR_THIS_SESSION<br/>callback ptr in GWLP_USERDATA
 
-    OS->>M: WM_WTSSESSION_CHANGE / WTS_SESSION_LOCK
-    M->>W: eng->stop()  <i>(future dropped — never blocks the pump)</i>
-    W->>B: backend->stop() → SPRST_INACTIVE_WITH_PURGE
-    Note over B: microphone RELEASED;<br/>engine + compiled grammars retained
+    OS ->> M: WM_WTSSESSION_CHANGE, WTS_SESSION_LOCK
+    M ->> W: Engine.stop
+    Note over M: future dropped on purpose —<br/>it comes from a promise, so this<br/>never blocks the message pump
+    W ->> B: backend.stop, SPRST_INACTIVE_WITH_PURGE
+    Note over B: microphone RELEASED —<br/>engine and compiled grammars retained
 
-    OS->>M: WTS_SESSION_UNLOCK
-    M->>W: eng->start()
-    W->>B: setActiveRuleset(Commands) → backend->start()
-    Note over B: cheap re-start — no create(), no grammar rebuild
+    OS ->> M: WTS_SESSION_UNLOCK
+    M ->> W: Engine.start
+    W ->> B: setActiveRuleset Commands, then backend.start
+    Note over B: cheap re-start — no create,<br/>no grammar rebuild
 ```
 
 A hard `stop()` is the only correct answer here. `pause()` keeps the recognizer
@@ -463,7 +520,7 @@ Two details that are load-bearing:
 
 ```mermaid
 graph TB
-    WEBUI["webui commands page<br/>🎤 voice · 🙈 voice-only · 🆗 confirm"] -->|"GET /api/enso/commands/voice/*"| CFG["config.VOICE_COMMANDS<br/>VOICE_ONLY_COMMANDS<br/>VOICE_CONFIRM_COMMANDS<br/>VOICE_COMMANDS_CHANGED"]
+    WEBUI["webui commands page<br/>🎤 voice · 👂 voice-only · 🆗 confirm"] -->|"GET /api/enso/commands/voice/*"| CFG["config.VOICE_COMMANDS<br/>VOICE_ONLY_COMMANDS<br/>VOICE_CONFIRM_COMMANDS<br/>VOICE_COMMANDS_CHANGED"]
     CFG -->|"persisted"| USERCFG["~/.enso/enso.cfg<br/><i>usercfg LIST_CONFIG_KEYS</i>"]
     CFG -->|"dirty flag read on tick"| TICK["_onTick → update_grammar(_buildVerbs())"]
 
