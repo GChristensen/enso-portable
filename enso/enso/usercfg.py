@@ -9,6 +9,11 @@ from ast import literal_eval
 CONFIG_VARS = None
 CONFIG_SECTION = "General"
 
+# config keys that hold a list of strings and need comma-joined
+# (de)serialization instead of literal_eval
+LIST_CONFIG_KEYS = ("DISABLED_COMMANDS", "VOICE_COMMANDS", "VOICE_ONLY_COMMANDS",
+                    "VOICE_CONFIRM_COMMANDS")
+
 
 def storeValue(key, value):
     """
@@ -18,11 +23,11 @@ def storeValue(key, value):
     parser.optionxform = str
 
     if os.path.exists(CONFIG_VARS["CONFIG_FILE"]):
-        parser.read(CONFIG_VARS["CONFIG_FILE"])
+        parser.read(CONFIG_VARS["CONFIG_FILE"], encoding="utf-8")
     else:
         parser.add_section(CONFIG_SECTION)
 
-    if key == "DISABLED_COMMANDS":
+    if key in LIST_CONFIG_KEYS:
         parser[CONFIG_SECTION][key] = ",".join(value)
     else:
         parser[CONFIG_SECTION][key] = str(value)
@@ -32,7 +37,7 @@ def storeValue(key, value):
         except:
             CONFIG_VARS[key] = value
 
-    with open(CONFIG_VARS["CONFIG_FILE"], 'w') as stream:
+    with open(CONFIG_VARS["CONFIG_FILE"], 'w', encoding="utf-8") as stream:
         parser.write(stream)
 
 
@@ -48,10 +53,10 @@ def init(vars):
     if os.path.exists(configFile):
         parser = configparser.ConfigParser()
         parser.optionxform = str
-        parser.read(configFile)
+        parser.read(configFile, encoding="utf-8")
 
         for key in parser[CONFIG_SECTION].keys():
-            if key == "DISABLED_COMMANDS":
+            if key in LIST_CONFIG_KEYS:
                 if parser[CONFIG_SECTION][key]:
                     CONFIG_VARS[key] = parser[CONFIG_SECTION][key].split(",")
             else:

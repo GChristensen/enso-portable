@@ -66,13 +66,13 @@ def dictionary_probe(category, dictionary, player="", all="", findfirst=False):
     cmd_name = "fun" + str(int(time.time() * 1000000)) + str(random.randint(0, 1000))
     cmd_text = """
 def {0}(ensoapi, {1}):
-    open_player('{0}', ensoapi, '{2}', {1}, '{3}', {4})    
+    open_player({0!r}, ensoapi, {2!r}, {1}, {3!r}, {4!r})
 """
 
     cmd_text = cmd_text.format(cmd_name, category, all, player, findfirst)
     allLocals = {}
 
-    exec(cmd_text, globals(), allLocals)
+    exec(compile(cmd_text, "<mediaprobe:%s>" % cmd_name, "exec"), globals(), allLocals)
     func = allLocals[cmd_name]
 
     func.arg2dir = dictionary

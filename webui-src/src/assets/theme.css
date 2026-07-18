@@ -1,0 +1,25 @@
+/*
+ * Palette and metrics for the Enso web UI.
+ *
+ * These were hardcoded literals scattered across options.css and seven
+ * per-page <style> blocks -- the brand green appeared in four places and
+ * could not be changed without a grep.
+ */
+:root {
+  --enso-green: #66bb00; /* brand: nav active, .highlight, voice help link */
+  --enso-link: #cc6600; /* link orange */
+  --enso-red: #e21e26; /* h1 */
+  --enso-error: #f00;
+
+  --enso-text: #000;
+  --enso-bg: #fff;
+  --enso-muted: #999; /* .light, .meta */
+  --enso-muted-dim: #777; /* command help text, input borders */
+  --enso-faint: #bbb; /* disabled / not-loaded */
+  --enso-nav-bg: #aaa;
+  --enso-nav-border: #ccc;
+  --enso-rule: #000; /* the hairlines under h2 and above table rows */
+
+  --enso-page-width: 900px;
+  --enso-gap: 20px;
+}

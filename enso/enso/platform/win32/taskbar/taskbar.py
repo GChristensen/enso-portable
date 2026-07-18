@@ -197,13 +197,15 @@ class SysTrayIcon(object):
         win32gui.AppendMenu( menu, win32con.MF_STRING, 1023, "About")
         if len(self.custom_menu_items) > 0:
             for menu_item in self.custom_menu_items.values():
+                # Reset per item: a throwing state callback used to leave this
+                # either unbound (NameError on the first item) or holding the
+                # previous item's value, checkmarking the wrong entry.
+                is_checked = False
                 if callable(menu_item['func']):
                     try:
                         is_checked = menu_item['func'](self, get_state = True)
                     except Exception as e:
                         print(e)
-                else:
-                    is_checked = False
                 flags = win32con.MF_STRING | (win32con.MF_CHECKED if is_checked else 0)
                 win32gui.AppendMenu( menu, flags, menu_item['id'], menu_item['text'])
 

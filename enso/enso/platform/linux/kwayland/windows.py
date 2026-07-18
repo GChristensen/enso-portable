@@ -113,7 +113,7 @@ class _KWinBridge:
         } + body
         fd, path = tempfile.mkstemp(suffix=".js", prefix="enso-kwin-")
         try:
-            with os.fdopen(fd, "w") as f:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(js)
             return self.__runFile(path)
         except GLib.Error:

@@ -227,7 +227,7 @@ def load_rc_config(ensorcPath):
     if os.path.exists(ensorcPath):
         try:
             logging.info("Loading '%s'." % ensorcPath)
-            contents = open(ensorcPath, "r").read()
+            contents = open(ensorcPath, "r", encoding="utf-8").read()
             compiledContents = compile(contents + "\n", ensorcPath, "exec")
             allLocals = {}
             exec(compiledContents, {}, allLocals)

@@ -17,8 +17,10 @@ TRACK_COMMAND_CHANGES = False
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
-# Enable CSRF protection
-ENABLE_WEB_UI_CSRF = False
+# Require the auth token on API requests. On by default: without it, any page
+# open in the browser can reach the Enso API on localhost. The web UI fetches
+# the token itself, so this is transparent in normal use.
+ENABLE_WEB_UI_CSRF = True
 
 # Whether the Quasimode is actually modal ("sticky").
 IS_QUASIMODE_MODAL = True
@@ -77,7 +79,10 @@ PROVIDERS.extend(DEFAULT_PLATFORMS)
 PLUGINS = ["enso.contrib.scriptotron",
            "enso.contrib.help",
            "enso.contrib.google",
-           "enso.contrib.evaluate"]
+           "enso.contrib.evaluate",
+           "enso.contrib.retreat",
+           "enso.contrib.voice"
+           ]
 
 # Detect default system locale and use it for google search.
 # If set to False, no locale is forced.dddasdfasdf
@@ -116,6 +121,44 @@ CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
 
 DISABLED_COMMANDS = []
 COMMAND_STATE_CHANGED = False
+
+# Master switch for the enso.contrib.voice plugin: set to False to skip
+# loading voice recognition entirely (the native voicecmdlib module is never
+# started).
+VOICE_ENABLED = True
+
+# Commands enabled for voice recognition, commands hidden from the quasimode's
+# typed UI (voice-only), and commands that must be confirmed by a spoken
+# "yes" before they run. All three are toggled from the webui commands table.
+VOICE_COMMANDS = []
+VOICE_ONLY_COMMANDS = []
+VOICE_CONFIRM_COMMANDS = []
+VOICE_COMMANDS_CHANGED = False
+
+# Native voicecmd engine tuning (consumed by enso.contrib.voice). The keyword
+# must prefix every command when VOICE_KEYWORD_REQUIRED is set. Confidence
+# thresholds are normalized 0..1; recognitions below reject are discarded,
+# between reject and accept require confirmation, at/above accept dispatch.
+VOICE_KEYWORD = "computer"
+VOICE_KEYWORD_REQUIRED = True
+VOICE_ACCEPT_CONFIDENCE = 0.85
+VOICE_REJECT_CONFIDENCE = 0.5
+VOICE_BACKEND = "sapi"
+VOICE_LANGUAGE = "en-US"
+# When true, print what the recognizer hears (rejections + state changes + raw
+# confidence diagnostics) to aid calibration during bring-up.
+VOICE_DEBUG = True
+# Recognition-quality tuning:
+#  - VOICE_TRUST_GRAMMAR_MATCH True: dispatch on any grammar match regardless of
+#    confidence (best recall, but SAPI force-matches noise onto commands). Set
+#    False to gate on the confidence bands (VOICE_ACCEPT/REJECT_CONFIDENCE).
+#  - VOICE_SHARED_RECOGNIZER True: use the shared recognizer (trained Windows
+#    Speech profile + configured mic) -- best confidence discrimination, but
+#    requires Windows Speech Recognition to be set up.
+#  - VOICE_GARBAGE_RULE: add a wildcard rule to absorb out-of-grammar speech.
+VOICE_TRUST_GRAMMAR_MATCH = True
+VOICE_SHARED_RECOGNIZER = False
+VOICE_GARBAGE_RULE = True
 
 from . import usercfg
 

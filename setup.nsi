@@ -2,7 +2,7 @@ Unicode True
 
 !define DIRNAME "Enso Launcher"
 !define APPNAME "Enso Open-Source"
-!define VERSION "1.3"
+!define VERSION "1.4"
 
 !include LogicLib.nsh
 
@@ -226,7 +226,7 @@ Section "${APPNAME}" Section_enso
     ${EndIf}
 
     ${If} $uninstallString != ""
-    ${AndIf} ${Cmd} `MessageBox MB_YESNO|MB_ICONQUESTION "Uninstall previous version?" /SD IDYES IDYES`
+    ${AndIf} ${Cmd} `MessageBox MB_YESNO|MB_ICONQUESTION "Uninstall the previous version?" /SD IDYES IDYES`
         !insertmacro UninstallExisting $uninstallString '"$uninstallString"'
         ${If} $1 <> 0
             MessageBox MB_YESNO|MB_ICONSTOP "Failed to uninstall, continue anyway?" /SD IDYES IDYES +2
@@ -239,8 +239,12 @@ Section "${APPNAME}" Section_enso
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-#    File /r /x _retreat.pyd /x retreat.html /x __pycache__ enso\enso
-    File /r /x _retreat.pyd enso\enso
+#    File /r /x retreatlib.pyd /x retreat.html /x __pycache__ enso\enso
+    ; The optional native libraries are excluded here and added back by their
+    ; own sections below, so an unselected component ships nothing. Their
+    ; Python wrappers (contrib\retreat.py, contrib\voice.py) always install and
+    ; degrade to a no-op when the library is absent.
+    File /r /x retreatlib.pyd /x voicecmdlib.pyd enso\enso
     File /r enso\media
 #    File /r /x __pycache__ enso\python
     File /r enso\python
@@ -313,6 +317,11 @@ Section /o "DD-WRT" Section_ddwrt
     File enso\commands\dd_wrt.py
 SectionEnd
 
+Section /o "Wake on LAN" Section_wake
+    SetOutPath "$INSTDIR\commands"
+    File enso\commands\wake.py
+SectionEnd
+
 Section /o "Dial" Section_dial
     SetOutPath "$INSTDIR\commands"
     File enso\commands\dial.py
@@ -325,8 +334,13 @@ Section /o "Enso Retreat" Section_retreat
     File enso\commands\retreat.py
 
     SetOutPath "$INSTDIR\enso\contrib"
-    File enso\enso\contrib\_retreat.pyd
+    File enso\enso\contrib\retreatlib.pyd
     File enso\enso\contrib\retreat.html
+SectionEnd
+
+Section /o "Voice Recognition" Section_voice
+    SetOutPath "$INSTDIR\enso\contrib"
+    File enso\enso\contrib\voicecmdlib.pyd
 SectionEnd
 
 Section /o "Portable installation" Section_portable
@@ -396,7 +410,9 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_idgen} "Generate random numbers or UUIDs"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_wake} "Wake a machine with a magic packet"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Enso command voice recognition"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

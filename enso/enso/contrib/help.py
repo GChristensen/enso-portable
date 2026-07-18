@@ -53,6 +53,12 @@ from enso import config
 try:
     from enso import webui
 except ImportError:
+    # Log it: without this the help command silently falls back to the old
+    # temp-file HTML view, which looks like the web UI being disabled in
+    # config rather than a failed import.
+    logging.warning("Web UI unavailable; enso.webui failed to import. "
+                    "The help command will use the offline HTML view.",
+                    exc_info=True)
     webui = None
 from enso.commands import CommandManager, CommandObject
 from enso.contrib.scriptotron.tracebacks import safetyNetted
@@ -85,7 +91,7 @@ class DefaultHtmlHelp( object ):
         self._cmdMan = commandManager
 
     def _render( self ):
-        with open( self.filename, "w" ) as fileobj:
+        with open( self.filename, "w", encoding="utf-8" ) as fileobj:
             fileobj.write( "<html><head><title>Enso Help</title>" )
             fileobj.write("""
                 <style>
@@ -176,7 +182,7 @@ class HelpCommand( CommandObject ):
     @safetyNetted
     def run( self ):
         if config.ENABLE_WEB_UI and webui:
-            webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
+            webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands")
         else:
             self.__htmlHelp.view()
 

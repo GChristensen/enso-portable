@@ -9,7 +9,7 @@ from win32com.shell import shell, shellcon
 from enso import config, tray_actions, webui
 from enso.messages import displayMessage
 from enso.events import EventManager
-from enso.contrib import retreat
+from enso.contrib import retreat, voice
 from enso.platform.win32.taskbar import SysTrayIcon
 
 
@@ -26,7 +26,7 @@ def _on_about(systray):
 
 def _on_settings(systray, get_state = False):
     if not get_state:
-        os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")
+        os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/settings")
 
 
 def _on_help(systray):
@@ -75,6 +75,16 @@ def _on_exec_at_startup(systray, get_state = False):
                            "<caption>enso</caption>")
 
 
+def _on_voice_recognition(systray, get_state = False):
+    # Checked while the engine is listening; unchecking soft-pauses it. The
+    # menu is rebuilt on every right-click, so this reflects state changed
+    # elsewhere too -- by the "stop listening" phrase or the session lock.
+    if get_state:
+        return voice.is_listening()
+
+    voice.set_listening(not voice.is_listening())
+
+
 def _on_restart(systray, get_state = False):
     if not get_state:
         if not retreat.is_locked():
@@ -102,6 +112,12 @@ def run(enso_config):
 
     if config.ENABLE_WEB_UI:
         enso_config.SYSTRAY_ICON.add_menu_item("&Settings", _on_settings)
+    # Presence keys off the library being installed, not off the engine
+    # running: the menu is built once here, and the voice plugin may not have
+    # loaded yet at this point.
+    if voice.is_installed():
+        enso_config.SYSTRAY_ICON.add_menu_item("&Listen",
+                                               _on_voice_recognition)
     if not config.ENSO_EXECUTABLE.endswith("run-enso.exe"):
         enso_config.SYSTRAY_ICON.add_menu_item("E&xecute on startup", _on_exec_at_startup)
 

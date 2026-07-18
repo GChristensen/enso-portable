@@ -1,42 +1,80 @@
 ## Enso Launcher (Open-Source)
 
-A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux (X11)/MacOS). 
+A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/MacOS). 
 
 This is a development page. Please visit the main site at: https://gchristensen.github.io/enso-portable/
 
+#### History
+
+At first there was a proprietary closed-source Enso Launcher from Humanized. 
+This version was extensible by many programming languages, but one day it went 
+open (Enso Community Edition) and became extensible only in Python. 
+By some reasons it has also ceased.
+
+At the moment Enso Open-Source is the most feature-rich descendant of 
+Enso Community Edition. 
+
+
+#### Additional features not found in the original Enso
+
+* Python 3 support.
+* Option pages with a built-in command editor.
+* Ability to disable commands.
+* It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
+* Mediaprobes (templates for automatic command generation from file-system).
+* Ability to restart using tray menu or 'enso restart' command.
+* Enso Retreat - a break reminder utility.
+* Voice-based command execution.
+
+#### Known issues
+
+* The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state 
+  if it's wrong). This problem could be mitigated by digitally signing the
+  bundled Python binary. See the section below for details
+* Some security tools may consider run-enso.exe as a potentially unwanted program.  
+  These are false-positive claims, since the launcher uses API needed to run other programs.
+
+
 #### Digitally signing Python binary to make Enso work properly with elevated processes
 
-**Prerequisites**
+TL;DR
 
-Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a [standalone package.
-* Installed [Microsoft Visual Studio](https://visualstudio.microsoft.com) with Windows Platform SDK.
-Available for free on [virtual machines](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) from Microsoft or as a
-[standalone package](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/).
+1. Install into `C:\Program Files`
+2. Execute Run [`tools/sign-uiaccess.ps1`](tools/sign-uiaccess.ps1) from an **elevated** PowerShell prompt.
 
-**Signing Python**
+Because Enso is a modeless application, it needs Windows **UIAccess** to receive input while an
+elevated process is in the foreground (e.g. Windows Task Manager). `pythonu.exe` is a Python binary whose application manifest
+sets `uiAccess="true"`, and Enso launches it in place of the regular interpreter - but only when
+Windows actually grants UIAccess, which requires all three of the following:
 
-1. Install Enso to `C:\Program Files`
-2. Launch Visual Studio Developer Command Prompt *as Administrator*.
-3. Change the current directory to where you want to store the copy of the certificate file (appcert.cer).
-4. Execute the following command to create a self-issued digital certificate:
+1. The binary carries a valid digital signature that chains to a certificate this machine trusts.
+2. The binary sits in a **secure location** — a directory only an administrator can write to.
+3. Its manifest declares `uiAccess="true"` (already the case for the bundled `pythonu.exe`).
 
-`makecert -r -pe -n "CN=Enso Application Certificate - For Use on This Machine Only" -ss PrivateCertStore appcert.cer`
+Point 2 is why **Enso must be installed to `C:\Program Files`** for this to work. The default
+installation directory is under `%APPDATA%`, which is user-writable, and Windows refuses UIAccess
+to a binary there no matter how it is signed. Install to `C:\Program Files` first; signing an
+`%APPDATA%` installation has no effect.
 
-5. Import the certificate to the trusted root store with the following command:
+**Signing**
 
-`certmgr.exe -add appcert.cer -s -r localMachine root`
+Run [`tools/sign-uiaccess.ps1`](tools/sign-uiaccess.ps1) from an **elevated** PowerShell prompt:
 
-NOTE: if you are signing on a virtual machine, you also need to import the certificate you have created 
-to the real machine. If you have no Visual Studio installed, launch the Certificate Manager (certmgr.msc),
-open and select `Trusted Root Certificate Authorities/Certificates`, and choose Actions -> All Tasks -> Import... menu item.
+```powershell
+.\tools\sign-uiaccess.ps1
+```
 
-6. Issue the command below to sign the Python binary:
+That is the whole procedure. The script creates a single-use self-issued code-signing certificate,
+signs `C:\Program Files\Enso Launcher\python\pythonu.exe`, installs the certificate's public half
+as a trust anchor, and then destroys the private key - so no key remains that could sign anything
+else against that anchor. Restart Enso afterwards so Windows re-evaluates UIAccess.
 
-`SignTool sign /v /s PrivateCertStore /n "Application Certificate - For Use on This Machine Only" "C:\Program Files\Enso Launcher\python\pythonu.exe"`
+Pass `-Path` to sign an executable elsewhere, `-Force` to re-sign one that is already signed, and
+`-Verbose` to see each step. The script warns if the target is outside a secure location or appears
+to lack the `uiAccess` manifest, since neither can be fixed by signing.
 
-NOTE: pythonu.exe is a Python binary with the application manifest option `UIAccess` set to `ture`. 
-Because Enso is a modeless application, it needs this option to get input when elevated processes are in the foreground.
-This version of Python is launched only if it is properly signed and Enso is installed at `C:\Program Files`. 
+The certificate is added to the local **Trusted Root** store and must remain there: Windows
+revalidates the signature every time the process starts, so removing it silently revokes UIAccess.
 
 #### Required dependencies
 
@@ -99,11 +137,6 @@ cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 ```
 
 Of course, you may construct dictionaries in various ways.
-
-#### License
-
-This fork of Enso Launcher combines code under BSD and MPL licenses. Currently the only MPL-licensed part is the 
-markup of the settings UI pages. It is possible to disable web-based option pages in the config.py if necessary.
 
 #### Contributors
 

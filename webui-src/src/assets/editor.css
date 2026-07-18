@@ -1,0 +1,45 @@
+/*
+ * Layout shared by the Command Editor and Tasks pages.
+ *
+ * Both are a full-height flex column: fixed header, flexible editor panel,
+ * fixed footer. The editor sizes itself from the panel, so there is no height
+ * arithmetic in JavaScript any more.
+ */
+
+.editor-page {
+  display: flex;
+  flex-flow: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.editor-page__header {
+  flex: 0 0 auto;
+}
+
+.editor-page__panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.editor-page__footer {
+  flex: 0 0 auto;
+  margin: 5px 0;
+  display: flex;
+  gap: var(--enso-gap);
+}
+
+.editor-page__info {
+  flex: 1 1 auto;
+}
+
+.editor-page__buttons {
+  flex: 0 1 auto;
+  text-align: right;
+}
+
+/* Expanded mode: the page chrome is hidden and the editor takes the window.
+   Previously done by toggling inline styles on <body> and the nav. */
+.editor-page--expanded .editor-page__chrome {
+  display: none;
+}

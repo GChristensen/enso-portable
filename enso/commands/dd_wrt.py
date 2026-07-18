@@ -6,7 +6,6 @@ HOST = options["DD_WRT_HOST"].encode('ascii', 'ignore') if "DD_WRT_HOST" in opti
 USER = options["DD_WRT_USER"].encode('ascii', 'ignore') if "DD_WRT_USER" in options else b"root"
 PASSWORD = options["DD_WRT_PASSWORD"].encode('ascii', 'ignore') if "DD_WRT_PASSWORD" in options else b""
 IFACE = options["DD_WRT_WIFI_INTERFACE"].encode('ascii', 'ignore') if "DD_WRT_WIFI_INTERFACE" in options else b"ra0"
-MACHINES = options["DD_WRT_MACHINES"] if "DD_WRT_MACHINES" in options else {} #b"00:00:00:00:00:00"
 
 def cmd_switch_wireless(ensoapi):
     """Turn wi-fi on/off"""
@@ -31,24 +30,6 @@ def cmd_switch_wireless(ensoapi):
     
     tn.write("exit\n")
     tn.read_all()
-
-def cmd_wake(ensoapi, machine):
-    """Wake a machine with a magic packet sent to a given MAC-address
-Requires the following variables at the custom initialization block:<br>
-DD_WRT_HOST = "dd-wrt router ip" #default: "192.168.1.1"<br>
-DD_WRT_USER = "dd-wrt user" #default: "root"<br>
-DD_WRT_PASSWORD = "my_dd_wrt_password"<br>
-DD_WRT_MACHINES = {'server': "AA:BB:CC:DD:EE:FF"} # machine MACs
-"""
-    import socket
-    mac_clean = MACHINES[machine].replace(':', '').replace('-', '').replace('.', '')
-    magic_packet = b'\xff' * 6 + bytes.fromhex(mac_clean) * 16
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.connect((b'192.168.1.255', 9))
-        sock.send(magic_packet)
-
-cmd_wake.valid_args = list(MACHINES.keys())
 
 def cmd_wan_reconnect(ensoapi):
     """Reconnect WAN"""
