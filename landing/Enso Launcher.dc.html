@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #05070a; }
+  a { color: #34e88a; text-decoration: none; }
+  a:visited { color: #34e88a; }
+  a:hover { color: #7dffb8; }
+  @keyframes ensoSpin { to { transform: rotate(360deg); } }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+  @keyframes pulseGlow { 0%,100% { opacity: .55; } 50% { opacity: .95; } }
+</style>
+</helmet>
+<div style="min-height:100vh;width:100%;background:#05070a;color:#e8f2ec;font-family:'Space Grotesk',system-ui,sans-serif;position:relative;overflow:hidden;">
+
+  <canvas id="enso-field" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.9;"></canvas>
+  <div style="position:absolute;top:-25%;left:50%;transform:translateX(-50%);width:1100px;height:1100px;background:radial-gradient(circle,rgba(52,232,138,.16),transparent 60%);filter:blur(30px);pointer-events:none;animation:pulseGlow 7s ease-in-out infinite;"></div>
+
+  <!-- NAV -->
+  <nav style="position:relative;z-index:5;max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:28px 40px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="uploads/enso-circle-green.png" alt="Enso" style="width:34px;height:34px;filter:drop-shadow(0 0 8px rgba(52,232,138,.8));">
+      <span style="font-weight:700;font-size:19px;letter-spacing:.02em;">Enso</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:34px;font-size:15px;font-weight:500;color:#93a49b;">
+      <a href="#features" style="color:#93a49b;"><span style="color:#93a49b;-webkit-text-fill-color:#93a49b;">Features</span></a>
+      <a href="#about" style="color:#93a49b;"><span style="color:#93a49b;-webkit-text-fill-color:#93a49b;">About</span></a>
+      <a href="https://github.com/GChristensen/enso-portable" style="color:#93a49b;"><span style="color:#93a49b;-webkit-text-fill-color:#93a49b;">Docs</span></a>
+      <a href="https://github.com/GChristensen/enso-portable" style="display:flex;align-items:center;gap:8px;color:#e8f2ec;font-family:'JetBrains Mono',monospace;font-size:13px;border:1px solid rgba(52,232,138,.3);padding:8px 14px;border-radius:8px;"><span style="color:#e8f2ec;-webkit-text-fill-color:#e8f2ec;">★ Star</span></a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header style="position:relative;z-index:4;max-width:1240px;margin:0 auto;padding:40px 40px 90px;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;min-height:70vh;">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#34e88a;border:1px solid rgba(52,232,138,.28);background:rgba(52,232,138,.05);padding:7px 14px;border-radius:100px;margin-bottom:30px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#34e88a;box-shadow:0 0 10px #34e88a;"></span>
+        open source · scriptable · quasimodal
+      </div>
+      <h1 style="font-size:104px;line-height:.92;font-weight:700;letter-spacing:-.03em;margin-bottom:22px;">
+        <span style="display:block;color:#f4fbf7;">Enso</span>
+        <span style="display:block;color:#34e88a;text-shadow:0 0 40px rgba(52,232,138,.45);">Launcher</span>
+      </h1>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:19px;color:#9fb3a8;letter-spacing:-.01em;margin-bottom:38px;max-width:460px;">
+        Legendary quasimodal launcher returns.
+      </p>
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <a href="https://github.com/GChristensen/enso-portable/releases/latest" style="display:inline-flex;align-items:center;gap:12px;font-weight:600;font-size:17px;color:#05070a;-webkit-text-fill-color:#05070a;background:#1fe07a;background:linear-gradient(120deg in oklch,#34e88a,#1fe07a);padding:16px 30px;border-radius:12px;box-shadow:0 0 0 1px rgba(52,232,138,.5),0 12px 40px -8px rgba(52,232,138,.6);" style-hover="box-shadow:0 0 0 1px rgba(52,232,138,.8),0 16px 50px -6px rgba(52,232,138,.85);transform:translateY(-2px);">
+          <span style="display:inline-flex;align-items:center;gap:12px;color:#05070a;-webkit-text-fill-color:#05070a;"><span style="font-size:19px;">↓</span> Download from GitHub</span>
+        </a>
+        <a href="https://github.com/GChristensen/enso-portable" style="display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#c7d6cd;border:1px solid rgba(255,255,255,.12);padding:16px 22px;border-radius:12px;" style-hover="border-color:rgba(52,232,138,.5);color:#fff;">
+          <span style="color:#c7d6cd;-webkit-text-fill-color:#c7d6cd;">View source ↗</span>
+        </a>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#5f716a;margin-top:20px;">Free forever · Windows · macOS · Linux</div>
+    </div>
+
+    <div style="position:relative;display:flex;align-items:center;justify-content:center;height:100%;">
+      <div style="position:absolute;width:440px;height:440px;background:radial-gradient(circle,rgba(52,232,138,.35),transparent 62%);filter:blur(40px);animation:pulseGlow 5s ease-in-out infinite;"></div>
+      <img src="uploads/enso-circle-green.png" alt="Enso circle" style="position:relative;width:400px;height:400px;filter:drop-shadow(0 0 34px rgba(52,232,138,.75));animation:floaty 7s ease-in-out infinite;">
+    </div>
+  </header>
+
+  <!-- QUASIMODAL DEMO STRIP — real Enso overlay -->
+  <section style="position:relative;z-index:4;max-width:900px;margin:0 auto 30px;padding:0 40px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#5f716a;letter-spacing:.06em;margin-bottom:16px;text-align:center;">tap ⇪ Caps Lock · type · hit Enter — the overlay floats over your screen:</div>
+    <div>
+      <div style="display:inline-block;">
+        <div style="background:#9bc95a;background:linear-gradient(90deg in oklch,#8bbf4e,#a9cf6a);color:#f4fbf7;font-size:26px;font-weight:500;padding:6px 20px 8px;letter-spacing:-.01em;border-bottom-right-radius:14px;box-shadow:0 22px 50px -14px rgba(0,0,0,.7);opacity:{{ topOpacity }};transition:opacity .8s ease;">Continue typing to open an application or document</div>
+      </div>
+      <div style="display:block;">
+        <div style="display:inline-flex;align-items:center;justify-content:flex-start;min-height:92px;min-width:560px;white-space:pre;visibility:{{ commandVis }};background:rgba(8,10,9,.86);padding:8px 26px 10px;border-bottom-right-radius:14px;box-shadow:0 24px 55px -12px rgba(0,0,0,.75);">
+          <span style="font-size:74px;font-weight:300;line-height:1;letter-spacing:-.01em;color:#f4fbf7;">{{ typedText }}</span><span style="font-size:74px;font-weight:300;line-height:1;letter-spacing:-.01em;color:#8bbf4e;">{{ suggestText }}</span>
+        </div>
+      </div>
+      <div style="display:block;visibility:{{ suggestionVis }};">
+        <div style="display:inline-block;background:rgba(8,10,9,.86);padding:2px 26px 12px;border-bottom-right-radius:14px;box-shadow:0 24px 55px -12px rgba(0,0,0,.75);">
+          <span style="font-size:28px;font-weight:400;color:#8bbf4e;letter-spacing:-.01em;">open notepad++</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" style="position:relative;z-index:4;max-width:900px;margin:70px auto;padding:0 40px;text-align:center;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#34e88a;letter-spacing:.14em;text-transform:uppercase;margin-bottom:22px;">// what is enso</div>
+    <p style="font-size:26px;line-height:1.5;font-weight:400;color:#cdddd4;letter-spacing:-.01em;text-wrap:pretty;">
+      Enso is a <span style="color: rgb(52, 232, 138);">quasimodal launcher</span> — tap Caps Lock, type a command, and hit Enter. No windows to hunt for, no menus to click. It runs invisibly until you summon it, turning at any moment into a command line for your whole computer. This modern revival keeps the legendary feel and makes every command <span style="color: rgb(52, 232, 138);">fully scriptable</span>, so you can teach it to do anything.
+    </p>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" style="position:relative;z-index:4;max-width:1240px;margin:0 auto 90px;padding:0 40px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:44px;">
+      <h2 style="font-size:52px;font-weight:700;letter-spacing:-.02em;">Everything, one keystroke away.</h2>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#5f716a;">// features</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;">
+      <sc-for list="{{ features }}" as="f" hint-placeholder-count="6">
+        <div style="border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,rgba(20,28,24,.6),rgba(8,12,10,.6));padding:30px 28px;transition:all .25s;" style-hover="border-color:rgba(52,232,138,.45);box-shadow:0 0 50px -18px rgba(52,232,138,.6);transform:translateY(-4px);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;color:#34e88a;margin-bottom:18px;text-shadow:0 0 16px rgba(52,232,138,.6);">{{ f.tag }}</div>
+          <h3 style="font-size:22px;font-weight:600;margin-bottom:10px;color:#f4fbf7;">{{ f.title }}</h3>
+          <p style="font-size:15px;line-height:1.6;color:#93a49b;text-wrap:pretty;">{{ f.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="position:relative;z-index:4;max-width:1240px;margin:0 auto 60px;padding:0 40px;">
+    <div style="position:relative;overflow:hidden;border:1px solid rgba(52,232,138,.25);border-radius:24px;background:radial-gradient(circle at 50% 0%,rgba(52,232,138,.14),rgba(8,12,10,.9));padding:70px 40px;text-align:center;">
+      <img src="uploads/enso-circle-green.png" alt="" style="position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:280px;opacity:.12;">
+      <h2 style="position:relative;font-size:56px;font-weight:700;letter-spacing:-.02em;margin-bottom:18px;">Bring back the flow.</h2>
+      <p style="position:relative;font-size:18px;color:#9fb3a8;margin-bottom:34px;">Free, open source, and ready to script.</p>
+      <a href="https://github.com/GChristensen/enso-portable/releases/latest" style="position:relative;display:inline-flex;align-items:center;gap:12px;font-weight:600;font-size:18px;color:#05070a;-webkit-text-fill-color:#05070a;background:#1fe07a;background:linear-gradient(120deg in oklch,#34e88a,#1fe07a);padding:18px 36px;border-radius:12px;box-shadow:0 12px 44px -8px rgba(52,232,138,.7);" style-hover="transform:translateY(-2px);box-shadow:0 18px 54px -6px rgba(52,232,138,.9);">
+        <span style="display:inline-flex;align-items:center;gap:12px;color:#05070a;-webkit-text-fill-color:#05070a;"><span style="font-size:20px;">↓</span> Download from GitHub Releases</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="position:relative;z-index:4;max-width:1240px;margin:0 auto;padding:34px 40px 50px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:11px;color:#5f716a;font-size:14px;">
+      <img src="uploads/enso-circle-green.png" alt="" style="width:24px;height:24px;opacity:.8;">
+      Enso Launcher · MIT Licensed
+    </div>
+    <div style="display:flex;gap:26px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+      <a href="https://github.com/GChristensen/enso-portable"><span style="color:#34e88a;-webkit-text-fill-color:#34e88a;">GitHub</span></a>
+      <a href="https://github.com/GChristensen/enso-portable/issues"><span style="color:#34e88a;-webkit-text-fill-color:#34e88a;">Issues</span></a>
+      <a href="https://github.com/GChristensen/enso-portable/pulls"><span style="color:#34e88a;-webkit-text-fill-color:#34e88a;">Contribute</span></a>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { typed: 0, topOn: false, complete: false };
+  componentDidMount() {
+    // overlay typing animation: types "open note", holds, resets
+    const MAX = 9, HOLD_END = 14, HOLD_IDLE = 5, REVEAL = 2;
+    if (this._typer) clearInterval(this._typer);
+    this._t = { n: 0, hold: 0, phase: "idle" };
+    this._typer = setInterval(() => {
+      const s = this._t;
+      if (s.hold > 0) { s.hold--; return; }
+      if (s.phase === "idle") {
+        s.phase = "reveal"; s.hold = REVEAL;
+        this.setState({ topOn: true });
+      } else if (s.phase === "reveal") {
+        s.phase = "type";
+      } else if (s.phase === "type") {
+        if (s.n < MAX) {
+          s.n++;
+          if (s.n === 6) { s.phase = "complete"; this.setState({ typed: s.n, complete: false }); return; }
+          if (s.n === MAX) { s.phase = "hold"; s.hold = HOLD_END; }
+          this.setState({ typed: s.n });
+        }
+      } else if (s.phase === "complete") { // reveal green autocomplete one tick after "n"
+        s.phase = "type";
+        this.setState({ complete: true });
+      } else { // hold -> hide everything, back to idle
+        s.phase = "idle"; s.n = 0; s.hold = HOLD_IDLE;
+        this.setState({ typed: 0, topOn: false, complete: false });
+      }
+    }, 380);
+
+    const cv = document.getElementById("enso-field");
+    if (!cv) return;
+    const ctx = cv.getContext("2d");
+    const host = cv.parentElement;
+    let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let particles = [];
+    const N = 800;
+    const rand = (a, b) => a + Math.random() * (b - a);
+
+    const resize = () => {
+      const nw = host.clientWidth, nh = host.scrollHeight || host.clientHeight;
+      if (nw === W && nh === H) return;
+      W = nw; H = nh;
+      cv.width = W * dpr; cv.height = H * dpr;
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#05070a";
+      ctx.fillRect(0, 0, W, H);
+    };
+    const spawn = () => ({ x: rand(0, W), y: rand(0, H), life: rand(40, 220) });
+    const seed = () => { particles = []; for (let i = 0; i < N; i++) particles.push(spawn()); };
+
+    // curling vector field centered on the hero enso logo (right column, upper area)
+    const angleAt = (x, y, t) => {
+      let a = Math.sin(x * 0.0032 + t) * Math.cos(y * 0.0032 - t * 0.8) * Math.PI
+            + Math.sin((x + y) * 0.0018 + t * 0.5) * 0.8;
+      const cx = W * 0.72, cy = Math.min(H * 0.34, 380);
+      const dx = x - cx, dy = y - cy;
+      const d = Math.hypot(dx, dy);
+      const swirl = Math.exp(-d / 320);
+      const va = Math.atan2(dy, dx) + Math.PI / 2;
+      // blend ambient flow with vortex swirl near the logo
+      const bx = Math.cos(a) * (1 - swirl) + Math.cos(va) * swirl * 1.6;
+      const by = Math.sin(a) * (1 - swirl) + Math.sin(va) * swirl * 1.6;
+      return Math.atan2(by, bx);
+    };
+
+    let t = 0, raf;
+    const step = () => {
+      t += 0.0016;
+      ctx.fillStyle = "rgba(5,7,10,0.09)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.lineWidth = 1.1;
+      for (const p of particles) {
+        const ang = angleAt(p.x, p.y, t);
+        const nx = p.x + Math.cos(ang) * 1.9;
+        const ny = p.y + Math.sin(ang) * 1.9;
+        const cx = W * 0.72, cy = Math.min(H * 0.34, 380);
+        const near = Math.exp(-Math.hypot(p.x - cx, p.y - cy) / 300);
+        ctx.strokeStyle = "rgba(52,232,138," + (0.05 + near * 0.28).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+        p.x = nx; p.y = ny; p.life--;
+        if (p.life <= 0 || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) {
+          Object.assign(p, spawn());
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    resize(); seed(); step();
+    this._onResize = () => { resize(); seed(); };
+    window.addEventListener("resize", this._onResize);
+    this._ro = new ResizeObserver(() => resize());
+    this._ro.observe(host);
+    this._raf = () => raf;
+  }
+  componentWillUnmount() {
+    if (this._typer) clearInterval(this._typer);
+    if (this._onResize) window.removeEventListener("resize", this._onResize);
+    if (this._ro) this._ro.disconnect();
+    if (this._raf) cancelAnimationFrame(this._raf());
+  }
+  renderVals() {
+    const full = "open notepad";
+    const n = this.state.typed || 0;
+    return {
+      typedText: full.slice(0, n),
+      suggestText: n >= 6 && this.state.complete ? full.slice(n) : "",
+      commandVis: n > 0 ? "visible" : "hidden",
+      suggestionVis: n >= 7 ? "visible" : "hidden",
+      topOpacity: this.state.topOn ? 1 : 0,
+      features: [
+        { tag: "⇪ tap", title: "Quasimodal interface", body: "Tap Caps Lock to summon a translucent command line, type, and hit Enter. It vanishes the moment you're done — no window management, ever." },
+        { tag: "→ open", title: "Launch anything", body: "Open apps, files, folders, and bookmarks in a keystroke. Fuzzy matching gets you there before you finish typing." },
+        { tag: "learn as", title: "Teach new commands", body: "Alias any URL, file, or app with a phrase you'll remember. Enso memorizes your vocabulary and adapts to how you work." },
+        { tag: "▓ text", title: "Operate on selection", body: "Uppercase, count, spell-check, or transform highlighted text anywhere on screen with a single command." },
+        { tag: "⊞ go", title: "Window management", body: "Snap and resize windows or jump straight to any running app by name — maximize, minimize, and switch between windows without touching the mouse." },
+        { tag: "{ } script", title: "Fully scriptable", body: "Every command is code. Write your own in Python and extend Enso to automate literally anything on your machine." }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
