@@ -470,6 +470,43 @@ thread and joins it.
 
 ## 8. Event delivery into Enso
 
+Everything the engine wants to tell the host is one `Event` — a
+`std::variant` of six alternatives — and everything goes out through a single
+funnel, `Engine::emit()`. That funnel feeds two independent channels:
+
+- **Pull (what Enso uses).** `emit()` appends to `events_` under `emx_`. The host
+  calls `drain()`, which *swaps* the vector out under the lock and hands back the
+  whole batch — O(1), no copying, and the engine starts accumulating into a fresh
+  one immediately.
+- **Push (optional).** `emit()` also invokes `event_sink_`, if one is set, on the
+  worker thread — *outside* every internal lock, with a `catch (...)` around it so
+  a throwing handler can never kill the worker. Enso does not set one; it exists
+  for hosts that want immediate notification and are prepared to handle it on a
+  foreign thread.
+
+The pull channel is what makes commitment #2 work. `Recognizer::poll_events()`
+drains, converts each variant alternative to its Python mirror via `toPy()`,
+*and* fires any registered `on_*` callback — all on the caller's thread with the
+GIL already held. So a recognition that arrived on the SAPI listener thread at
+some arbitrary moment does not touch Python until Enso's `"timer"` responder
+picks it up, and `cmd.run()` then executes on the same thread as a
+keyboard-triggered command. No cross-thread GIL acquisition happens anywhere on
+this path.
+
+Two consequences of the buffer sitting between the threads. **Latency** is
+bounded by the tick interval, not by recognition — the engine never waits on the
+host. **Ordering is FIFO and load-bearing**: `resolveConfirmation()` emits the
+closing `ConfirmationEvent` *before* the `RecognitionEvent`, so within a single
+`poll_events()` batch Enso is guaranteed to retract the prompt before it runs the
+command it was asking about. The queue is unbounded, so a host that stops polling
+accumulates rather than drops — acceptable here because the only consumer is a
+tick that runs as long as Enso is alive.
+
+On the Python side `_onTick` is a flat `isinstance` dispatch over the batch, with
+one piece of work ahead of it: if `config.VOICE_COMMANDS_CHANGED` is set (the
+webui toggled a voice checkbox), the grammar is rebuilt and pushed down before
+the batch is drained.
+
 ```mermaid
 graph LR
     subgraph V["std::variant&lt;Event&gt;"]
