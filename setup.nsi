@@ -239,8 +239,12 @@ Section "${APPNAME}" Section_enso
 
 	; Set Section Files and Shortcuts
 	SetOutPath "$INSTDIR\"
-#    File /r /x _retreat.pyd /x retreat.html /x __pycache__ enso\enso
-    File /r /x _retreat.pyd enso\enso
+#    File /r /x retreatlib.pyd /x retreat.html /x __pycache__ enso\enso
+    ; The optional native libraries are excluded here and added back by their
+    ; own sections below, so an unselected component ships nothing. Their
+    ; Python wrappers (contrib\retreat.py, contrib\voice.py) always install and
+    ; degrade to a no-op when the library is absent.
+    File /r /x retreatlib.pyd /x voicecmdlib.pyd enso\enso
     File /r enso\media
 #    File /r /x __pycache__ enso\python
     File /r enso\python
@@ -325,8 +329,13 @@ Section /o "Enso Retreat" Section_retreat
     File enso\commands\retreat.py
 
     SetOutPath "$INSTDIR\enso\contrib"
-    File enso\enso\contrib\_retreat.pyd
+    File enso\enso\contrib\retreatlib.pyd
     File enso\enso\contrib\retreat.html
+SectionEnd
+
+Section /o "Voice Recognition" Section_voice
+    SetOutPath "$INSTDIR\enso\contrib"
+    File enso\enso\contrib\voicecmdlib.pyd
 SectionEnd
 
 Section /o "Portable installation" Section_portable
@@ -398,5 +407,6 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Enso command voice recognition."
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
