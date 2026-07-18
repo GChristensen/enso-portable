@@ -398,6 +398,25 @@ td.command-check input[type="checkbox"] {
   margin: 0;
 }
 
+/* Help link riding on the last voice column header. Absolutely positioned so
+   it cannot widen the 22px checkbox column or shift the emoji off centre. */
+th.command-check {
+  position: relative;
+}
+
+.voice-help {
+  position: absolute;
+  top: -2px;
+  font-size: 10px;
+  line-height: 1;
+  text-decoration: none;
+  color: #66bb00;
+}
+
+.voice-help:hover {
+  text-decoration: underline;
+}
+
 table {
   border-collapse: collapse;
 }

@@ -294,6 +294,86 @@ cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="p
 cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
 </code></pre>
     <p>Of course, you may construct dictionaries in various ways.</p>
+
+    <h1 id="voice-recognition"><a id="user-content-voice-recognition" class="anchor" aria-hidden="true"
+                                  href="#voice-recognition"></a>Voice Recognition</h1>
+    <p>Enso can listen for your commands and run them without the quasimode. This requires the
+        <code>voicecmd</code> module to be installed; if it is missing, the voice controls simply
+        do not appear on the <a href="/commands.html">Your Commands</a> page and everything else
+        works as usual.</p>
+
+    <h2><a id="user-content-speaking-commands" class="anchor" aria-hidden="true"
+           href="#speaking-commands"></a>Speaking Commands</h2>
+    <p>Spoken commands are prefixed with a keyword, <code>computer</code> by default. Saying</p>
+    <pre><code>computer open notepad</code></pre>
+    <p>runs the same command as typing <code>open notepad</code> in the quasimode. The keyword is
+        what keeps ordinary conversation from triggering commands, so leaving it enabled is
+        recommended.</p>
+    <p>Only the commands you have explicitly enabled for voice are listened for - everything
+        else is deaf. For commands that take an argument, the available arguments become part of
+        what can be said, so <code>open</code> with its list of applications lets you say
+        <code>computer open google chrome</code> as one phrase. Commands whose argument is
+        arbitrary text (a search query, an expression) are recognized by name only.</p>
+    <p>Listening can be suspended and resumed by voice:</p>
+    <ul>
+        <li><code>computer stop listening</code> - ignore everything but the resume phrase.</li>
+        <li><code>computer resume listening</code> - start listening again.</li>
+    </ul>
+    <p>Recognition also stops by itself while the workstation is locked, and resumes when you log
+        back in, so nothing is listening at the lock screen.</p>
+
+    <h2><a id="user-content-the-command-checks" class="anchor" aria-hidden="true"
+           href="#the-command-checks"></a>The Command Checks</h2>
+    <p>Each command on the <a href="/commands.html">Your Commands</a> page carries a row of
+        checkboxes:</p>
+    <ul>
+        <li><b>&#9211;</b> - the command is enabled at all. Unchecking it hides the command
+            everywhere.
+        </li>
+        <li><b>&#127897;</b> - <b>voice command</b>. The command is added to the voice
+            grammar and can be spoken. Off by default: a smaller grammar recognizes far more
+            accurately, so enable only the commands you actually intend to say.
+        </li>
+        <li><b>&#128066;</b> - <b>voice&#8209;only</b>. The command is spoken but hidden from
+            the quasimode suggestion list. Useful for commands you never want to type.
+        </li>
+        <li><b>&#127761;</b> - <b>confirm before running</b>. The command asks before it
+            runs. See below.
+        </li>
+    </ul>
+    <p>The last two describe <em>how</em> a voice command behaves, so checking either one checks
+        the voice command box for you.</p>
+
+    <h2><a id="user-content-confirmations" class="anchor" aria-hidden="true"
+           href="#confirmations"></a>Confirmations</h2>
+    <p>Speech recognition is never perfect, and some commands are worth a second question before
+        they run - anything that shuts a machine down, sends something, or cannot be undone.
+        Checking the confirm box holds such a command back until you approve it.</p>
+    <p>When a command that requires confirmation is recognized, a message appears naming what was
+        heard, and Enso waits. Answer with a bare</p>
+    <ul>
+        <li><code>yes</code> - run the command.</li>
+        <li><code>no</code> - drop it.</li>
+    </ul>
+    <p>The keyword is not needed for the answer. While Enso is waiting it listens for nothing but
+        <code>yes</code> and <code>no</code>, so a misheard word cannot start another command. If
+        you say nothing, the request times out after ten seconds and is treated as
+        <code>no</code> - silence never runs a command.</p>
+
+    <h2><a id="user-content-voice-settings" class="anchor" aria-hidden="true"
+           href="#voice-settings"></a>Settings</h2>
+    <p>Voice behavior is tuned from the custom initialization block on the
+        <a href="/options.html">settings</a> page:</p>
+    <ul>
+        <li><code>VOICE_KEYWORD</code> - the prefix word, <code>"computer"</code> by default.</li>
+        <li><code>VOICE_KEYWORD_REQUIRED</code> - set to <code>False</code> to speak commands
+            with no prefix at all. Expect false triggers.
+        </li>
+        <li><code>VOICE_LANGUAGE</code> - recognizer language, <code>"en-US"</code> by default.</li>
+        <li><code>VOICE_DEBUG</code> - print what the recognizer hears, including rejected
+            phrases and their confidence. Useful when a command is not being picked up.
+        </li>
+    </ul>
 </div>
 </body>
 </html>

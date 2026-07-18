@@ -26,12 +26,12 @@ from xml.sax.saxutils import escape
 from enso import config
 from enso.events import EventManager
 from enso.commands import CommandManager
-from enso.messages import Message, MessageManager
+from enso.messages import displayMessage
 
 try:
     # The native module exposes the spec-named API (Config/Verb/Noun/Recognizer).
     from enso.contrib.voicecmd import (
-        Config, Verb, Noun, Recognizer, RecognitionEvent, RejectionEvent,
+        Config, Verb, Noun, Recognizer, State, RecognitionEvent, RejectionEvent,
         StateChangeEvent, ConfirmationEvent, LogEvent,
     )
     _VOICECMD_AVAILABLE = True
@@ -91,11 +91,13 @@ def load():
 def _shutdown():
     """Blocking shutdown of the voice engine; runs at interpreter exit."""
     global _voiceManager
+    # Before the engine check, not after: the engine emits a closing
+    # ConfirmationEvent on stop but nothing polls it past this point, so a live
+    # prompt has to be retracted here or it outlives Enso -- and that is just
+    # as true when the engine has already gone away.
+    _hideConfirmation()
     if _voiceManager is None:
         return
-    # The engine emits a closing ConfirmationEvent on stop, but nothing will
-    # poll it after this point -- retract the prompt here or it outlives Enso.
-    _hideConfirmation()
     try:
         _voiceManager.close()
     except Exception:
@@ -105,6 +107,55 @@ def _shutdown():
         # Drop the last native references so nanobind's exit-time leak checker
         # sees a clean slate instead of warning about the live Recognizer.
         gc.collect()
+
+
+# ----------------------------------------------------------------------------
+# Engine state, for hosts that surface it in their UI (the tray menu)
+# ----------------------------------------------------------------------------
+
+def is_installed():
+    """
+    True if the voicecmd library is importable.
+
+    Static, unlike is_listening() -- it does not depend on the plugin having
+    loaded yet, so it is safe to call while building UI during startup, where
+    plugin load order is not guaranteed.
+    """
+    return _VOICECMD_AVAILABLE
+
+
+def is_listening():
+    """
+    True while the engine is actively listening. False when it is soft-paused,
+    stopped (the session lock does this), or not running at all.
+    """
+    manager = _voiceManager
+    if manager is None:
+        return False
+    try:
+        return manager.state == State.Listening
+    except Exception:
+        logging.error("enso.contrib.voice: could not read engine state",
+                      exc_info=True)
+        return False
+
+
+def set_listening(listening):
+    """Soft-pause or resume recognition. A no-op if the engine isn't running."""
+    manager = _voiceManager
+    if manager is None:
+        return
+    try:
+        if listening:
+            # start(), not resume(): resume() only acts on a soft pause, while
+            # start() also covers the engine having been stopped outright --
+            # which is what the session lock does.
+            manager.start()
+        else:
+            manager.pause()
+    except Exception:
+        logging.error("enso.contrib.voice: could not toggle recognition",
+                      exc_info=True)
 
 
 # ----------------------------------------------------------------------------
@@ -234,27 +285,25 @@ def _onTick(msPassed):
         logging.error("enso.contrib.voice: tick handler failed", exc_info=True)
 
 
-# True while a confirmation prompt is on screen, so we only tear down a
-# mini-message we actually put up (finishMessages() hides *all* of them).
+# True while one of our confirmation prompts is on screen, so we only ever
+# dismiss a message we actually put up.
 _confirmShown = False
 
 
 def _renderConfirmation(event):
     """
-    Shows/hides the "say yes or no" prompt for a command awaiting confirmation.
+    Shows/hides the prompt for a command awaiting confirmation.
 
-    The engine has already switched the grammar to yes/no and owns the timeout;
-    the answer is spoken, so this is display only -- there is nothing to click.
-    A mini message is used rather than displayMessage(): a primary message stays
-    up until the user dismisses it by hand, and this prompt must retract by
-    itself the moment the engine resolves or times out.
+    A primary message (the large centred overlay) rather than a mini message:
+    this is a question blocking on an answer, not a passive notice tucked into
+    the corner of the screen. The engine has already switched the grammar to
+    yes/no and owns the timeout; the answer is spoken, so this is display only
+    -- there is nothing to click.
     """
     global _confirmShown
     try:
         if event.active:
-            MessageManager.get().newMessage(Message(
-                fullXml=config.VOICE_CONFIRM_MSG_XML % escape(event.phrase),
-                isPrimary=False, isMini=True))
+            displayMessage(config.VOICE_CONFIRM_MSG_XML % escape(event.phrase))
             _confirmShown = True
         else:
             _hideConfirmation()
@@ -270,7 +319,12 @@ def _hideConfirmation():
         return
     _confirmShown = False
     try:
-        MessageManager.get().finishMessages()
+        # A primary message otherwise sits there until the user dismisses it by
+        # hand. The primary message window is the only "dismissal" responder in
+        # Enso, so this fades exactly that message and nothing else. It
+        # registers itself WAIT_TIME (80ms) after the message appears; before
+        # then this is a no-op, which no spoken answer can outrun.
+        EventManager.get().triggerEvent("dismissal")
     except Exception:
         logging.error("enso.contrib.voice: could not hide the confirmation "
                       "prompt", exc_info=True)
