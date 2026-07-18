@@ -9,7 +9,7 @@ rem     minus the "python" directory and Windows-only binaries
 rem   - README.linux.md, README.macos.md, LICENSE
 rem   - install_linux.sh, install_macos.sh
 
-set "VERSION=1.3"
+set "VERSION=1.4"
 set "ARCHIVE=enso-open-source-%VERSION%-unix.tar.gz"
 set "STAGING=_dist_unix"
 set "ROOT=%STAGING%\enso"
