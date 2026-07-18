@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
+// Lazily loaded (it pulls in ace) with retry across an Enso restart.
+import { CodeEditorAsync as CodeEditor } from '@/components/lazy'
 // Loaded on demand: this is what pulls in ace, and keeping it out of the
 // main bundle means pages with no editor never download or parse it.
 // The type import is erased at build time, so it costs nothing.
@@ -10,10 +12,6 @@ import { useAutosave } from '@/composables/useAutosave'
 import { downloadText } from '@/composables/useFileIO'
 import { readTasks, writeTasks } from '@/api/enso'
 import '@/assets/editor.css'
-
-const CodeEditor = defineAsyncComponent(
-  () => import('@/components/CodeEditor.vue'),
-)
 
 const PLACEHOLDER = '# Tasks is a block of code executed in a separate thread on Enso start.'
 

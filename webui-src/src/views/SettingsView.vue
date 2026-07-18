@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
+// Lazily loaded (it pulls in ace) with retry across an Enso restart.
+import { CodeEditorAsync as CodeEditor } from '@/components/lazy'
 import { useAutosave } from '@/composables/useAutosave'
 import {
   getColorThemes,
@@ -15,12 +17,6 @@ import {
   setConfig,
   setEnsorc,
 } from '@/api/enso'
-
-// Loaded on demand: this is what pulls in ace, and keeping it out of the
-// main bundle means pages with no editor never download or parse it.
-const CodeEditor = defineAsyncComponent(
-  () => import('@/components/CodeEditor.vue'),
-)
 
 const ensoVersion = ref('')
 const pythonVersion = ref('')
