@@ -19,3 +19,13 @@ __pycache__
 /enso-open-source-*
 /enso/python*
 /.claude/
+/platform/win32/VoiceCmd/.claude/
+/platform/win32/VoiceCmd/build-msvc/
+/platform/win32/VoiceCmd/cmake-build-debug/
+/webui-src/node_modules/
+
+# Web UI build tooling. The build OUTPUT (enso/enso/webui) is committed
+# on purpose -- see webui-src/README.md.
+/webui-src/node_modules
+/webui-src/.vite
+/webui-src/.tsbuild
