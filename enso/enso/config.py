@@ -17,8 +17,10 @@ TRACK_COMMAND_CHANGES = False
 
 # Web UI can be disabled as a security option
 ENABLE_WEB_UI = True
-# Enable CSRF protection
-ENABLE_WEB_UI_CSRF = False
+# Require the auth token on API requests. On by default: without it, any page
+# open in the browser can reach the Enso API on localhost. The web UI fetches
+# the token itself, so this is transparent in normal use.
+ENABLE_WEB_UI_CSRF = True
 
 # Whether the Quasimode is actually modal ("sticky").
 IS_QUASIMODE_MODAL = True
@@ -119,6 +121,11 @@ CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
 
 DISABLED_COMMANDS = []
 COMMAND_STATE_CHANGED = False
+
+# Master switch for the enso.contrib.voice plugin: set to False to skip
+# loading voice recognition entirely (the native voicecmdlib module is never
+# started).
+VOICE_ENABLED = True
 
 # Commands enabled for voice recognition, commands hidden from the quasimode's
 # typed UI (voice-only), and commands that must be confirmed by a spoken

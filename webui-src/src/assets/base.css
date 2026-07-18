@@ -1,0 +1,297 @@
+/*
+ * Base styles, ported from the original options.css.
+ * CSS inspired by Hemingway: http://warpspire.com/hemingway
+ *
+ * Kept: the palette, the small-caps headings, the checkbox sprite, the fixed
+ * 900px page. Dropped: ~180 lines of Ubiquity rules with no markup behind
+ * them (#skin-list, #command-feed-graveyard, #ubiq-debug-mode, .old-api,
+ * .badge, .feed-updated, .sort-switch, ul.button-list, #preview-image), and
+ * the float/clearfix layout, which is now flexbox.
+ */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--enso-bg);
+  color: var(--enso-text);
+  font-size: 13px;
+  font-family: 'Helvetica', Verdana, Arial, sans-serif;
+  margin: 0;
+}
+
+#app {
+  max-width: var(--enso-page-width);
+  margin: 0 auto 8px auto;
+  padding: 0 4px;
+  min-height: 100%;
+}
+
+/* Editor pages fill the viewport and manage their own internal scrolling. */
+#app.app--fullheight {
+  height: 100dvh;
+  min-height: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+
+/* "Expand editor" gives the editor the whole window. */
+#app.app--expanded {
+  max-width: none;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ inputs */
+
+input[type='checkbox'] {
+  padding: 0;
+  margin-right: 4px;
+  border: 0;
+  height: 14px;
+  width: 14px;
+  appearance: none;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  cursor: pointer;
+  /* Absolute, not relative: the stylesheet now lives under /assets/, so a
+     relative URL would resolve against that directory instead of the root. */
+  background-image: url('/images/checkbox.png');
+}
+
+input[type='checkbox']:checked {
+  background-position: 0 -14px;
+}
+
+/* appearance:none removes the native focus ring, so put one back. */
+input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--enso-green);
+  outline-offset: 1px;
+}
+
+input[type='checkbox']:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+input[type='text'] {
+  border: 1px solid var(--enso-muted-dim);
+  appearance: none;
+  padding: 2px;
+}
+
+input[type='text']:focus {
+  outline: none;
+  border-color: #079;
+}
+
+/* --------------------------------------------------------------- structure */
+
+.head {
+  font-weight: bold;
+  background-color: var(--enso-bg);
+  text-align: left;
+  color: grey;
+  font-variant-caps: small-caps;
+  font-size: 14pt;
+  padding-top: 10px;
+}
+
+.large {
+  font-size: 36pt;
+}
+
+.page-tip {
+  text-align: center;
+}
+
+.left {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.light,
+.meta {
+  color: var(--enso-muted);
+}
+
+.highlight {
+  color: var(--enso-green);
+  font-style: normal;
+}
+
+.error {
+  color: var(--enso-error);
+}
+
+.notification {
+  color: blue;
+  font-variant-caps: small-caps;
+  font-size: 15pt;
+}
+
+/* ---------------------------------------------------------------- headings */
+
+h1 {
+  color: var(--enso-red);
+  font-variant-caps: small-caps;
+}
+
+h2 {
+  border-top: 1px solid var(--enso-rule);
+  font-variant-caps: small-caps;
+  color: var(--enso-text);
+  margin-top: 25px;
+  padding: 10px 0;
+}
+
+h2.top {
+  margin: 0;
+}
+
+h4 {
+  font-variant-caps: small-caps;
+}
+
+/* ------------------------------------------------------------------- links */
+
+a,
+a:visited {
+  color: var(--enso-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Bracketed pseudo-button, e.g. [create]. */
+.action,
+.action:visited,
+.action:hover {
+  color: var(--enso-nav-bg);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.action::before {
+  content: '[';
+}
+
+.action::after {
+  content: ']';
+}
+
+/* ----------------------------------------------------------------- columns */
+
+/* Was .col-four / .col-five: fixed-width floats cleared with <br clear="all">.
+   The widths become flex bases, so the page degrades instead of clipping. */
+.columns {
+  display: flex;
+  gap: var(--enso-gap);
+  align-items: flex-start;
+}
+
+.columns > * {
+  min-width: 0;
+}
+
+.col-wide {
+  flex: 1 1 480px;
+}
+
+.col-narrow {
+  flex: 1 1 370px;
+}
+
+/* ------------------------------------------------------------------ tables */
+
+table {
+  border-collapse: collapse;
+}
+
+th {
+  font-variant-caps: small-caps;
+  font-size: 18pt;
+}
+
+td.topcell {
+  border-top: 1px solid var(--enso-rule);
+}
+
+/* ----------------------------------------------------------------- content */
+
+.doc-body {
+  text-align: justify;
+}
+
+.doc-body h1 {
+  color: var(--enso-green);
+  border-top: 1px solid var(--enso-rule);
+  margin-top: 60px;
+}
+
+.doc-body h1:first-of-type {
+  margin-top: 25px;
+}
+
+.doc-body p {
+  font-size: 14px;
+}
+
+.doc-body .highlight {
+  color: var(--enso-text);
+}
+
+.doc-body pre {
+  overflow-x: auto;
+}
+
+.doc-body img {
+  max-width: 100%;
+}
+
+/* Anchor stubs carried over from the GitHub-rendered markup. */
+.doc-body a.anchor {
+  display: inline;
+}
+
+.ubiq-tutorial {
+  border: solid green;
+  padding: 2em;
+  font-size: 120%;
+}
+
+.ubiq-tutorial h2 {
+  color: var(--enso-text);
+  text-align: center;
+  font-variant-caps: normal;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* -------------------------------------------------------------- misc bits */
+
+.favicon {
+  width: 16px;
+  height: 16px;
+  margin: 0 2px -1px 0;
+}
+
+.help {
+  cursor: help;
+}
+
+.vertically-aligned {
+  display: flex;
+  align-items: center;
+}
+
+.advanced {
+  margin: 5px;
+}

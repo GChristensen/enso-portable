@@ -53,7 +53,7 @@ def settings_available():
 def open_settings():
     if settings_available():
         webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT)
-                        + "/options.html")
+                        + "/settings")
 
 
 _THEME_ICONS = {

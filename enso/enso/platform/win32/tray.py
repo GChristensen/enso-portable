@@ -26,7 +26,7 @@ def _on_about(systray):
 
 def _on_settings(systray, get_state = False):
     if not get_state:
-        os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/options.html")
+        os.startfile("http://" + webui.HOST + ":" + str(webui.PORT) + "/settings")
 
 
 def _on_help(systray):

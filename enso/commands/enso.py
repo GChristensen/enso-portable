@@ -62,13 +62,13 @@ def cmd_enso(ensoapi, action):
         ScriptTracker.get()._reloadPyScripts()
         displayMessage(config.REFRESHING_MSG_XML)
     elif action == 'settings':
-        _open_webui_page("options.html")
+        _open_webui_page("settings")
     elif action == 'commands':
-        _open_webui_page("commands.html")
+        _open_webui_page("commands")
     elif action == 'tasks':
-        _open_webui_page("tasks.html")
+        _open_webui_page("tasks")
     elif action == 'editor':
-        _open_webui_page("edit.html")
+        _open_webui_page("editor")
     elif action == 'about':
         tray_actions.show_about()
 

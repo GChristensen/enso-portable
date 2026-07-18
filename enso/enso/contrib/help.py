@@ -176,7 +176,7 @@ class HelpCommand( CommandObject ):
     @safetyNetted
     def run( self ):
         if config.ENABLE_WEB_UI and webui:
-            webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands.html")
+            webbrowser.open("http://" + webui.HOST + ":" + str(webui.PORT) + "/commands")
         else:
             self.__htmlHelp.view()
 

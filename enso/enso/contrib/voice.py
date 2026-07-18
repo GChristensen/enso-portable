@@ -52,6 +52,10 @@ _voiceManager = None
 def load():
     global _voiceManager
 
+    if not config.VOICE_ENABLED:
+        logging.info("enso.contrib.voice: not started (disabled by VOICE_ENABLED).")
+        return
+
     if not _VOICECMD_AVAILABLE:
         logging.warning(
             "enso.contrib.voice: voicecmd module not available "
