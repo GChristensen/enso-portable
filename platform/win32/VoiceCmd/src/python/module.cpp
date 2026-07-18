@@ -5,7 +5,7 @@
 // Canonical spec-named API: Config / Verb / Noun / Recognizer, @on_recognized-style
 // callbacks, pull-mode poll_events().
 //
-// Delivery model (plan §3.3): the native worker thread NEVER calls into Python.
+// Delivery model: the native worker thread NEVER calls into Python.
 // All Python delivery happens inside poll_events() on the CALLER's thread (GIL
 // already held); registered callbacks are invoked from there too. This is what
 // Enso's single-threaded tick needs and avoids every cross-thread GIL hazard.
