@@ -148,7 +148,7 @@ VOICE_DEBUG = True
 #    requires Windows Speech Recognition to be set up.
 #  - VOICE_GARBAGE_RULE: add a wildcard rule to absorb out-of-grammar speech.
 VOICE_TRUST_GRAMMAR_MATCH = True
-VOICE_SHARED_RECOGNIZER = True
+VOICE_SHARED_RECOGNIZER = False
 VOICE_GARBAGE_RULE = True
 
 from . import usercfg

@@ -81,6 +81,25 @@ double mapConfidence(signed char rel, float eng) {
     return e;  // LOW: raw engine confidence is the only real signal
 }
 
+// The default object token for a SAPI category (e.g. the user's current
+// recognition profile or SR engine), fetched WITHOUT sphelper.h. Returns null
+// if the category has no default (e.g. Windows Speech never set up).
+ComPtr<ISpObjectToken> defaultToken(const wchar_t* category) {
+    ComPtr<ISpObjectTokenCategory> cat;
+    if (FAILED(::CoCreateInstance(CLSID_SpObjectTokenCategory, nullptr, CLSCTX_ALL,
+                                  IID_PPV_ARGS(&cat))))
+        return nullptr;
+    if (FAILED(cat->SetId(category, FALSE))) return nullptr;
+    LPWSTR tokenId = nullptr;
+    if (FAILED(cat->GetDefaultTokenId(&tokenId)) || !tokenId) return nullptr;
+    ComPtr<ISpObjectToken> token;
+    HRESULT hr = ::CoCreateInstance(CLSID_SpObjectToken, nullptr, CLSCTX_ALL,
+                                    IID_PPV_ARGS(&token));
+    if (SUCCEEDED(hr)) hr = token->SetId(nullptr, tokenId, FALSE);
+    ::CoTaskMemFree(tokenId);
+    return SUCCEEDED(hr) ? token : nullptr;
+}
+
 // Depth-first search for a phrase property by name; returns its ulId or -1.
 int findProp(const SPPHRASEPROPERTY* p, const wchar_t* name) {
     for (; p; p = p->pNextSibling) {
@@ -392,8 +411,24 @@ void SapiBackend::create(const Config& cfg, BackendSink* sink) {
           "create recognizer");
 
     if (!cfg.shared_recognizer) {
-        // In-proc: bind the default audio input. (The shared recognizer uses the
-        // microphone configured in Windows Speech settings; do NOT SetInput.)
+        // In-proc: load the default SR engine + the user's TRAINED recognition
+        // profile so this private recognizer is as well-calibrated as the shared
+        // one -- good confidence discrimination WITHOUT launching the Windows
+        // Speech Recognition app.
+        if (auto engine = defaultToken(SPCAT_RECOGNIZERS)) {
+            p_->recognizer->SetRecognizer(engine.Get());
+        }
+        if (auto profile = defaultToken(SPCAT_RECOPROFILES)) {
+            HRESULT hrp = p_->recognizer->SetRecoProfile(profile.Get());
+            p_->log(SUCCEEDED(hrp) ? LogLevel::Info : LogLevel::Warning,
+                    SUCCEEDED(hrp) ? "in-proc: loaded trained reco profile"
+                                   : "in-proc: SetRecoProfile failed");
+        } else {
+            p_->log(LogLevel::Warning,
+                    "in-proc: no trained reco profile found -- confidence may be "
+                    "poor; set up Windows Speech Recognition (train your profile)");
+        }
+        // Bind the default audio input. (Shared uses the mic from Speech settings.)
         ComPtr<IUnknown> audio;
         if (SUCCEEDED(::CoCreateInstance(CLSID_SpMMAudioIn, nullptr, CLSCTX_ALL,
                                          IID_PPV_ARGS(&audio)))) {
@@ -418,7 +453,9 @@ void SapiBackend::create(const Config& cfg, BackendSink* sink) {
 
     p_->stop_event = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);
     p_->listener = std::thread([impl = p_.get()] { impl->listenLoop(); });
-    p_->log(LogLevel::Info, "SAPI backend created");
+    p_->log(LogLevel::Info, cfg.shared_recognizer
+                                ? "SAPI backend created (SHARED recognizer)"
+                                : "SAPI backend created (in-proc recognizer)");
 }
 
 void SapiBackend::updateGrammar(const std::vector<Verb>& verbs) {
