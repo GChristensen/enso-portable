@@ -261,8 +261,7 @@ void Engine::handle(Msg& m) {
             break;
         case Cmd::ConfirmTimeout:
             if (confirming_) {
-                confirming_ = false;
-                if (ui_) ui_->endConfirm();
+                endConfirmation();
                 if (created_) backend_->setActiveRuleset(Ruleset::Commands);
                 pending_ = RawRecognition{};
                 log(LogLevel::Info, "confirmation timed out; command dropped");
@@ -304,8 +303,7 @@ void Engine::doStart() {
 void Engine::doStop(bool keep_engine) {
     host_stopping_ = true;
     if (confirming_) {
-        confirming_ = false;
-        if (ui_) ui_->endConfirm();
+        endConfirmation();
         pending_ = RawRecognition{};
     }
     if (started_) {
@@ -438,6 +436,9 @@ void Engine::beginConfirmation(RawRecognition pending) {
     // command listening is fully suspended (deterministic mic handover).
     if (created_) backend_->setActiveRuleset(Ruleset::YesNo);
     confirm_deadline_ = Clock::now() + dur(cfg_.confirm_timeout_sec);
+    // Tell the host to draw the prompt. Emitted even with no IConfirmationUI
+    // attached -- an in-library dialog is optional, this event is not.
+    emit(ConfirmationEvent{true, pending_.text});
     if (ui_) {
         ui_->beginConfirm(pending_.text, [this](bool yes) {
             Msg m;
@@ -448,10 +449,15 @@ void Engine::beginConfirmation(RawRecognition pending) {
     }
 }
 
-void Engine::resolveConfirmation(bool yes) {
-    if (!confirming_) return;
+void Engine::endConfirmation() {
     confirming_ = false;
     if (ui_) ui_->endConfirm();
+    emit(ConfirmationEvent{false, std::string{}});
+}
+
+void Engine::resolveConfirmation(bool yes) {
+    if (!confirming_) return;
+    endConfirmation();
     if (created_) backend_->setActiveRuleset(Ruleset::Commands);
 
     if (yes) {

@@ -173,6 +173,9 @@ def get_enso_get_commands():
         if name in config.VOICE_ONLY_COMMANDS:
             cmdJSON["voiceOnly"] = "true"
 
+        if name in config.VOICE_CONFIRM_COMMANDS:
+            cmdJSON["voiceConfirm"] = "true"
+
         output = output + [cmdJSON]
     return json.dumps(output)
 
@@ -288,6 +291,28 @@ def get_enso_commands_voice_only_enable(command):
     if command not in config.VOICE_ONLY_COMMANDS:
         config.VOICE_ONLY_COMMANDS += [command]
         config.storeValue("VOICE_ONLY_COMMANDS", config.VOICE_ONLY_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice_confirm/disable/<command>')
+@requires_auth
+def get_enso_commands_voice_confirm_disable(command):
+    if command in config.VOICE_CONFIRM_COMMANDS:
+        config.VOICE_CONFIRM_COMMANDS.remove(command)
+        # Unlike voice_only (a quasimode-display concern), this one is baked
+        # into the grammar as Verb.confirm, so the engine must be rebuilt.
+        config.VOICE_COMMANDS_CHANGED = True
+        config.storeValue("VOICE_CONFIRM_COMMANDS", config.VOICE_CONFIRM_COMMANDS)
+    return ""
+
+
+@app.route('/api/enso/commands/voice_confirm/enable/<command>')
+@requires_auth
+def get_enso_commands_voice_confirm_enable(command):
+    if command not in config.VOICE_CONFIRM_COMMANDS:
+        config.VOICE_CONFIRM_COMMANDS += [command]
+        config.VOICE_COMMANDS_CHANGED = True
+        config.storeValue("VOICE_CONFIRM_COMMANDS", config.VOICE_CONFIRM_COMMANDS)
     return ""
 
 

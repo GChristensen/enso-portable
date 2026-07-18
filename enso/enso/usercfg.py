@@ -11,7 +11,8 @@ CONFIG_SECTION = "General"
 
 # config keys that hold a list of strings and need comma-joined
 # (de)serialization instead of literal_eval
-LIST_CONFIG_KEYS = ("DISABLED_COMMANDS", "VOICE_COMMANDS", "VOICE_ONLY_COMMANDS")
+LIST_CONFIG_KEYS = ("DISABLED_COMMANDS", "VOICE_COMMANDS", "VOICE_ONLY_COMMANDS",
+                    "VOICE_CONFIRM_COMMANDS")
 
 
 def storeValue(key, value):

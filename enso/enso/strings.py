@@ -46,3 +46,9 @@ ABOUT_BOX_XML = "<p><command>Enso Launcher</command> " + ENSO_VERSION + "</p>" \
 
 
 BLOCKED_BY_RETREAT_MSG = "<p>Enso Retreat denies the operation.</p><caption>Enso</caption>"
+
+# Shown while the voice engine waits for a spoken yes/no. %s is the recognized
+# phrase, already XML-escaped by the caller.
+VOICE_CONFIRM_MSG_XML = "<p><command>%s</command>?</p>" \
+                        "<caption>say <command>yes</command> or" \
+                        " <command>no</command></caption>"

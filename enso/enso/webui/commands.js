@@ -90,26 +90,34 @@ function fillTableRowForCmd(row, cmd, className) {
             [cmd.voice ? "attr" : "removeAttr"]("checked", "checked"));
         cells.push(voiceCheckBoxCell);
 
-        var voiceOnlyCheckBoxCell = $('<td class="command-check"><input type="checkbox"  title="Voice-Only Command"/></td>');
-        (voiceOnlyCheckBoxCell.find("input")
-            .val(cmd.id)
-            .bind("change", (e) => {
-                cmd.voiceOnly = e.target.checked;
-                if (cmd.voiceOnly) {
-                    ensoGet("/api/enso/commands/voice_only/enable/" + name);
-                    // Voice-only implies the command is a voice command;
-                    // check the voice box too if it isn't already.
-                    if (!cmd.voice) {
-                        cmd.voice = true;
-                        voiceCheckBoxCell.find("input").prop("checked", true);
-                        ensoGet("/api/enso/commands/voice/enable/" + name);
+        // Voice-only and confirm both qualify *how* a voice command behaves,
+        // so either one implies the command is a voice command at all: turning
+        // one on checks the voice box too if it isn't already.
+        let dependentCell = function (title, prop, route) {
+            let cell = $('<td class="command-check"><input type="checkbox" title="'
+                + title + '"/></td>');
+            (cell.find("input")
+                .val(cmd.id)
+                .bind("change", (e) => {
+                    cmd[prop] = e.target.checked;
+                    if (cmd[prop]) {
+                        ensoGet("/api/enso/commands/" + route + "/enable/" + name);
+                        if (!cmd.voice) {
+                            cmd.voice = true;
+                            voiceCheckBoxCell.find("input").prop("checked", true);
+                            ensoGet("/api/enso/commands/voice/enable/" + name);
+                        }
+                    } else {
+                        ensoGet("/api/enso/commands/" + route + "/disable/" + name);
                     }
-                } else {
-                    ensoGet("/api/enso/commands/voice_only/disable/" + name);
-                }
-            })
-            [cmd.voiceOnly ? "attr" : "removeAttr"]("checked", "checked"));
-        cells.push(voiceOnlyCheckBoxCell);
+                })
+                [cmd[prop] ? "attr" : "removeAttr"]("checked", "checked"));
+            return cell;
+        };
+
+        cells.push(dependentCell("Voice-Only Command", "voiceOnly", "voice_only"));
+        cells.push(dependentCell("Confirm Before Running", "voiceConfirm",
+                                 "voice_confirm"));
     }
 
     var cmdElement = jQuery(
@@ -161,12 +169,10 @@ function insertNamespace(namespace, subtext, commands, table) {
         });
     }
     else {
-        // One empty cell per checkbox column plus the command column:
-        // enable (+ voice, voice-only when available) + command.
+        // One empty cell per column fillTableRowForCmd would have produced:
+        // enable (+ voice, voice-only, confirm when available) + command.
         let emptyCell = "<td class=\"topcell command\">&nbsp</td>";
-        let empties = emptyCell + (voiceAvailable ? emptyCell + emptyCell : "")
-            + emptyCell;
-        aRow.append(empties);
+        aRow.append(emptyCell.repeat(2 + (voiceAvailable ? 3 : 0)));
     }
 }
 

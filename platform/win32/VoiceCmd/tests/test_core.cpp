@@ -194,6 +194,55 @@ void test_confirm_timeout_defaults_no() {
     f.eng->close();
 }
 
+// A host that draws its own prompt (Enso) relies on these events rather than on
+// an attached IConfirmationUI, so they must bracket every confirmation.
+void test_confirmation_events_bracket_the_prompt() {
+    Fixture f;
+    f.ui.auto_answer = true;
+    f.eng->start().get();
+    f.fb->feed(cmd(0, 0, 0.70, "open browser"));
+    flush(*f.eng);
+    auto evs = f.eng->drain();
+    CHECK(count<ConfirmationEvent>(evs) == 2);  // begin + end
+    const auto* c = first<ConfirmationEvent>(evs);
+    CHECK(c != nullptr);
+    if (c) CHECK(c->active && c->phrase == "open browser");
+    f.eng->close();
+}
+
+// The closing event must also fire when nobody answers, or a host prompt would
+// stay on screen forever.
+void test_confirmation_end_event_on_timeout() {
+    Fixture f;  // no auto_answer -> nobody answers
+    f.eng->start().get();
+    f.fb->feed(cmd(0, 0, 0.70, "open browser"));
+    flush(*f.eng);
+    auto evs = f.eng->drain();
+    CHECK(count<ConfirmationEvent>(evs) == 1);  // begin only, still confirming
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));  // > timeout
+    flush(*f.eng);
+    evs = f.eng->drain();
+    CHECK(count<ConfirmationEvent>(evs) == 1);  // the end
+    const auto* c = first<ConfirmationEvent>(evs);
+    CHECK(c != nullptr && !c->active);
+    f.eng->close();
+}
+
+// Confirmations do not survive a stop(); the prompt must be retracted too.
+void test_confirmation_end_event_on_stop() {
+    Fixture f;
+    f.eng->start().get();
+    f.fb->feed(cmd(0, 0, 0.70, "open browser"));
+    flush(*f.eng);
+    (void)f.eng->drain();  // discard the begin
+    f.eng->stop().get();
+    flush(*f.eng);
+    auto evs = f.eng->drain();
+    const auto* c = first<ConfirmationEvent>(evs);
+    CHECK(c != nullptr && !c->active);
+    f.eng->close();
+}
+
 void test_noun_confirm_flag_forces_confirm() {
     Fixture f;
     f.ui.auto_answer = true;
@@ -342,6 +391,9 @@ int main() {
     RUN(test_middle_band_requires_confirm_yes);
     RUN(test_confirm_no_drops);
     RUN(test_confirm_timeout_defaults_no);
+    RUN(test_confirmation_events_bracket_the_prompt);
+    RUN(test_confirmation_end_event_on_timeout);
+    RUN(test_confirmation_end_event_on_stop);
     RUN(test_noun_confirm_flag_forces_confirm);
     RUN(test_gated_yes_keeps_listening);
     RUN(test_soft_pause_via_control);

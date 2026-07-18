@@ -54,13 +54,23 @@ struct PauseChangeEvent {
     bool paused;
 };
 
+// Confirmation prompt begin/end. Emitted regardless of whether an
+// IConfirmationUI is attached, so a host that draws its own UI (Enso renders
+// this with displayMessage) needs no in-library dialog. While a confirmation is
+// active the grammar is switched to yes/no; the answer is spoken, so the host
+// only has to show and hide the prompt.
+struct ConfirmationEvent {
+    bool active;         // true = prompt shown, false = resolved/timed out/cancelled
+    std::string phrase;  // utterance awaiting confirmation; empty when active=false
+};
+
 struct LogEvent {
     LogLevel level;
     std::string message;
 };
 
 using Event = std::variant<RecognitionEvent, RejectionEvent, StateChangeEvent,
-                           PauseChangeEvent, LogEvent>;
+                           PauseChangeEvent, ConfirmationEvent, LogEvent>;
 
 }  // namespace voicecmd
 

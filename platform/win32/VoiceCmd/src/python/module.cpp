@@ -19,12 +19,17 @@
 #include <new>
 #include <optional>
 #include <string>
+#include <type_traits>
+#include <variant>
 #include <vector>
 
 #include "fake_backend.h"
 #include "voicecmd/engine.h"
 #ifdef VOICECMD_HAS_SAPI
 #include "sapi_backend.h"
+#endif
+#ifdef VOICECMD_HAS_SESSION_MONITOR
+#include "session_monitor.h"
 #endif
 
 namespace nb = nanobind;
@@ -146,6 +151,10 @@ struct StateChangeEventPy {
 struct PauseChangeEventPy {
     bool paused = false;
 };
+struct ConfirmationEventPy {
+    bool active = false;
+    std::string phrase;
+};
 struct LogEventPy {
     LogLevel level;
     std::string message;
@@ -172,11 +181,24 @@ nb::object toPy(const Event& e) {
                 return nb::cast(StateChangeEventPy{ev.old_state, ev.new_state});
             } else if constexpr (std::is_same_v<T, PauseChangeEvent>) {
                 return nb::cast(PauseChangeEventPy{ev.paused});
+            } else if constexpr (std::is_same_v<T, ConfirmationEvent>) {
+                return nb::cast(ConfirmationEventPy{ev.active, ev.phrase});
             } else {
                 return nb::cast(LogEventPy{ev.level, ev.message});
             }
         },
         e);
+}
+
+// Compile-time position of alternative T within variant V.
+template <typename T, typename V, std::size_t I = 0>
+constexpr std::size_t variantIndex() {
+    static_assert(I < std::variant_size_v<V>, "type is not in the variant");
+    if constexpr (std::is_same_v<std::variant_alternative_t<I, V>, T>) {
+        return I;
+    } else {
+        return variantIndex<T, V, I + 1>();
+    }
 }
 
 // ---- Recognizer facade ----------------------------------------------------
@@ -194,8 +216,14 @@ public:
             throw std::runtime_error("SAPI backend not built into this module");
 #endif
         }
+        const bool want_session_lock = cfg.session_lock;
         eng_ = std::make_unique<Engine>(std::move(cfg), std::move(backend),
                                         /*ui=*/nullptr);
+#ifdef VOICECMD_HAS_SESSION_MONITOR
+        if (want_session_lock) startSessionMonitor();
+#else
+        (void)want_session_lock;
+#endif
     }
 
     void start(double timeout) { await(eng_->start(), timeout); }
@@ -206,6 +234,11 @@ public:
 
     void close() {
         nb::gil_scoped_release rel;
+        // Stop the lock notifications before the engine goes away, so a lock
+        // arriving mid-shutdown can't post to a dying engine.
+#ifdef VOICECMD_HAS_SESSION_MONITOR
+        monitor_.reset();
+#endif
         if (eng_) eng_->close();
     }
 
@@ -239,11 +272,42 @@ public:
     nb::object on_rejected(nb::object f) { cb_rejected_ = f; return f; }
     nb::object on_state_change(nb::object f) { cb_state_ = f; return f; }
     nb::object on_pause_change(nb::object f) { cb_pause_ = f; return f; }
+    nb::object on_confirmation(nb::object f) { cb_confirm_ = f; return f; }
     nb::object on_log(nb::object f) { cb_log_ = f; return f; }
 
     State state() const { return eng_->state(); }
 
 private:
+#ifdef VOICECMD_HAS_SESSION_MONITOR
+    void startSessionMonitor() {
+        Engine* eng = eng_.get();
+        try {
+            monitor_ = std::make_unique<SessionMonitor>([eng](bool locked) {
+                // A HARD stop, not pause(): pause() keeps the recognizer and
+                // the microphone alive and leaves the "resume listening" phrase
+                // in the grammar -- live to anyone at the lock screen. stop()
+                // releases the audio device but retains the engine and the
+                // compiled grammars, so the unlock restart is cheap.
+                //
+                // Fire-and-forget: these futures come from a promise (not
+                // std::async), so dropping them never blocks, and blocking the
+                // monitor thread would stall the message pump.
+                if (locked) {
+                    (void)eng->stop();
+                } else {
+                    (void)eng->start();
+                }
+            });
+        } catch (const std::exception& e) {
+            // Losing lock notifications must not stop the recognizer from
+            // working; report it and carry on unmonitored.
+            PyErr_WarnFormat(PyExc_RuntimeWarning, 1,
+                             "voicecmd: session-lock monitoring unavailable (%s)",
+                             e.what());
+        }
+    }
+#endif
+
     void await(std::future<void> fut, double timeout) {
         {
             nb::gil_scoped_release rel;
@@ -256,22 +320,31 @@ private:
         fut.get();  // propagate any handler exception (GIL held here)
     }
 
+    // Resolved from the Event variant itself rather than hard-coded ordinals,
+    // so adding an alternative can never silently reroute callbacks.
     nb::object callbackFor(std::size_t idx) const {
         switch (idx) {
-            case 0: return cb_recognized_;
-            case 1: return cb_rejected_;
-            case 2: return cb_state_;
-            case 3: return cb_pause_;
-            case 4: return cb_log_;
+            case variantIndex<RecognitionEvent, Event>(): return cb_recognized_;
+            case variantIndex<RejectionEvent, Event>(): return cb_rejected_;
+            case variantIndex<StateChangeEvent, Event>(): return cb_state_;
+            case variantIndex<PauseChangeEvent, Event>(): return cb_pause_;
+            case variantIndex<ConfirmationEvent, Event>(): return cb_confirm_;
+            case variantIndex<LogEvent, Event>(): return cb_log_;
             default: return nb::none();
         }
     }
 
     std::unique_ptr<Engine> eng_;
+#ifdef VOICECMD_HAS_SESSION_MONITOR
+    // Declared after eng_ so it is destroyed FIRST: the monitor thread is
+    // joined, and its callback can no longer run, while the engine is alive.
+    std::unique_ptr<SessionMonitor> monitor_;
+#endif
     nb::object cb_recognized_ = nb::none();
     nb::object cb_rejected_ = nb::none();
     nb::object cb_state_ = nb::none();
     nb::object cb_pause_ = nb::none();
+    nb::object cb_confirm_ = nb::none();
     nb::object cb_log_ = nb::none();
 };
 
@@ -371,7 +444,10 @@ NB_MODULE(voicecmd, m) {
             nb::arg("shared_recognizer") = false,
             nb::arg("confirm_timeout_sec") = 10.0)
         .def_rw("verbs", &ConfigSpec::verbs)
-        .def_rw("keyword", &ConfigSpec::keyword);
+        .def_rw("keyword", &ConfigSpec::keyword)
+        // Read/write like the fields above: the spec is built before it is
+        // handed to Recognizer, which is what actually reads this.
+        .def_rw("session_lock", &ConfigSpec::session_lock);
 
     nb::class_<RecognitionEventPy>(m, "RecognitionEvent")
         .def_ro("verb", &RecognitionEventPy::verb)
@@ -394,6 +470,10 @@ NB_MODULE(voicecmd, m) {
     nb::class_<PauseChangeEventPy>(m, "PauseChangeEvent")
         .def_ro("paused", &PauseChangeEventPy::paused);
 
+    nb::class_<ConfirmationEventPy>(m, "ConfirmationEvent")
+        .def_ro("active", &ConfirmationEventPy::active)
+        .def_ro("phrase", &ConfirmationEventPy::phrase);
+
     nb::class_<LogEventPy>(m, "LogEvent")
         .def_ro("level", &LogEventPy::level)
         .def_ro("message", &LogEventPy::message);
@@ -413,6 +493,7 @@ NB_MODULE(voicecmd, m) {
         .def("on_rejected", &Recognizer::on_rejected, nb::arg("callback"))
         .def("on_state_change", &Recognizer::on_state_change, nb::arg("callback"))
         .def("on_pause_change", &Recognizer::on_pause_change, nb::arg("callback"))
+        .def("on_confirmation", &Recognizer::on_confirmation, nb::arg("callback"))
         .def("on_log", &Recognizer::on_log, nb::arg("callback"))
         .def_prop_ro("state", &Recognizer::state);
 }

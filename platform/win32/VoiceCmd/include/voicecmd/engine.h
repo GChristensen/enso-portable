@@ -102,6 +102,10 @@ private:
     void classify(const RawRecognition& r);
     void beginConfirmation(RawRecognition pending);
     void resolveConfirmation(bool yes);
+    // Tears down the confirmation prompt: hides any attached UI and emits the
+    // closing ConfirmationEvent. Every path out of `confirming_` goes through
+    // here so the UI and the host-visible event can never drift apart.
+    void endConfirmation();
     void emit(Event e);
     void setState(State s);
     void log(LogLevel level, std::string msg);

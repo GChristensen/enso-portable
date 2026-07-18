@@ -119,11 +119,12 @@ CONFIG_FILE = os.path.join(ENSO_USER_DIR, "enso.cfg")
 DISABLED_COMMANDS = []
 COMMAND_STATE_CHANGED = False
 
-# Commands enabled for voice recognition, and commands that should be
-# hidden from the quasimode's typed UI (voice-only). Both are toggled
-# from the webui commands table.
+# Commands enabled for voice recognition, commands hidden from the quasimode's
+# typed UI (voice-only), and commands that must be confirmed by a spoken
+# "yes" before they run. All three are toggled from the webui commands table.
 VOICE_COMMANDS = []
 VOICE_ONLY_COMMANDS = []
+VOICE_CONFIRM_COMMANDS = []
 VOICE_COMMANDS_CHANGED = False
 
 # Native voicecmd engine tuning (consumed by enso.contrib.voice). The keyword

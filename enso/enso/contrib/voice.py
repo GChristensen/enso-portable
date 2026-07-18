@@ -21,16 +21,18 @@
 import atexit
 import gc
 import logging
+from xml.sax.saxutils import escape
 
 from enso import config
 from enso.events import EventManager
 from enso.commands import CommandManager
+from enso.messages import Message, MessageManager
 
 try:
     # The native module exposes the spec-named API (Config/Verb/Noun/Recognizer).
     from enso.contrib.voicecmd import (
         Config, Verb, Noun, Recognizer, RecognitionEvent, RejectionEvent,
-        StateChangeEvent, LogEvent,
+        StateChangeEvent, ConfirmationEvent, LogEvent,
     )
     _VOICECMD_AVAILABLE = True
 except ImportError:
@@ -91,6 +93,9 @@ def _shutdown():
     global _voiceManager
     if _voiceManager is None:
         return
+    # The engine emits a closing ConfirmationEvent on stop, but nothing will
+    # poll it after this point -- retract the prompt here or it outlives Enso.
+    _hideConfirmation()
     try:
         _voiceManager.close()
     except Exception:
@@ -154,6 +159,10 @@ def _buildVerbs():
         verbs.append(Verb(
             name=prefix,
             nouns=nouns,
+            # Engine holds the command until the user says "yes" (or the
+            # confirm timeout drops it). Honored regardless of the confidence
+            # bands, so it works with trust_grammar_match too.
+            confirm=name in config.VOICE_CONFIRM_COMMANDS,
             description=command.getDescription() or "",
             data=name,  # original command-expression, echoed back in events
         ))
@@ -214,6 +223,8 @@ def _onTick(msPassed):
                 # the engine was, so accept/reject thresholds can be tuned.
                 print("voicecmd: rejected '%s' (confidence=%.2f)"
                       % (event.text, event.confidence))
+            elif isinstance(event, ConfirmationEvent):
+                _renderConfirmation(event)
             elif debug and isinstance(event, StateChangeEvent):
                 print("voicecmd: state %s -> %s"
                       % (event.old_state, event.new_state))
@@ -221,6 +232,48 @@ def _onTick(msPassed):
                 print("voicecmd: %s" % event.message)
     except Exception:
         logging.error("enso.contrib.voice: tick handler failed", exc_info=True)
+
+
+# True while a confirmation prompt is on screen, so we only tear down a
+# mini-message we actually put up (finishMessages() hides *all* of them).
+_confirmShown = False
+
+
+def _renderConfirmation(event):
+    """
+    Shows/hides the "say yes or no" prompt for a command awaiting confirmation.
+
+    The engine has already switched the grammar to yes/no and owns the timeout;
+    the answer is spoken, so this is display only -- there is nothing to click.
+    A mini message is used rather than displayMessage(): a primary message stays
+    up until the user dismisses it by hand, and this prompt must retract by
+    itself the moment the engine resolves or times out.
+    """
+    global _confirmShown
+    try:
+        if event.active:
+            MessageManager.get().newMessage(Message(
+                fullXml=config.VOICE_CONFIRM_MSG_XML % escape(event.phrase),
+                isPrimary=False, isMini=True))
+            _confirmShown = True
+        else:
+            _hideConfirmation()
+    except Exception:
+        logging.error("enso.contrib.voice: confirmation prompt failed",
+                      exc_info=True)
+
+
+def _hideConfirmation():
+    """Retracts the prompt, if one of ours is up. Safe to call at any time."""
+    global _confirmShown
+    if not _confirmShown:
+        return
+    _confirmShown = False
+    try:
+        MessageManager.get().finishMessages()
+    except Exception:
+        logging.error("enso.contrib.voice: could not hide the confirmation "
+                      "prompt", exc_info=True)
 
 
 def _handleRecognition(event):

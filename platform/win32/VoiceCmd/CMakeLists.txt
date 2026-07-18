@@ -44,6 +44,19 @@ if (_build_sapi AND WIN32)
     target_link_libraries(voicecmd_sapi_smoke PRIVATE voicecmd_sapi voicecmd_core)
 endif()
 
+# ---- win32 session monitor (M6) ----
+# Workstation lock/unlock notifications. Not part of the core (which stays
+# portable and COM-free) nor of the SAPI backend (not a recognition concern).
+if (WIN32)
+    add_library(voicecmd_win32 STATIC
+        src/win32/session_monitor.cpp)
+    target_include_directories(voicecmd_win32 PUBLIC include src/win32)
+    target_link_libraries(voicecmd_win32 PUBLIC voicecmd_core wtsapi32)
+    if (MSVC)
+        target_compile_options(voicecmd_win32 PRIVATE /W4 /permissive-)
+    endif()
+endif()
+
 # ---- nanobind module (M3) ----
 # nanobind (not pybind11) because pybind11 under Py_LIMITED_API triggers an MSVC
 # 14.44 internal compiler error. Default: STABLE_ABI => a single portable abi3
@@ -71,6 +84,10 @@ if (VOICECMD_BUILD_PYTHON)
         target_link_libraries(voicecmd PRIVATE voicecmd_sapi)
         target_include_directories(voicecmd PRIVATE src/backend/sapi)
         target_compile_definitions(voicecmd PRIVATE VOICECMD_HAS_SAPI=1)
+    endif()
+    if (WIN32)
+        target_link_libraries(voicecmd PRIVATE voicecmd_win32)
+        target_compile_definitions(voicecmd PRIVATE VOICECMD_HAS_SESSION_MONITOR=1)
     endif()
 
     # Optional deploy: drop the built voicecmd.pyd into Enso's contrib package
