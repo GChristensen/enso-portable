@@ -37,7 +37,7 @@ Enso Community Edition.
 
 TL;DR
 
-1. Install into `C:\Program Files`
+1. Install into `C:\Program Files\Enso Launcher`.
 2. Execute Run [`tools/sign-uiaccess.ps1`](tools/sign-uiaccess.ps1) from an **elevated** PowerShell prompt.
 
 Because Enso is a modeless application, it needs Windows **UIAccess** to receive input while an
