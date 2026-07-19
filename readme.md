@@ -4,8 +4,9 @@ A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/Mac
 
 #### History
 
-At first there was a proprietary closed-source Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/). 
-This version was extensible by many programming languages, but one day it went 
+At first there was a proprietary closed-source Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
+Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
+The original version was extensible by many programming languages, but one day it went 
 open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python. 
 By some reasons it has also ceased.
 
@@ -15,27 +16,22 @@ Enso Community Edition.
 
 #### What is Enso
 
-Enso is a command-line-style launcher that lives on top of whatever else you're doing, rather than in
-its own window. A single key (CapsLock) brings up a small, unobtrusive command line at the top-left of the screen;
-typing begins filtering a list of short, memorable commands (`open notepad`, `google quark`, `define serendipity`) as you go, with the best match and its effect shown immediately so
-you can see what will happen before committing to it. Releasing the Caps key or pressing return runs the
-command and the interface disappears again.
-Commands are plain Python functions, so the set of things Enso understands is meant to be extended
-by anyone who can write one.
+Enso is a keyboard-driven launcher that appears on top of whatever else you're doing, rather than in its own window. A
+single key (CapsLock) brings up a small, unobtrusive command line at the top-left of the screen. As you type, it filters
+through a list of short memorable commands (like `open notepad`, `google quark`, or `define serendipity`). 
+The best matches are shown below the input line. You can navigate through them with arrow keys. 
+Releasing the Caps key or pressing return runs the selected command, then the interface disappears. 
+Commands are plain Python functions, so anyone who can write one can extend Enso.
 
-A handful of built-in commands cover most of what people reach for a mouse
-to do. `open` launches applications, documents, and folders by name, and can
-be taught new names for anything you open often. Window commands
-(`maximize`, `minimize`, `close`, and friends) act on whatever window
-currently has focus, while `go` switches focus to another open window by
-typing a fragment of its title, no alt-tabbing required. Commands that take
-a selection, like `calculate`, act on whatever text is currently highlighted
-and can paste the result back in its place. Media commands (`play`,
-`pause`, `next track`, `volume up`) drive whatever player you have running.
-`google`, `wikipedia`, `youtube`, and similar commands turn the rest of your
-typing into a search, opened directly in the browser. And session commands
-(`shut down`, `reboot`, `log off`, `suspend`, `hibernate`) reach the
-operating system itself without a Start menu in sight.
+A handful of built-in commands let you do most of what you'd normally reach for a mouse to do, only faster.
+`open` launches applications, documents, and folders by name, and can be taught new names for anything you open often.
+Window commands (`maximize`, `minimize`, `close`, and friends) act on whatever window currently has focus, while `go`
+switches focus to another open window by typing a fragment of its title, no alt-tabbing required. Commands that take a
+selection, like `calculate`, act on whatever text is currently highlighted and can paste the result back in its place.
+Media commands (`play`,`pause`, `next track`, `volume up`) drive whatever player you have running.
+`google`, `wikipedia`, `youtube`, and similar commands turn the rest of your typing into a search, opened directly in
+the browser. And session commands (`shut down`, `reboot`, `log off`, `suspend`, `hibernate`) reach the operating system
+itself without a Start menu in sight.
 
 It looks like this:
 
@@ -75,7 +71,7 @@ quasimode commands, reachable without the hands ever leaving the keyboard.
 
 For convenience, Enso Open-Source instead defaults to a *modal* quasimode: tapping the
 activation key toggles the command line open, and it stays open (is "sticky")
-until a command is run or it is dismissed explicitly, rather than requiring
+until a command is run, or it is dismissed explicitly, rather than requiring
 the key to be held down. This default can be reverted to Raskin's original
 quasimodal behavior by setting the `IS_QUASIMODE_MODAL` configuration
 variable to `False` in `ensorc.py` (available in the settings UI).
