@@ -4,13 +4,48 @@ A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/Mac
 
 #### History
 
-At first there was a proprietary closed-source Enso Launcher from Humanized. 
+At first there was a proprietary closed-source Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/). 
 This version was extensible by many programming languages, but one day it went 
-open (Enso Community Edition) and became extensible only in Python. 
+open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python. 
 By some reasons it has also ceased.
 
-At the moment Enso Open-Source is the most feature-rich descendant of 
+At the moment [Enso Open-Source](https://gchristensen.github.io/enso-portable/) is the most feature-rich descendant of 
 Enso Community Edition. 
+
+
+#### What is Enso
+
+Enso is a command-line launcher that lives on top of whatever else you're doing, rather than in
+its own window. A single key brings up a small, unobtrusive command line anywhere on the screen;
+typing begins filtering a list of short, memorable commands (`open notepad`, `google quark`, `define serendipity`) as you go, with the best match and its effect shown immediately so
+you can see what will happen before committing to it. Releasing the key or pressing return runs the
+command and the interface disappears again, leaving no icons, taskbar entries, or windows behind.
+Commands are plain Python functions, so the set of things Enso understands is meant to be extended
+by anyone who can write one.
+
+It looks like this:
+
+<video src="media/enso-calculate.webm" controls width="500px" height="281px"></video>
+
+
+#### Modal vs. quasimodal
+
+The original Enso, in the spirit of Jeff Raskin, was strictly *quasimodal*: the
+quasimode (command line) stayed active only while a key was physically held
+down (e.g. Caps Lock), and closed the instant it was released, the same way a
+Shift key only capitalizes letters while held. This was a deliberate
+consequence of Raskin's humane interface philosophy: modes are a source of
+user error because the interface behaves differently depending on invisible
+state the user must remember, and a mode the user must actively sustain by
+holding a key can never be forgotten about, since letting go always returns
+you to the base state.
+
+For convenience, Enso Open-Source instead defaults to a *modal* quasimode: tapping the
+activation key toggles the command line open, and it stays open (is "sticky")
+until a command is run or it is dismissed explicitly, rather than requiring
+the key to be held down. This default can be reverted to Raskin's original
+quasimodal behavior by setting the `IS_QUASIMODE_MODAL` configuration
+variable to `False` in `ensorc.py` (available in the settings UI).
 
 
 #### Additional features not found in the original Enso
@@ -40,7 +75,7 @@ TL;DR
 1. Install into `C:\Program Files\Enso Launcher`.
 2. Execute Run [`tools/sign-uiaccess.ps1`](tools/sign-uiaccess.ps1) from an **elevated** PowerShell prompt.
 
-Because Enso is a modeless application, it needs Windows **UIAccess** to receive input while an
+Because Enso has no traditional input components, it needs Windows **UIAccess** to receive input while an
 elevated process is in the foreground (e.g. Windows Task Manager). `pythonu.exe` is a Python binary whose application manifest
 sets `uiAccess="true"`, and Enso launches it in place of the regular interpreter - but only when
 Windows actually grants UIAccess, which requires all three of the following:

@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 # Enso launcher. Works unmodified on Windows (invoked by run-enso.exe,
-# which hardcodes this path) and on Linux (X11 only; run directly with
-# `python3 enso/scripts/run_enso.py`, see README.linux.md at the
-# repository root for prerequisites). All OS-specific behavior lives
-# in launcher_utils.py.
+# which hardcodes this path) and on Linux (X11 or KDE Wayalnd only; run 
+# directly with `python3 enso/scripts/run_enso.py`, see README.linux.md 
+# at the repository root for prerequisites). All OS-specific behavior 
+# lives in launcher_utils.py.
 
 import logging
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                os.path.pardir)))
+# This script lives in enso/scripts/, while the importable "enso" package
+# is the sibling directory enso/enso/. Add their common parent to sys.path
+# so `import enso` below resolves to that package.
+scripts_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(scripts_dir))
 
 import launcher_utils as lu
 
