@@ -15,8 +15,8 @@ Enso Community Edition.
 
 #### What is Enso
 
-Enso is a command-line launcher that lives on top of whatever else you're doing, rather than in
-its own window. A single key (CapsLock) brings up a small, unobtrusive command line anywhere on the screen;
+Enso is a command-line-style launcher that lives on top of whatever else you're doing, rather than in
+its own window. A single key (CapsLock) brings up a small, unobtrusive command line at the top-left of the screen;
 typing begins filtering a list of short, memorable commands (`open notepad`, `google quark`, `define serendipity`) as you go, with the best match and its effect shown immediately so
 you can see what will happen before committing to it. Releasing the Caps key or pressing return runs the
 command and the interface disappears again.
@@ -54,7 +54,7 @@ state the user must remember, and a mode the user must actively sustain by
 holding a key can never be forgotten about, since letting go always returns
 you to the base state.
 
-Speed was the other half of Raskin's argument for building Enso this way. In
+Speed was the other half of Raskin's UI theory argument for building Enso this way. In
 *The Humane Interface* he pointed out that using a mouse means visually
 hunting for a target and then guiding the pointer onto it, an action
 governed by Fitts's Law: the smaller and farther the target, the longer the
