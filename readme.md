@@ -25,7 +25,7 @@ by anyone who can write one.
 
 It looks like this:
 
-<video src="media/enso-calculate.webm" controls width="500px" height="281px"></video>
+![Enso quasimode calculating an expression](media/enso-calculate.gif)
 
 
 #### Modal vs. quasimodal
