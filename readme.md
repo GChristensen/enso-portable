@@ -80,7 +80,7 @@ the key to be held down. This default can be reverted to Raskin's original
 quasimodal behavior by setting the `IS_QUASIMODE_MODAL` configuration
 variable to `False` in `ensorc.py` (available in the settings UI).
 
-The speed of the quasimodal approach, however, does not come naturally to anyone used to mainstream computer interaction.
+The speed of the [quasimodal approach](https://youtu.be/o_TlE_U_X3c?t=22), however, does not come naturally to anyone used to mainstream computer interaction.
 You have to train yourself into the habit.
 
 
