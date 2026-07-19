@@ -57,12 +57,16 @@
   .hero-title { font-size: 104px; line-height: .92; font-weight: 700; letter-spacing: -.03em; margin-bottom: 22px; }
   .hero-title span { display: block; }
   .hero-title .l1 { color: #f4fbf7; }
-  .hero-title .l2 { color: #34e88a; text-shadow: 0 0 40px rgba(52,232,138,.45); }
+  .hero-title .l2 {
+    background: linear-gradient(120deg, #34e88a, #7dffb8);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 60px rgba(52,232,138,.35);
+  }
   .hero-tagline { font-size: 19px; color: #9fb3a8; letter-spacing: -.01em; margin-bottom: 38px; max-width: 520px; }
   .hero-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .btn-primary {
     display: inline-flex; align-items: center; gap: 12px; font-weight: 600; font-size: 17px; color: #05070a !important;
-    background: linear-gradient(120deg, #34e88a, #1fe07a); padding: 16px 30px; border-radius: 12px;
+    background: linear-gradient(120deg, #34e88a, #5cf0a0); padding: 16px 30px; border-radius: 12px;
     box-shadow: 0 0 0 1px rgba(52,232,138,.5), 0 12px 40px -8px rgba(52,232,138,.6);
     transition: box-shadow .2s ease, transform .2s ease;
   }
@@ -109,7 +113,7 @@
   .about { position: relative; z-index: 4; max-width: 900px; margin: 70px auto; padding: 0 40px; text-align: center; }
   .about .eyebrow { font-size: 13px; color: #34e88a; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 22px; }
   .about p { font-size: 26px; line-height: 1.5; font-weight: 400; color: #cdddd4; letter-spacing: -.01em; }
-  .about .accent { color: #34e88a; }
+  .about p + p { margin-top: 1.2em; }
 
   /* FEATURES */
   .features { position: relative; z-index: 4; max-width: 1240px; margin: 0 auto 90px; padding: 0 40px; }
@@ -207,10 +211,15 @@
 <section id="about" class="about">
   <div class="eyebrow mono">// what is enso</div>
   <p>
-    Enso is a <span class="accent">quasimodal launcher</span> &mdash; tap Caps Lock, type a command, and hit Enter.
-    No windows to hunt for, no menus to click. It runs invisibly until you summon it, turning at any moment into a
-    command line for your whole computer. This modern revival keeps the legendary feel and makes every command
-    <span class="accent">fully scriptable</span>, so you can teach it to do anything.
+    Enso is a launcher that lives on Caps Lock: tap it, type a command, hit Enter, and you're done &mdash; no windows
+    to find, no menus to click through. It stays out of sight until called, acting as a command line for your entire
+    computer. A revival of the original, since 2010 it keeps the legendary feel while making every command scriptable.
+  </p>
+  <p>
+    That's a take on Jeff Raskin's quasimodal design: originally your hand held the Caps key down, so muscle memory
+    alone kept you aware of the mode. Modern Enso eases that by just shifting the constraint into the interface &mdash;
+    one tap enters a command state that blocks everything else until you finish. But if you prefer, you can configure
+    it to still hold the key the original way.
   </p>
 </section>
 
@@ -231,9 +240,9 @@
       <p>Open apps, files, folders, and bookmarks in a keystroke. Fuzzy matching gets you there before you finish typing.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-tag mono">learn as</div>
-      <h3>Teach new commands</h3>
-      <p>Alias any URL, file, or app with a phrase you'll remember. Enso learns your vocabulary and keeps it ready.</p>
+      <div class="feature-tag mono">&#127897; say</div>
+      <h3>Voice recognition</h3>
+      <p>Speak instead of type &mdash; Enso is able to listen for your commands, recognize them, and run them hands-free.</p>
     </div>
     <div class="feature-card">
       <div class="feature-tag mono">&#9617; text</div>
@@ -359,23 +368,26 @@
 
   var t = 0;
   function step() {
-    t += 0.0016;
-    ctx.fillStyle = "rgba(5,7,10,0.09)";
+    t += 0.0008;
+    ctx.fillStyle = "#05070a";
     ctx.fillRect(0, 0, W, H);
-    ctx.lineWidth = 1.1;
+    ctx.lineWidth = 1.65;
+    var cx = W * 0.72, cy = Math.min(H * 0.34, 380);
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       var ang = angleAt(p.x, p.y, t);
-      var nx = p.x + Math.cos(ang) * 1.9;
-      var ny = p.y + Math.sin(ang) * 1.9;
-      var cx = W * 0.72, cy = Math.min(H * 0.34, 380);
+      var nx = p.x + Math.cos(ang) * 2.85;
+      var ny = p.y + Math.sin(ang) * 2.85;
       var near = Math.exp(-Math.hypot(p.x - cx, p.y - cy) / 300);
       ctx.strokeStyle = "rgba(52,232,138," + (0.05 + near * 0.28).toFixed(3) + ")";
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(nx, ny);
       ctx.stroke();
-      p.x = nx; p.y = ny; p.life--;
+      // advance half a segment so consecutive strokes overlap into a continuous trail
+      p.x += Math.cos(ang) * 1.425;
+      p.y += Math.sin(ang) * 1.425;
+      p.life--;
       if (p.life <= 0 || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) {
         var s = spawn();
         p.x = s.x; p.y = s.y; p.life = s.life;

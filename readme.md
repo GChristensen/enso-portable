@@ -92,6 +92,32 @@ mingw32-make) to build and copy binaries to the proper destination.
 The original source code of **Enso Community Edition** could be found here:
 [https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
+#### Voice Recognition
+
+Enso can listen for your commands and run them without the quasimode. Currently this feature
+is available only in Windows and requires the `voicecmd` Enso module to be installed; if it is
+missing, the voice controls simply do not appear at the option pages and everything else works as usual.
+
+Spoken commands are prefixed with a keyword, `computer` by default. Saying
+
+    computer open notepad
+
+runs the same command as typing `open notepad` in the quasimode. Only the commands explicitly
+enabled for voice at the 'Your Commands' page are listened for. For commands that take an argument,
+the available arguments become a part of what can be said, so `open` with its list of applications
+lets you say `computer open google chrome` as one phrase.
+
+A command may also be marked as voice-only (spoken, but hidden from the quasimode suggestion list)
+or as requiring confirmation - such a command is held back until you answer `yes` or `no`,
+which is useful for anything that cannot be undone.
+
+Listening can be suspended and resumed by saying `computer stop listening` and
+`computer resume listening`. It also stops by itself while the workstation is locked.
+
+The keyword, the recognizer language, and other voice settings may be changed through the
+'Custom Initialization' block at the Enso settings page. See the tutorial at the Enso option
+pages for the details.
+
 #### Mediaprobes
 
 Mediaprobes allow to create commands that automatically pass items found in filesystem 
