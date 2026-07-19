@@ -16,12 +16,26 @@ Enso Community Edition.
 #### What is Enso
 
 Enso is a command-line launcher that lives on top of whatever else you're doing, rather than in
-its own window. A single key brings up a small, unobtrusive command line anywhere on the screen;
+its own window. A single key (CapsLock) brings up a small, unobtrusive command line anywhere on the screen;
 typing begins filtering a list of short, memorable commands (`open notepad`, `google quark`, `define serendipity`) as you go, with the best match and its effect shown immediately so
-you can see what will happen before committing to it. Releasing the key or pressing return runs the
-command and the interface disappears again, leaving no icons, taskbar entries, or windows behind.
+you can see what will happen before committing to it. Releasing the Caps key or pressing return runs the
+command and the interface disappears again.
 Commands are plain Python functions, so the set of things Enso understands is meant to be extended
 by anyone who can write one.
+
+A handful of built-in commands cover most of what people reach for a mouse
+to do. `open` launches applications, documents, and folders by name, and can
+be taught new names for anything you open often. Window commands
+(`maximize`, `minimize`, `close`, and friends) act on whatever window
+currently has focus, while `go` switches focus to another open window by
+typing a fragment of its title, no alt-tabbing required. Commands that take
+a selection, like `calculate`, act on whatever text is currently highlighted
+and can paste the result back in its place. Media commands (`play`,
+`pause`, `next track`, `volume up`) drive whatever player you have running.
+`google`, `wikipedia`, `youtube`, and similar commands turn the rest of your
+typing into a search, opened directly in the browser. And session commands
+(`shut down`, `reboot`, `log off`, `suspend`, `hibernate`) reach the
+operating system itself without a Start menu in sight.
 
 It looks like this:
 
@@ -40,12 +54,34 @@ state the user must remember, and a mode the user must actively sustain by
 holding a key can never be forgotten about, since letting go always returns
 you to the base state.
 
+Speed was the other half of Raskin's argument for building Enso this way. In
+*The Humane Interface* he pointed out that using a mouse means visually
+hunting for a target and then guiding the pointer onto it, an action
+governed by Fitts's Law: the smaller and farther the target, the longer the
+movement takes, and reaching for the mouse in the first place breaks the
+cadence a touch typist has already built up on the keyboard. Switching
+between windows is a familiar case of this cost - clicking a taskbar entry
+or an icon buried in another window means locating it on screen first -
+and so is working with a text selection, where you must aim the pointer at
+one edge, drag it to the other while the target keeps changing size, and
+only then can you invoke whatever should act on it. Naming a command by
+typing a few letters of a memorable word skips the hunting and pointing
+entirely - recall of a word is close to instantaneous, the keystrokes are
+the same practiced motion as everything else the hands are doing, and the
+quasimode's incremental matching lets you stop typing the moment the
+intended command is unambiguous. Enso applies this directly: switching to
+another window or acting on the current text selection are themselves
+quasimode commands, reachable without the hands ever leaving the keyboard.
+
 For convenience, Enso Open-Source instead defaults to a *modal* quasimode: tapping the
 activation key toggles the command line open, and it stays open (is "sticky")
 until a command is run or it is dismissed explicitly, rather than requiring
 the key to be held down. This default can be reverted to Raskin's original
 quasimodal behavior by setting the `IS_QUASIMODE_MODAL` configuration
 variable to `False` in `ensorc.py` (available in the settings UI).
+
+The speed of the quasimodal approach, however, does not come naturally to anyone used to mainstream computer interaction.
+You have to train yourself into the habit.
 
 
 #### Additional features not found in the original Enso
