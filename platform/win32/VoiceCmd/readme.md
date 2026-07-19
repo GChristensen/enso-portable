@@ -732,7 +732,7 @@ bands, confirmation begin/resolve/timeout/stop, and unexpected-end auto-recovery
 
 `Engine::sync()` is what makes the assertions race-free.
 
-### 4.11 Dictated tails for arbitrary arguments **[confirmed]**
+### 4.11 Dictated tails for arbitrary arguments
 
 Some commands take a parameter that cannot be listed in advance — `calculate
 {expression}` is the canonical case. Enso registers these as `arbitrary-arg`

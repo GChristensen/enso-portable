@@ -27,7 +27,10 @@ export const getConfigDir = () => getText('/api/enso/get/config_dir')
 export const openConfigDir = () => post('/api/enso/open/config_dir')
 
 export const getEnsorc = () => getText('/api/enso/get/ensorc')
-export const setEnsorc = (ensorc: string) => post('/api/enso/set/ensorc', { ensorc })
+
+// Same allow_empty contract as writeCategory below.
+export const setEnsorc = (ensorc: string, allowEmpty = false) =>
+  post('/api/enso/set/ensorc', allowEmpty ? { ensorc, allow_empty: '1' } : { ensorc })
 
 /* ----------------------------------------------------------------- retreat */
 
@@ -64,4 +67,7 @@ export const deleteCategory = (category: string) =>
 /* ------------------------------------------------------------------- tasks */
 
 export const readTasks = () => getText('/api/enso/read_tasks')
-export const writeTasks = (code: string) => post('/api/enso/write_tasks', { code })
+
+// Same allow_empty contract as writeCategory above.
+export const writeTasks = (code: string, allowEmpty = false) =>
+  post('/api/enso/write_tasks', allowEmpty ? { code, allow_empty: '1' } : { code })

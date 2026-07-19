@@ -51,13 +51,13 @@ const editor = ref<InstanceType<typeof CodeEditorComponent> | null>(null)
  */
 const loadFailed = ref(false)
 
-async function save() {
+async function save(intentional = false) {
   // Never write a buffer we could not read. The server refuses empty
   // overwrites too, but this stops the request being made at all -- and it
   // also covers a partial buffer, which the server cannot recognise.
   if (loadFailed.value) return
   try {
-    await writeCategory(category.value, code.value)
+    await writeCategory(category.value, code.value, intentional)
   } catch (e) {
     // Autosave fires from a debounce, a blur and onBeforeUnmount, and nothing
     // awaits it -- so a rejection here would surface only as an unhandled
@@ -252,7 +252,7 @@ watch(category, (name) => {
         v-model="code"
         @update:model-value="autosave.schedule()"
         @blur="autosave.flush()"
-        @save="autosave.flush()"
+        @save="autosave.flush(true)"
       />
     </div>
 

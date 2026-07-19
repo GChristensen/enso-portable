@@ -22,10 +22,10 @@ const editor = ref<InstanceType<typeof CodeEditorComponent> | null>(null)
 /** True while the buffer holds the placeholder rather than real content. */
 const showingPlaceholder = ref(false)
 
-async function save() {
+async function save(intentional = false) {
   // Never persist the placeholder as if the user had written it.
   if (showingPlaceholder.value) return
-  await writeTasks(code.value)
+  await writeTasks(code.value, intentional)
 }
 
 const autosave = useAutosave(save)
@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
         @update:model-value="autosave.schedule()"
         @focus="onFocus"
         @blur="onBlur"
-        @save="autosave.flush()"
+        @save="autosave.flush(true)"
       />
     </div>
 

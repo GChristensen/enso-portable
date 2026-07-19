@@ -37,7 +37,7 @@ const configDir = ref('')
 
 const ensorc = ref('')
 const ensorcReady = ref(false)
-const autosave = useAutosave(() => setEnsorc(ensorc.value))
+const autosave = useAutosave((intentional) => setEnsorc(ensorc.value, intentional))
 
 onMounted(async () => {
   // Independent reads; one failing should not blank the rest of the page.
@@ -119,7 +119,7 @@ function onVoiceEnabledChange(on: boolean) {
           :show-gutter="false"
           @update:model-value="autosave.schedule()"
           @blur="autosave.flush()"
-          @save="autosave.flush()"
+          @save="autosave.flush(true)"
         />
       </div>
     </section>

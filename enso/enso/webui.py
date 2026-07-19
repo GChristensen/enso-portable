@@ -253,7 +253,8 @@ def get_enso_get_ensorc():
 @requires_auth
 def post_enso_set_ensorc():
     ensorc_file = os.path.join(config.ENSO_USER_DIR, "ensorc.py")
-    if not _write_user_file(ensorc_file, request.form["ensorc"]):
+    allow_empty = request.form.get("allow_empty") == "1"
+    if not _write_user_file(ensorc_file, request.form["ensorc"], allow_empty):
         return "refused: empty payload would overwrite existing content", 409
     return ""
 
@@ -532,7 +533,8 @@ def post_enso_commands_voice_confirm_enable(command):
 def post_enso_commands_write_tasks():
     category_file = os.path.join(config.ENSO_USER_DIR, "tasks.py")
 
-    if not _write_user_file(category_file, request.form["code"]):
+    allow_empty = request.form.get("allow_empty") == "1"
+    if not _write_user_file(category_file, request.form["code"], allow_empty):
         return "refused: empty payload would overwrite existing content", 409
     return ""
 
