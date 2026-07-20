@@ -329,6 +329,10 @@ SectionEnd
 
 SectionGroupEnd
 
+Section /o "Additional packages" Section_packages
+    nsExec::ExecToLog '"$INSTDIR\python\python.exe" -m pip install requests pyserial pillow numpy bs4 websockets psutil watchdog schedule'
+SectionEnd
+
 Section /o "Enso Retreat" Section_retreat
     SetOutPath "$INSTDIR\commands"
     File enso\commands\retreat.py
@@ -412,6 +416,7 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_wake} "Wake a machine with a magic packet"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_packages} "Installs requests, pyserial, pillow, numpy, bs4, websockets, psutil, watchdog, schedule Python packages"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Enso command voice recognition"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
