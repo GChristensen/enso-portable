@@ -197,6 +197,16 @@ def configure_init_files():
     if not os.path.isdir(user_lib_dir):
         os.makedirs(user_lib_dir)
 
+    user_lib_init = os.path.join(user_lib_dir, "__init__.py")
+    if not os.path.exists(user_lib_init):
+        with open(user_lib_init, "w", encoding="utf-8") as f:
+            f.write(
+                "# This directory (lib) is added to PYTHONPATH, so a user can\n"
+                "# import packages/modules from it directly. Its own contents are\n"
+                "# also loaded as a package during Enso startup: this file is\n"
+                "# evaluated, and it may import other packages from this directory.\n"
+            )
+
     user_commands_dir = os.path.join(config.ENSO_USER_DIR, "commands")
     user_commands = os.path.join(user_commands_dir, "user.py")
 
