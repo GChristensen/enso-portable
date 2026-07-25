@@ -54,3 +54,10 @@ BLOCKED_BY_RETREAT_MSG = "<p>Enso Retreat denies the operation.</p><caption>Enso
 VOICE_CONFIRM_MSG_XML = "<p><command>%s</command>?</p>" \
                         "<caption>say <command>yes</command> or" \
                         " <command>no</command></caption>"
+
+# Shown just before a recognized voice command runs: a plain chevron signifying
+# execution, followed by the command text in plain white (not <command>'s
+# theme-green, which can be indistinguishable from a same-colored mini message
+# background). %s is the command text, already truncated and XML-escaped by
+# the caller.
+VOICE_EXECUTING_MSG_XML = "<p>&gt; %s</p>"

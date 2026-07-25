@@ -21,12 +21,13 @@
 import atexit
 import gc
 import logging
+import time
 from xml.sax.saxutils import escape
 
 from enso import config
 from enso.events import EventManager
 from enso.commands import CommandManager
-from enso.messages import displayMessage
+from enso.messages import displayMessage, Message, MessageManager
 
 try:
     # The native module exposes the spec-named API (Config/Verb/Noun/Recognizer).
@@ -405,6 +406,36 @@ def _hideConfirmation():
                       "prompt", exc_info=True)
 
 
+# Characters kept before truncating the "Executing:" notification with an
+# ellipsis; mirrors scriptotron.tracebacks.MAX_EXCEPTION_TEXT_LENGTH's
+# truncate+ellipsis approach for a different message.
+_MAX_EXECUTING_MSG_LENGTH = 60
+
+# How long the "Executing:" notification stays up, in seconds.
+_EXECUTING_MSG_DURATION = 2.5
+
+
+class _ExecutingMessage(Message):
+    """
+    The "Executing: <command>" notice -- deliberately a mini message, not a
+    primary one. Commands routinely show their own primary message right
+    after this runs (e.g. cmd_open's "Opening ..." with foreground=True),
+    and firing two primary-message draws back to back on the shared
+    PrimaryMsgWind singleton -- one of them forcing it to the foreground
+    via native SetForegroundWindow/AttachThreadInput calls -- has been
+    observed to hang Enso outright. Mini messages are independent, queued
+    windows that never touch the primary window/foreground machinery.
+    """
+
+    def __init__(self, text):
+        Message.__init__(self, isPrimary=False, isMini=True,
+                          fullXml=config.VOICE_EXECUTING_MSG_XML % escape(text))
+        self.__expires = time.time() + _EXECUTING_MSG_DURATION
+
+    def isFinished(self):
+        return time.time() > self.__expires
+
+
 def _handleRecognition(event):
     # event.text is the resolved utterance ("open notepad" / "help") -- exactly
     # what getCommand parses, against both plain commands and "open {object}"
@@ -427,6 +458,14 @@ def _handleRecognition(event):
     # print() so it is visible at Enso's default ERROR log level.
     print("voicecmd: VOICE COMMAND '%s' (confidence=%.2f)" % (target, event.confidence))
     logging.info("VOICE COMMAND: %s (confidence=%.2f)", target, event.confidence)
+
+    if getattr(config, "VOICE_NOTIFY_EXECUTING", False):
+        # Truncate before escaping, so a cut never lands mid XML-entity.
+        text = target
+        if len(text) > _MAX_EXECUTING_MSG_LENGTH:
+            text = text[:_MAX_EXECUTING_MSG_LENGTH] + "..."
+        MessageManager.get().newMessage(_ExecutingMessage(text))
+
     try:
         cmd.run()
     except Exception:

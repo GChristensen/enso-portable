@@ -160,7 +160,7 @@ mingw32-make) to build and copy binaries to the proper destination.
 The original source code of **Enso Community Edition** could be found here:
 [https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
 
-#### Voice Recognition
+#### Speech Recognition
 
 Enso can listen for your commands and run them without the quasimode. Currently this feature
 is available only in Windows and requires the `voicecmd` Enso module to be installed; if it is

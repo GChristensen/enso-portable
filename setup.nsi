@@ -342,7 +342,7 @@ Section /o "Enso Retreat" Section_retreat
     File enso\enso\contrib\retreat.html
 SectionEnd
 
-Section /o "Voice Recognition" Section_voice
+Section /o "Speech Recognition" Section_voice
     SetOutPath "$INSTDIR\enso\contrib"
     File enso\enso\contrib\voicecmdlib.pyd
 SectionEnd
@@ -418,6 +418,6 @@ BrandingText "${APPNAME}"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_packages} "Installs requests, pyserial, pillow, numpy, bs4, websockets, psutil, watchdog, schedule Python packages"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Enso command voice recognition"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Execute commands by speaking them out loud"
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

@@ -174,7 +174,7 @@ function onVoiceEnabledChange(on: boolean) {
         </section>
 
         <section v-if="voiceAvailable" class="feature-column feature-column--right">
-          <h2>Voice Recognition</h2>
+          <h2>Speech</h2>
           <div class="advanced vertically-aligned">
             <input
               id="voice-enable"
@@ -182,7 +182,7 @@ function onVoiceEnabledChange(on: boolean) {
               :checked="voiceEnabled"
               @change="onVoiceEnabledChange(($event.target as HTMLInputElement).checked)"
             />
-            <label for="voice-enable">Enable voice recognition</label>
+            <label for="voice-enable">Use speech recognition</label>
           </div>
         </section>
       </div>

@@ -147,7 +147,7 @@ VOICE_COMMANDS_CHANGED = False
 VOICE_KEYWORD = "computer"
 VOICE_KEYWORD_REQUIRED = True
 VOICE_ACCEPT_CONFIDENCE = 0.85
-VOICE_REJECT_CONFIDENCE = 0.5
+VOICE_REJECT_CONFIDENCE = 0.85 # effectively no confirmation gap
 VOICE_BACKEND = "sapi"
 VOICE_LANGUAGE = "en-US"
 # When true, print what the recognizer hears (rejections + state changes + raw
@@ -166,6 +166,10 @@ VOICE_DEBUG = True
 VOICE_TRUST_GRAMMAR_MATCH = True
 VOICE_SHARED_RECOGNIZER = False
 VOICE_GARBAGE_RULE = False
+
+# Show a brief "> <command>" message right before a recognized voice command
+# runs. Off by default; set to True to enable it.
+VOICE_NOTIFY_EXECUTING = False
 
 from . import usercfg
 

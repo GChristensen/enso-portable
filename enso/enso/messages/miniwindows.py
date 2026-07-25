@@ -48,9 +48,11 @@ from enso import config
 from enso import graphics
 from enso.graphics.measurement import pointsToPixels, pixelsToPoints
 from enso.graphics import rounded_rect
+from enso.graphics.xmltextlayout import colorHashToRgba
 from enso.messages.windows import MessageWindow, computeWidth
 from enso.messages.primarywindow import layoutMessageXml
 from enso.messages import Message
+from enso.quasimode import layout
 
 
 # ----------------------------------------------------------------------------
@@ -61,7 +63,6 @@ MINI_WIND_SIZE = 256, 70
 MINI_WIND_SIZE = [ pixelsToPoints( pixSize ) for pixSize in MINI_WIND_SIZE ]
 MINI_MARGIN = pixelsToPoints( 10 )
 MINI_SCALE = [ 10, 12, 14 ]
-MINI_BG_COLOR = [ .62, .75, .34, .85 ]
 
 
 # ----------------------------------------------------------------------------
@@ -295,7 +296,8 @@ class MiniMessageQueue:
         self.__status = self.VANISHING
 
     def __stopVanishing( self ):
-        self.__visibleMessages.pop( self.__changingIndex )
+        miniWind = self.__visibleMessages.pop( self.__changingIndex )
+        miniWind.hide()
         if self.__mouseoverIndex != None:
             if len( self.__visibleMessages ) == 0:
                 self.__mouseoverIndex = None
@@ -419,7 +421,7 @@ class MiniMessageWindow( MessageWindow ):
         else:
             corners = []
             
-        cr.set_source_rgba( *MINI_BG_COLOR )
+        cr.set_source_rgba( *colorHashToRgba( layout.DESCRIPTION_BACKGROUND_COLOR ) )
         rounded_rect.drawRoundedRect(
             context = cr,
             rect = ( 0, 0, width, height),

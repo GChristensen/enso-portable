@@ -165,12 +165,15 @@ class MessageWindow:
         "Clears" the underlying cairo context.
         """
 
-        # Works by blanking the whole surface.
-        # The cairo paint() method does the whole (clipped) cairo
-        # surface.
+        # Works by blanking the whole surface. Must use OPERATOR_CLEAR
+        # rather than the default OPERATOR_OVER: painting a fully
+        # transparent source with OVER is a no-op (dst is unchanged),
+        # so it would never actually erase previously drawn content.
         cr = self._context
-        cr.set_source_rgba( 0, 0, 0, 0 )
+        cr.save()
+        cr.set_operator( cairo.OPERATOR_CLEAR )
         cr.paint()
+        cr.restore()
         
     
 def computeWidth( doc ):
