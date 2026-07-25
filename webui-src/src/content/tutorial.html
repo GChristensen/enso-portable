@@ -279,6 +279,18 @@ cmd_test.on_quasimode_start = my_func
         you say nothing, the request times out after ten seconds and is treated as
         <code>no</code> - silence never runs a command.</p>
 
+    <h2 id="training-the-recognizer"><a id="user-content-training-the-recognizer" class="anchor" aria-hidden="true"
+           href="#training-the-recognizer"></a>Training the Recognizer</h2>
+    <p>Recognition on Windows uses your personal speech profile, and its accuracy improves the
+        more that profile is trained to your voice and microphone. You can open the training
+        dialog typing the following command:</p>
+    <pre><code>computer open speech recognition</code></pre>
+    <p>It opens the Windows <b>Speech Properties</b> dialog. Switch to its <b>Speech Recognition</b>
+        tab, click the <b>Train Profile...</b> button and read through the guided sentences. Each
+        pass adapts the same profile the recognizer loads, so spoken commands are matched more
+        reliably afterwards. Running the training a few times gives the best results, especially
+        with a new microphone.</p>
+
     <h2><a id="user-content-voice-settings" class="anchor" aria-hidden="true"
            href="#voice-settings"></a>Settings</h2>
     <p>Voice behavior is tuned from the custom initialization block on the
@@ -289,10 +301,105 @@ cmd_test.on_quasimode_start = my_func
             with no prefix at all. Expect false triggers.
         </li>
         <li><code>VOICE_LANGUAGE</code> - recognizer language, <code>"en-US"</code> by default.</li>
-        <li><code>VOICE_DEBUG</code> - print what the recognizer hears, including rejected
-            phrases and their confidence. Useful when a command is not being picked up.
+        <li><code>VOICE_TRUST_GRAMMAR_MATCH</code> - decides how a recognized phrase is accepted,
+            <code>True</code> by default. See <a href="#accepting-commands">How a Command Is
+            Accepted</a> below.
+        </li>
+        <li><code>VOICE_REJECT_CONFIDENCE</code> - the lower confidence threshold,
+            <code>0.5</code> by default. Read only when <code>VOICE_TRUST_GRAMMAR_MATCH</code> is
+            <code>False</code>.
+        </li>
+        <li><code>VOICE_ACCEPT_CONFIDENCE</code> - the upper confidence threshold,
+            <code>0.85</code> by default. Read only when <code>VOICE_TRUST_GRAMMAR_MATCH</code> is
+            <code>False</code>.
+        </li>
+        <li><code>VOICE_GARBAGE_RULE</code> - <code>False</code> by default. Adds a catch-all rule
+            that absorbs out-of-grammar speech so it is less likely to be force-matched onto a real
+            command. It can also lower overall recognition a little, so enable it only if stray
+            phrases are triggering commands.
+        </li>
+        <li><code>VOICE_DEBUG</code> - print what the recognizer hears, including rejected phrases
+            and their confidence. Useful when a command is not being picked up; see
+            <a href="#reading-the-logs">Reading the Logs</a>.
         </li>
     </ul>
+
+    <h2 id="accepting-commands"><a id="user-content-accepting-commands" class="anchor" aria-hidden="true"
+           href="#accepting-commands"></a>How a Command Is Accepted</h2>
+    <p>Every utterance is first matched against the <em>grammar</em> - the set of enabled commands,
+        their arguments, and the keyword. Anything that does not fit the grammar is out&#8209;of&#8209;grammar
+        and dropped at once. What happens to a phrase that <em>does</em> fit is decided by
+        <code>VOICE_TRUST_GRAMMAR_MATCH</code>.</p>
+
+    <h3>Grammar match (the default)</h3>
+    <p>With <code>VOICE_TRUST_GRAMMAR_MATCH = True</code> a full grammar match <em>is</em> the
+        decision: if the words fit an enabled command - together with the keyword - the command
+        runs, whatever the confidence number happens to be. The keyword and the constrained grammar
+        are the precision guard, not the confidence.</p>
+    <p>This is the default because the built-in Windows recognizer scores confidence poorly for
+        command grammars - a correct, fully matched phrase such as <code>open notepad</code> often
+        comes back with the same low confidence as noise, so gating on it would throw good commands
+        away. Trusting the match gives the best recall. The trade&#8209;off is that the engine can
+        occasionally force&#8209;match a stray phrase onto a command; the required keyword,
+        <code>VOICE_GARBAGE_RULE</code>, and per&#8209;command confirmations are the defences against
+        that. In this mode <code>VOICE_REJECT_CONFIDENCE</code> and <code>VOICE_ACCEPT_CONFIDENCE</code>
+        are ignored, but a command's explicit <b>confirm before running</b> flag is still honoured.</p>
+
+    <h3>Confidence thresholds</h3>
+    <p>With <code>VOICE_TRUST_GRAMMAR_MATCH = False</code> each match is scored on a normalized
+        <code>0..1</code> confidence and sorted into one of three levels by the two thresholds:</p>
+    <ul>
+        <li><b>below <code>VOICE_REJECT_CONFIDENCE</code></b> (<code>0.5</code>) - rejected; nothing
+            runs.</li>
+        <li><b>between reject and <code>VOICE_ACCEPT_CONFIDENCE</code></b> (<code>0.5</code> to
+            <code>0.85</code>) - a "maybe": the command is held back and you are asked to confirm it
+            by voice (<code>yes</code> / <code>no</code>), exactly as a command with the confirm flag
+            would be.</li>
+        <li><b>at or above <code>VOICE_ACCEPT_CONFIDENCE</code></b> (<code>0.85</code>) - accepted and
+            run immediately.</li>
+    </ul>
+    <p>This mode is only worthwhile with a recognizer that produces meaningful confidence, for example, after you have
+        <a href="#training-the-recognizer">trained the profile</a>. On an untrained profile the
+        numbers are too flat to separate commands from noise, which is exactly why grammar&#8209;match
+        mode is the default.</p>
+
+    <h2 id="reading-the-logs"><a id="user-content-reading-the-logs" class="anchor" aria-hidden="true"
+           href="#reading-the-logs"></a>Reading the Logs</h2>
+    <p>With <code>VOICE_DEBUG = True</code> (the default) the recognizer prints what it hears to
+        Enso's console and stdout log which could be found at the Enso configuration directory (see Enso settings).
+        This is how you see which level a phrase landed in and pick thresholds. The
+        lines look like this:</p>
+    <pre><code>voicecmd: reco OK    rule=1000 tri=+1 eng=0.842 norm=0.960 text='open notepad'
+voicecmd: reco FALSE rule=0    tri=+0 eng=0.000 norm=0.550 text=''
+voicecmd: rejected 'open notepad' (confidence=0.55)</code></pre>
+    <p>The fields of a <code>reco</code> line are:</p>
+    <ul>
+        <li><code>OK</code> / <code>FALSE</code> - whether the engine accepted the phrase
+            (<code>OK</code>) or flagged it as a false recognition (<code>FALSE</code> - usually
+            noise or out&#8209;of&#8209;grammar speech).</li>
+        <li><code>rule</code> - which grammar rule matched. Command rules are numbered from
+            <code>1000</code>; small numbers are the control and yes/no rules; <code>rule=0</code>
+            with empty <code>text</code> is background noise.</li>
+        <li><code>tri</code> - the recognizer's coarse confidence band: <code>+1</code> high,
+            <code>+0</code> normal, <code>-1</code> low.</li>
+        <li><code>eng</code> - the engine's raw <code>0..1</code> confidence for the phrase.</li>
+        <li><code>norm</code> - the normalized <code>0..1</code> value the thresholds actually
+            compare against, derived from <code>tri</code> and <code>eng</code>. This is the number
+            that matters for <code>VOICE_REJECT_CONFIDENCE</code> and
+            <code>VOICE_ACCEPT_CONFIDENCE</code>.</li>
+        <li><code>text</code> - the resolved phrase.</li>
+    </ul>
+    <p>A <code>rejected '...'</code> line is a phrase that was discarded - out&#8209;of&#8209;grammar,
+        noise, or (in threshold mode) below the reject level - shown with the confidence it scored.
+        You will also see <code>state ... -&gt; ...</code> transitions and, when they happen, session
+        lock/unlock and restart lines. The ambient&#8209;noise lines - the empty <code>rule=0</code>
+        one above - appear only while <code>VOICE_DEBUG</code> is on; with it off the log stays quiet
+        apart from genuine warnings and errors.</p>
+    <p>To calibrate the thresholds, switch to threshold mode with debug on, say each command a few
+        times and note its <code>norm</code> values, then say unrelated phrases and note theirs. Put
+        <code>VOICE_REJECT_CONFIDENCE</code> just above where the noise clusters and
+        <code>VOICE_ACCEPT_CONFIDENCE</code> where your commands land reliably. In the default
+        grammar&#8209;match mode these <code>norm</code> numbers are informational only.</p>
 
     <p>See more at the config.py in the enso source directory.</p>
 

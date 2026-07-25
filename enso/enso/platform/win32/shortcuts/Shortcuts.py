@@ -192,10 +192,11 @@ control_panel_applets = [i[:3] for i in (
     (SHORTCUT_TYPE_CONTROL_PANEL,
      "windows firewall (control panel)",
      "rundll32.exe shell32.dll,Control_RunDLL firewall.cpl"),
+
     (SHORTCUT_TYPE_CONTROL_PANEL,
-     "speech properties (control panel)",
-     "rundll32.exe shell32.dll,Control_RunDLL \"${COMMONPROGRAMFILES}\\Microsoft Shared\\Speech\\sapi.cpl\"",
-     os.path.isfile(os.path.expandvars("${COMMONPROGRAMFILES}\\Microsoft Shared\\Speech\\sapi.cpl"))),
+     "speech recognition (control panel)",
+     "rundll32.exe shell32.dll,Control_RunDLL \"${WINDIR}\\System32\\Speech\\SpeechUX\\sapi.cpl\",,0",
+     os.path.isfile(os.path.expandvars("${WINDIR}\\System32\\Speech\\SpeechUX\\sapi.cpl"))),
 
     (SHORTCUT_TYPE_CONTROL_PANEL,
      "internet options (control panel)",
