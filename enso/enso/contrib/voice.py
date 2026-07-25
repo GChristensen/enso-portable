@@ -31,8 +31,8 @@ from enso.messages import displayMessage
 try:
     # The native module exposes the spec-named API (Config/Verb/Noun/Recognizer).
     from enso.contrib.voicecmdlib import (
-        Config, Verb, Noun, Recognizer, State, RecognitionEvent, RejectionEvent,
-        StateChangeEvent, ConfirmationEvent, LogEvent,
+        Config, Verb, Noun, Recognizer, State, LogLevel, RecognitionEvent,
+        RejectionEvent, StateChangeEvent, ConfirmationEvent, LogEvent,
     )
     _VOICECMD_AVAILABLE = True
 except ImportError:
@@ -186,6 +186,10 @@ def _buildConfig():
         trust_grammar_match=getattr(config, "VOICE_TRUST_GRAMMAR_MATCH", True),
         shared_recognizer=getattr(config, "VOICE_SHARED_RECOGNIZER", False),
         use_garbage_rule=getattr(config, "VOICE_GARBAGE_RULE", False),
+        # One switch for verbose native diagnostics: the per-utterance "reco …"
+        # line and ambient-noise rejections. Off by default so an idle mic in a
+        # noisy room stays silent; VOICE_DEBUG turns it on for threshold tuning.
+        debug_logging=getattr(config, "VOICE_DEBUG", False),
         verbs=_buildVerbs(),
     )
 
@@ -342,8 +346,16 @@ def _onTick(msPassed):
             elif debug and isinstance(event, StateChangeEvent):
                 print("voicecmd: state %s -> %s"
                       % (event.old_state, event.new_state))
-            elif debug and isinstance(event, LogEvent):
-                print("voicecmd: %s" % event.message)
+            elif isinstance(event, LogEvent):
+                # Warnings/errors (unexpected stream end, give-up) always reach
+                # Enso's log. Everything else -- Info/Debug, including the session
+                # lock/unlock transitions and lifecycle lines -- is chatter that
+                # only appears under VOICE_DEBUG.
+                if event.level in (LogLevel.Warning, LogLevel.Error):
+                    logging.warning("enso.contrib.voice: %s", event.message)
+                elif debug:
+                    logging.info("enso.contrib.voice: %s", event.message)
+                    print("voicecmd: %s" % event.message)
     except Exception:
         logging.error("enso.contrib.voice: tick handler failed", exc_info=True)
 

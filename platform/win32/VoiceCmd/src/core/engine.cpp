@@ -139,11 +139,12 @@ void Engine::onBackendEnded() {
 }
 
 void Engine::onLog(LogLevel level, std::string msg) {
-    Msg m;
-    m.cmd = Cmd::Log;
-    m.level = level;
-    m.text = std::move(msg);
-    postMsg(std::move(m));
+    // Emit inline rather than round-tripping through the command queue. emit()
+    // is thread-safe (locks emx_), and the engine's own log() already delivers
+    // this way; queueing backend logs as a Cmd made them surface AFTER the
+    // synchronously-emitted state changes they were interleaved with, so a
+    // recreate's log lines printed out of order. Inline keeps real-time order.
+    emit(LogEvent{level, std::move(msg)});
 }
 
 // ---- queue ----------------------------------------------------------------
@@ -205,9 +206,12 @@ void Engine::handle(Msg& m) {
     };
     switch (m.cmd) {
         case Cmd::Start:
+            // Host-driven start: a fresh intent clears the auto-restart budget.
+            restart_attempts_ = 0;
             try { doStart(); ok(); } catch (...) { err(); }
             break;
         case Cmd::Stop:
+            restart_attempts_ = 0;
             try { doStop(/*keep_engine=*/true); ok(); } catch (...) { err(); }
             break;
         case Cmd::Pause:
@@ -238,7 +242,14 @@ void Engine::handle(Msg& m) {
             break;
         case Cmd::UpdateGrammar:
             try {
-                if (created_) backend_->updateGrammar(m.verbs);
+                if (created_) {
+                    backend_->updateGrammar(m.verbs);
+                    // The backend rebuilt (and left inactive) the verb rules; it
+                    // must NOT presume Commands. Re-assert the ruleset the engine
+                    // is actually in, so a rebuild during a pause or a pending
+                    // confirmation does not silently re-open command listening.
+                    backend_->setActiveRuleset(currentRuleset());
+                }
                 cfg_.verbs = std::move(m.verbs);
                 ok();
             } catch (...) { err(); }
@@ -252,7 +263,20 @@ void Engine::handle(Msg& m) {
             break;
         case Cmd::BackendEnded:
             if (!host_stopping_ && started_) {
-                log(LogLevel::Warning, "recognition ended unexpectedly; restarting");
+                if (cfg_.restart_max_attempts > 0 &&
+                    restart_attempts_ >= cfg_.restart_max_attempts) {
+                    // Fully stop and stay put until the host acts.
+                    log(LogLevel::Error,
+                        "recognition stream keeps ending after " +
+                            std::to_string(restart_attempts_) +
+                            " restarts; giving up (check the microphone)");
+                    doStop(/*keep_engine=*/false);
+                    break;
+                }
+                ++restart_attempts_;
+                log(LogLevel::Warning,
+                    "recognition ended unexpectedly; restarting (attempt " +
+                        std::to_string(restart_attempts_) + ")");
                 doRestart();
             }
             break;
@@ -266,9 +290,6 @@ void Engine::handle(Msg& m) {
                 pending_ = RawRecognition{};
                 log(LogLevel::Info, "confirmation timed out; command dropped");
             }
-            break;
-        case Cmd::Log:
-            emit(LogEvent{m.level, std::move(m.text)});
             break;
         case Cmd::Sync:
             ok();
@@ -322,11 +343,20 @@ void Engine::doShutdown() { doStop(/*keep_engine=*/false); }
 void Engine::doRestart() {
     doStop(/*keep_engine=*/false);
     setState(State::Restarting);
+    // Exponential back-off keyed on consecutive failures, so a device that keeps
+    // dropping the stream is retried ever more gently instead of hammered once a
+    // second. attempts>=1 here (BackendEnded incremented it); a bare restart()
+    // with attempts==0 keeps the base delay. Capped at 30s.
+    double delay = cfg_.restart_delay_sec;
+    for (int i = 1; i < restart_attempts_; ++i) {
+        delay *= 2.0;
+        if (delay >= 30.0) { delay = 30.0; break; }
+    }
     // Interruptible back-off (proper timed wait, never a spin-wait) so the audio
     // device can release. close() cuts it short.
     {
         std::unique_lock<std::mutex> lk(qmx_);
-        qcv_.wait_for(lk, dur(cfg_.restart_delay_sec),
+        qcv_.wait_for(lk, dur(delay),
                       [this] { return close_requested_.load(std::memory_order_acquire); });
     }
     if (close_requested_.load(std::memory_order_acquire)) return;
@@ -334,9 +364,19 @@ void Engine::doRestart() {
     doStart();
 }
 
+Ruleset Engine::currentRuleset() const {
+    if (confirming_) return Ruleset::YesNo;
+    if (state() == State::SoftPaused) return Ruleset::ResumeOnly;
+    return Ruleset::Commands;
+}
+
 // ---- recognition classification -------------------------------------------
 
 void Engine::classify(const RawRecognition& r) {
+    // Any recognition at all — even rejected noise — proves the audio stream is
+    // alive, so the auto-restart budget is spent only on genuine stream failures.
+    restart_attempts_ = 0;
+
     // Control phrases are checked before everything else.
     if (r.kind == RawKind::Control) {
         if (r.control == ControlPhrase::StopListening) {

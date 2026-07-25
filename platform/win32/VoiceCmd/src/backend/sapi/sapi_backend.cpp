@@ -285,6 +285,7 @@ struct SapiBackend::Impl {
     }
 
     void buildAllRules() {
+        has_garbage = false;  // reset before deciding: never carry a stale true
         verb_count = (int)cfg.verbs.size();
         for (int i = 0; i < verb_count; ++i) {
             if (cfg.verbs[i].disabled) continue;
@@ -446,9 +447,16 @@ struct SapiBackend::Impl {
                 if (text) ::CoTaskMemFree(text);
             }
         }
-        // Diagnostics: expose the RAW SAPI confidence signals so correct vs
-        // out-of-grammar utterances can be compared and a threshold chosen.
-        {
+        // Out-of-grammar speech and, above all, the empty-text false
+        // recognitions an idle mic emits on every burst of room noise are the
+        // dominant source of log/queue spam. Treat anything not matched to a real
+        // rule as noise.
+        const bool is_noise = (r.kind == RawKind::Garbage);
+
+        // Diagnostics: the RAW SAPI confidence signals, for comparing correct vs
+        // out-of-grammar utterances and choosing a threshold. Gated behind
+        // debug_logging so a quiet, correctly-working recognizer stays silent.
+        if (cfg.debug_logging) {
             char buf[320];
             std::snprintf(buf, sizeof(buf),
                           "reco %-5s rule=%lu tri=%+d eng=%.3f norm=%.3f text='%s'",
@@ -460,6 +468,11 @@ struct SapiBackend::Impl {
         }
 
         ::CoTaskMemFree(phrase);
+
+        // Ambient noise is never actionable, so drop it at the source: no
+        // RawRecognition, hence no RejectionEvent downstream. Kept only when
+        // debug_logging is on, so the calibration channel still works on demand.
+        if (is_noise && !cfg.debug_logging) return;
         sink->onRecognition(std::move(r));
     }
 };
@@ -476,6 +489,11 @@ void SapiBackend::create(const Config& cfg, BackendSink* sink) {
     HRESULT hrCom = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     p_->com_init.store(SUCCEEDED(hrCom));
 
+    // Transactional: any check() that throws part-way must not leave half-built
+    // COM objects, a dangling listener, or an unbalanced CoInitialize behind for
+    // the next create() to trip over. dispose() is idempotent and null-safe, so
+    // it unwinds exactly what was built so far before the failure propagates.
+    try {
     const CLSID clsid = cfg.shared_recognizer ? CLSID_SpSharedRecognizer
                                               : CLSID_SpInprocRecognizer;
     check(::CoCreateInstance(clsid, nullptr, CLSCTX_ALL,
@@ -528,6 +546,10 @@ void SapiBackend::create(const Config& cfg, BackendSink* sink) {
     p_->log(LogLevel::Info, cfg.shared_recognizer
                                 ? "SAPI backend created (SHARED recognizer)"
                                 : "SAPI backend created (in-proc recognizer)");
+    } catch (...) {
+        dispose();
+        throw;
+    }
 }
 
 void SapiBackend::updateGrammar(const std::vector<Verb>& verbs) {
@@ -548,7 +570,11 @@ void SapiBackend::updateGrammar(const std::vector<Verb>& verbs) {
         p_->buildVerbRule(i, verbs[i]);
     }
     p_->grammar->Commit(0);
-    p_->applyRuleset(Ruleset::Commands);
+    // Deliberately does NOT choose a ruleset here: the rebuilt verb rules are
+    // left inactive, and the engine re-asserts the ruleset matching its current
+    // state (Commands / ResumeOnly / YesNo) via setActiveRuleset. Forcing
+    // Commands here would re-open command listening during a pause or a pending
+    // confirmation.
 }
 
 void SapiBackend::setActiveRuleset(Ruleset r) {
@@ -576,6 +602,7 @@ void SapiBackend::dispose() {
     p_->recognizer.Reset();
     if (p_->com_init.exchange(false)) ::CoUninitialize();
     p_->verb_count = 0;
+    p_->has_garbage = false;
     // The grammar is gone, so the dictation topic must be reloaded on re-create.
     p_->dictation_loaded = false;
 }

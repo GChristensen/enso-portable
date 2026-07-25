@@ -69,10 +69,14 @@ public:
     void onBackendEnded() override;
     void onLog(LogLevel level, std::string msg) override;
 
+    // Emit a host-originated log line (e.g. the session-lock monitor). Thread-
+    // safe; delivered through the normal event stream on the next drain.
+    void hostLog(LogLevel level, std::string msg) { log(level, std::move(msg)); }
+
 private:
     enum class Cmd {
         Start, Stop, Pause, Resume, Restart, Shutdown, UpdateGrammar, Close,
-        Recognition, BackendEnded, ConfirmResolve, ConfirmTimeout, Log, Sync,
+        Recognition, BackendEnded, ConfirmResolve, ConfirmTimeout, Sync,
     };
 
     struct Msg {
@@ -81,8 +85,6 @@ private:
         RawRecognition raw;                         // Recognition
         std::vector<Verb> verbs;                    // UpdateGrammar
         bool confirm_yes = false;                   // ConfirmResolve
-        LogLevel level = LogLevel::Info;            // Log
-        std::string text;                           // Log
     };
 
     using Clock = std::chrono::steady_clock;
@@ -98,6 +100,11 @@ private:
     void doShutdown();
     void doRestart();
     void ensureCreated();
+
+    // The ruleset that matches the engine's current state, so a grammar rebuild
+    // re-asserts the right rules instead of blindly reverting to Commands (which
+    // would break an active pause or a pending confirmation).
+    Ruleset currentRuleset() const;
 
     void classify(const RawRecognition& r);
     void beginConfirmation(RawRecognition pending);
@@ -118,6 +125,7 @@ private:
     bool created_ = false;   // backend engine + grammars exist
     bool started_ = false;   // continuous recognition active
     bool host_stopping_ = false;  // suppress auto-recovery during host-driven stop
+    int restart_attempts_ = 0;    // consecutive unexpected-end auto-restarts
 
     // Confirmation sub-state (worker only).
     bool confirming_ = false;

@@ -94,6 +94,7 @@ struct ConfigSpec {
     bool use_garbage_rule = false;
     bool trust_grammar_match = true;
     bool shared_recognizer = false;
+    bool debug_logging = false;
     double confirm_timeout_sec = 10.0;
 };
 
@@ -135,6 +136,7 @@ Config toConfig(const ConfigSpec& c) {
     o.use_garbage_rule = c.use_garbage_rule;
     o.trust_grammar_match = c.trust_grammar_match;
     o.shared_recognizer = c.shared_recognizer;
+    o.debug_logging = c.debug_logging;
     o.confirm_timeout_sec = c.confirm_timeout_sec;
     o.backend = (c.backend == "fake") ? Backend::Fake : Backend::Sapi;
     o.verbs = toVerbs(c.verbs);
@@ -302,8 +304,12 @@ private:
                 // std::async), so dropping them never blocks, and blocking the
                 // monitor thread would stall the message pump.
                 if (locked) {
+                    eng->hostLog(LogLevel::Info,
+                                 "windows session locked -- stopping recognition");
                     (void)eng->stop();
                 } else {
+                    eng->hostLog(LogLevel::Info,
+                                 "windows session unlocked -- starting recognition");
                     (void)eng->start();
                 }
             });
@@ -435,7 +441,7 @@ NB_MODULE(voicecmdlib, m) {
                std::string backend, std::string language, bool session_lock,
                bool rejection_events, bool use_garbage_rule,
                bool trust_grammar_match, bool shared_recognizer,
-               double confirm_timeout_sec) {
+               bool debug_logging, double confirm_timeout_sec) {
                 ConfigSpec c;
                 c.keyword = std::move(keyword);
                 c.keyword_required = keyword_required;
@@ -450,6 +456,7 @@ NB_MODULE(voicecmdlib, m) {
                 c.use_garbage_rule = use_garbage_rule;
                 c.trust_grammar_match = trust_grammar_match;
                 c.shared_recognizer = shared_recognizer;
+                c.debug_logging = debug_logging;
                 c.confirm_timeout_sec = confirm_timeout_sec;
                 new (self) ConfigSpec{std::move(c)};
             },
@@ -463,6 +470,7 @@ NB_MODULE(voicecmdlib, m) {
             nb::arg("use_garbage_rule") = false,
             nb::arg("trust_grammar_match") = true,
             nb::arg("shared_recognizer") = false,
+            nb::arg("debug_logging") = false,
             nb::arg("confirm_timeout_sec") = 10.0)
         .def_rw("verbs", &ConfigSpec::verbs)
         .def_rw("keyword", &ConfigSpec::keyword)

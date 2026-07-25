@@ -75,6 +75,13 @@ struct Config {
     bool rejection_events = true;
     ConfirmStyle confirm_style = ConfirmStyle::YesNo;
 
+    // Verbose diagnostics. When false (default) the backend stays quiet about
+    // routine traffic: the per-utterance "reco …" line and out-of-grammar
+    // ambient-noise recognitions are suppressed entirely, so an idle mic in a
+    // noisy room does not flood the event queue. Lifecycle, session and
+    // warning/error logs are always emitted. Turn on to calibrate thresholds.
+    bool debug_logging = false;
+
     // A SAPI wildcard "garbage" rule can absorb out-of-grammar speech, but in
     // practice it OVER-matches and wins over real command rules. SAPI already
     // rejects OOV via SPEI_FALSE_RECOGNITION + low confidence, so this defaults
@@ -102,8 +109,17 @@ struct Config {
     double confirm_timeout_sec = 10.0;
 
     // Restart back-off (seconds) to let the audio device release between
-    // shutdown and start during auto-recovery / restart().
+    // shutdown and start during auto-recovery / restart(). Used as the BASE for
+    // exponential back-off: the Nth consecutive auto-restart waits
+    // restart_delay_sec * 2^(N-1), capped at ~30s.
     double restart_delay_sec = 1.0;
+
+    // Cap on consecutive auto-restarts after an unexpected stream end. Without
+    // it a permanently unavailable audio device (unplugged mic, another app
+    // holding it) drives an endless recreate loop. After this many failures in a
+    // row the engine gives up, logs an error and stays Stopped until the host
+    // acts. Any successful recognition resets the counter. 0 = never give up.
+    int restart_max_attempts = 8;
 };
 
 }  // namespace voicecmd
