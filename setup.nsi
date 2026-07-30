@@ -36,6 +36,7 @@ SetCompressor LZMA
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE Directory_Leave
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 #!define MUI_FINISHPAGE_RUN "$INSTDIR\run-enso.exe"
@@ -251,6 +252,7 @@ Section "${APPNAME}" Section_enso
     File /r enso\scripts
     File enso\debug.bat
     File enso\run-enso.exe
+    File /r tools
 
     StrCpy $0 0
     ${StrLoc} $1 "$INSTDIR" "C:\Program Files\" ">"
@@ -294,6 +296,11 @@ Section "Web search" Section_websearch
     File enso\commands\web_search.py
 SectionEnd
 
+Section /o "Wake on LAN" Section_wake
+    SetOutPath "$INSTDIR\commands"
+    File enso\commands\wake.py
+SectionEnd
+
 Section /o "Media Player Classic" Section_mpc
     SetOutPath "$INSTDIR"
 #    File /r  /x __pycache__ enso\lib
@@ -307,24 +314,19 @@ Section /o "Random" Section_idgen
     File enso\commands\idgen.py
 SectionEnd
 
-Section /o "Lingvo" Section_lingvo
-    SetOutPath "$INSTDIR\commands"
-    File enso\commands\lingvo.py
-SectionEnd
-
 Section /o "DD-WRT" Section_ddwrt
     SetOutPath "$INSTDIR\commands"
     File enso\commands\dd_wrt.py
 SectionEnd
 
-Section /o "Wake on LAN" Section_wake
-    SetOutPath "$INSTDIR\commands"
-    File enso\commands\wake.py
-SectionEnd
-
 Section /o "Dial" Section_dial
     SetOutPath "$INSTDIR\commands"
     File enso\commands\dial.py
+SectionEnd
+
+Section /o "Lingvo" Section_lingvo
+    SetOutPath "$INSTDIR\commands"
+    File enso\commands\lingvo.py
 SectionEnd
 
 SectionGroupEnd
@@ -345,6 +347,14 @@ SectionEnd
 Section /o "Speech Recognition" Section_voice
     SetOutPath "$INSTDIR\enso\contrib"
     File enso\enso\contrib\voicecmdlib.pyd
+SectionEnd
+
+Section /o "Sign Enso" Section_sign
+    nsExec::ExecToLog '"powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\tools\sign-uiaccess.ps1" -Path "$INSTDIR\python\pythonu.exe"'
+    Pop $0
+    ${If} $0 != 0
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Signing Enso for elevated-process support failed (exit code $0). You can sign it later by running tools\sign-uiaccess.ps1 as Administrator."
+    ${EndIf}
 SectionEnd
 
 Section /o "Portable installation" Section_portable
@@ -401,23 +411,38 @@ Function .onInit
     !insertmacro SetSectionFlag ${Section_enso} ${SF_RO}
 FunctionEnd
 
+; Leaving the Directory page: if "Sign Enso" is selected but the chosen
+; directory isn't Program Files, signing won't grant UIAccess (see
+; tools\sign-uiaccess.ps1), so warn and let the user go back and fix it.
+Function Directory_Leave
+    ${If} ${SectionIsSelected} ${Section_sign}
+        StrCpy $0 0
+        ${StrLoc} $1 "$INSTDIR" "C:\Program Files\" ">"
+        ${If} $0 != $1
+            MessageBox MB_YESNO|MB_ICONEXCLAMATION "Enso is not being installed into Program Files, so the 'Sign Enso' option will not grant elevated-process (UIAccess) support. Continue anyway?" /SD IDYES IDYES +2
+                Abort
+        ${EndIf}
+    ${EndIf}
+FunctionEnd
+
 BrandingText "${APPNAME}"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_enso} "Main application components"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_ensoRoot} "Additional Enso commands"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_system} "'terminate' command that allows to end system processes"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_enso} "Main application components."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_ensoRoot} "Additional Enso commands."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_system} "'terminate' command that allows to end system processes."
 !insertmacro MUI_DESCRIPTION_TEXT ${Section_session} "Windows session management: logout, restart, hibernate..."
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_winamp} "Control WinAmp or foobar2000 from Enso"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_websearch} "Web search commands"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_mpc} "Send commands to Media Player Classic (requires MPC Web UI to be enabled)"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_idgen} "Generate random numbers or UUIDs"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_wake} "Wake a machine with a magic packet"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_packages} "Installs requests, pyserial, pillow, numpy, bs4, websockets, psutil, watchdog, schedule Python packages"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Execute commands by speaking them out loud"
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable"
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_winamp} "Control WinAmp or foobar2000 from Enso."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_websearch} "Web search commands."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_mpc} "Send commands to Media Player Classic (requires MPC Web UI to be enabled)."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_idgen} "Generate random numbers or UUIDs."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_lingvo} "Translate words with ABBYY Lingvo software."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_ddwrt} "Send commands to a DD-WRT router."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_wake} "Wake a machine with a magic packet."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_dial} "Initiate or end dial-up remote connections."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_packages} "Installs Python packages: requests, pyserial, pillow, numpy, bs4, websockets, psutil, watchdog, schedule."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_retreat} "A break reminder utility with transparent UI."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_voice} "Execute commands by speaking them out loud."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_sign} "Digitally sign the Enso executable so it works with elevated processes (e.g. Task Manager). Requires installing into Program Files."
+!insertmacro MUI_DESCRIPTION_TEXT ${Section_portable} "Make the installation portable."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
