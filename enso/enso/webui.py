@@ -377,11 +377,11 @@ def _write_user_file(path, text, allow_empty=False):
         # the user's own script being replaced by something they did not mean
         # to save. Best-effort -- a backup we cannot write must not block a
         # save the user did ask for.
-        try:
-            if os.path.getsize(path) > 0:
-                shutil.copy2(path, path + ".bak")
-        except OSError:
-            pass
+        # try:
+        #     if os.path.getsize(path) > 0:
+        #         shutil.copy2(path, path + ".bak")
+        # except OSError:
+        #     pass
 
         os.replace(tmp, path)
     except BaseException:

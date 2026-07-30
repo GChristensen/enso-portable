@@ -221,7 +221,7 @@ watch(category, (name) => {
           @change="selectCategory(($event.target as HTMLSelectElement).value)"
         >
           <option v-for="name in categories" :key="name" :value="name">
-            {{ name === DEFAULT_CATEGORY ? '<user>' : name }}
+            {{ name === DEFAULT_CATEGORY ? '&lt;user&gt;' : name }}
           </option>
         </select>
         <button type="button" class="icon-button" title="Create category" @click="createCategory">

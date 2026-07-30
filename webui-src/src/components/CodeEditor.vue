@@ -64,10 +64,6 @@ onMounted(() => {
   editor.on('blur', () => emit('blur'))
   editor.on('focus', () => emit('focus'))
 
-  // Replaces the old `innerHeight() - header - footer - 20` arithmetic, which
-  // had to be recomputed by hand and silently mis-sized whenever the chrome
-  // around the editor changed height. Sizing is pure CSS now; Ace just needs
-  // to be told when the box changed.
   observer = new ResizeObserver(() => editor?.resize())
   observer.observe(host.value)
 })
