@@ -104,6 +104,8 @@ TL;DR
 1. Install into `C:\Program Files\Enso Launcher`.
 2. Execute Run [`tools/sign-uiaccess.ps1`](tools/sign-uiaccess.ps1) from an **elevated** PowerShell prompt.
 
+Currently, this is done by an installer check. Read below only if you need the theory behind.
+
 Because Enso has no traditional input components, it needs Windows **UIAccess** to receive input while an
 elevated process is in the foreground (e.g. Windows Task Manager). `pythonu.exe` is a Python binary whose application manifest
 sets `uiAccess="true"`, and Enso launches it in place of the regular interpreter - but only when
