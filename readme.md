@@ -16,22 +16,20 @@ Enso Community Edition.
 
 #### What is Enso
 
-Enso is a keyboard-driven launcher that appears on top of whatever else you're doing, rather than in its own window. A
-single key (CapsLock) brings up a small, unobtrusive command line at the top-left of the screen. As you type, it filters
-through a list of short memorable commands (like `open notepad`, `google quark`, or `define serendipity`). 
-The best matches are shown below the input line. You can navigate through them with arrow keys. 
-Releasing the Caps key or pressing return runs the selected command, then the interface disappears. 
-Commands are plain Python functions, so anyone who can write one can extend Enso.
+Enso is a keyboard-driven launcher that appears on top of whatever you're doing rather than in a window of its own.
+Holding CapsLock brings up a small, unobtrusive command line at the top-left of the screen, and as you type it filters a
+list of short, memorable commands - open notepad, google quark, define serendipity - showing the best matches below the
+input line, where the arrow keys let you move between them. Releasing Caps or pressing return runs the selected command,
+and the interface disappears. Commands are plain Python functions, so anyone who can write one can extend Enso.
 
-A handful of built-in commands let you do most of what you'd normally reach for a mouse to do, only faster.
-`open` launches applications, documents, and folders by name, and can be taught new names for anything you open often.
-Window commands (`maximize`, `minimize`, `close`, and friends) act on whatever window currently has focus, while `go`
-switches focus to another open window by typing a fragment of its title, no alt-tabbing required. Commands that take a
-selection, like `calculate`, act on whatever text is currently highlighted and can paste the result back in its place.
-Media commands (`play`,`pause`, `next track`, `volume up`) drive whatever player you have running.
-`google`, `wikipedia`, `youtube`, and similar commands turn the rest of your typing into a search, opened directly in
-the browser. And session commands (`shut down`, `reboot`, `log off`, `suspend`, `hibernate`) reach the operating system
-itself without a Start menu in sight.
+A handful of built-ins cover most of what you'd otherwise reach for the mouse to do, only faster. open launches
+applications, documents, and folders by name, and can be taught new names for the things you open often. The window
+commands - maximize, minimize, close, and friends - act on whatever window has focus, while go moves focus to another
+open window by a fragment of its title, no alt-tabbing required. Commands that take a selection, like calculate, work on
+whatever text is currently highlighted and can paste the result back in its place. Media commands (play, pause, next
+track, volume up) drive whatever player is running; google, wikipedia, youtube, and the rest turn the remainder of your
+typing into a search and open it in the browser; and the session commands - shut down, reboot, log off, suspend,
+hibernate - reach the operating system itself without a Start menu in sight.
 
 It looks like this:
 
@@ -42,32 +40,30 @@ It looks like this:
 
 The original Enso, in the spirit of Jeff Raskin, was strictly *quasimodal*: the
 quasimode (command line) stayed active only while a key was physically held
-down (e.g. Caps Lock), and closed the instant it was released, the same way a
-Shift key only capitalizes letters while held. This was a deliberate
-consequence of Raskin's humane interface philosophy: modes are a source of
+down (e.g. Caps Lock), and closed the instant it was released. 
+A Shift key, for example, works the same way: it capitalizes only while you hold it.
+This was a deliberate consequence of Raskin's humane interface philosophy: software operation modes are a source of
 user error because the interface behaves differently depending on invisible
-state the user must remember, and a mode the user must actively sustain by
-holding a key can never be forgotten about, since letting go always returns
-you to the base state.
+state the user must remember. A mode you must actively sustain by holding a key can never be forgotten, 
+since letting go always returns you to the base state.
 
 Speed was the other half of Raskin's UI theory argument for building Enso this way. In
 *The Humane Interface* he pointed out that using a mouse means visually
 hunting for a target and then guiding the pointer onto it, an action
 governed by Fitts's Law: the smaller and farther the target, the longer the
-movement takes, and reaching for the mouse in the first place breaks the
+movement takes. Reaching for the mouse in the first place breaks the
 cadence a touch typist has already built up on the keyboard. Switching
 between windows is a familiar case of this cost - clicking a taskbar entry
-or an icon buried in another window means locating it on screen first -
-and so is working with a text selection, where you must aim the pointer at
+or an icon buried in another window means locating it on screen first.
+So is working with a text selection, where you must aim the pointer at
 one edge, drag it to the other while the target keeps changing size, and
-only then can you invoke whatever should act on it. Naming a command by
-typing a few letters of a memorable word skips the hunting and pointing
-entirely - recall of a word is close to instantaneous, the keystrokes are
-the same practiced motion as everything else the hands are doing, and the
-quasimode's incremental matching lets you stop typing the moment the
-intended command is unambiguous. Enso applies this directly: switching to
-another window or acting on the current text selection are themselves
-quasimode commands, reachable without the hands ever leaving the keyboard.
+only then can you invoke whatever should act on it. 
+
+Naming a command instead - typing a few letters of a memorable word - skips the hunting and pointing entirely. Recall of
+a word is close to instantaneous, the keystrokes are the same practiced motion as everything else the hands are doing,
+and the quasimode's incremental matching lets you stop typing the moment the intended command is unambiguous. Enso
+applies this directly: switching to another window and acting on the current text selection are themselves quasimode
+commands, reachable without the hands ever leaving the keyboard.
 
 For convenience, Enso Open-Source instead defaults to a *modal* quasimode: tapping the
 activation key toggles the command line open, and it stays open (is "sticky")
@@ -114,7 +110,7 @@ sets `uiAccess="true"`, and Enso launches it in place of the regular interpreter
 Windows actually grants UIAccess, which requires all three of the following:
 
 1. The binary carries a valid digital signature that chains to a certificate this machine trusts.
-2. The binary sits in a **secure location** — a directory only an administrator can write to.
+2. The binary sits in a **secure location** - a directory only an administrator can write to.
 3. Its manifest declares `uiAccess="true"` (already the case for the bundled `pythonu.exe`).
 
 Point 2 is why **Enso must be installed to `C:\Program Files`** for this to work. The default
