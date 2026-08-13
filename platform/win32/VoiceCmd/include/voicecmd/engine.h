@@ -73,6 +73,16 @@ public:
     // safe; delivered through the normal event stream on the next drain.
     void hostLog(LogLevel level, std::string msg) { log(level, std::move(msg)); }
 
+    // Called by the session monitor BEFORE posting stop/start, so the engine
+    // can suppress auto-recovery restarts while the desktop is locked (the
+    // audio device is unavailable on the secure desktop).
+    void setSessionLocked(bool locked) {
+        session_locked_.store(locked, std::memory_order_release);
+    }
+    bool sessionLocked() const {
+        return session_locked_.load(std::memory_order_acquire);
+    }
+
 private:
     enum class Cmd {
         Start, Stop, Pause, Resume, Restart, Shutdown, UpdateGrammar, Close,
@@ -99,6 +109,7 @@ private:
     void doStop(bool keep_engine);
     void doShutdown();
     void doRestart();
+    bool hasPendingHostCmd_() const;  // queue peek (must hold qmx_)
     void ensureCreated();
 
     // The ruleset that matches the engine's current state, so a grammar rebuild
@@ -126,6 +137,7 @@ private:
     bool started_ = false;   // continuous recognition active
     bool host_stopping_ = false;  // suppress auto-recovery during host-driven stop
     int restart_attempts_ = 0;    // consecutive unexpected-end auto-restarts
+    std::atomic<bool> session_locked_{false};  // desktop is locked (audio unavailable)
 
     // Confirmation sub-state (worker only).
     bool confirming_ = false;

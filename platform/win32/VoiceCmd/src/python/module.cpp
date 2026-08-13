@@ -300,14 +300,22 @@ private:
                 // releases the audio device but retains the engine and the
                 // compiled grammars, so the unlock restart is cheap.
                 //
+                // Set the lock flag BEFORE posting so the engine can suppress
+                // auto-recovery restarts: when the desktop locks, Windows tears
+                // down audio, causing SPEI_END_SR_STREAM. Without this flag,
+                // the engine would auto-restart into an unavailable audio
+                // device, producing a runaway restart loop.
+                //
                 // Fire-and-forget: these futures come from a promise (not
                 // std::async), so dropping them never blocks, and blocking the
                 // monitor thread would stall the message pump.
                 if (locked) {
+                    eng->setSessionLocked(true);
                     eng->hostLog(LogLevel::Info,
                                  "windows session locked -- stopping recognition");
                     (void)eng->stop();
                 } else {
+                    eng->setSessionLocked(false);
                     eng->hostLog(LogLevel::Info,
                                  "windows session unlocked -- starting recognition");
                     (void)eng->start();

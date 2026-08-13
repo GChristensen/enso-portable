@@ -160,7 +160,16 @@ def set_listening(listening):
             # start(), not resume(): resume() only acts on a soft pause, while
             # start() also covers the engine having been stopped outright --
             # which is what the session lock does.
-            manager.start()
+            #
+            # Use a generous timeout (10s) and retry once: a restart-backoff in
+            # progress may block the worker for a few seconds, and we would
+            # rather wait a little than leave the tray checkbox stale.
+            try:
+                manager.start(timeout=10.0)
+            except RuntimeError:
+                # First attempt timed out (restart backoff was in flight).
+                # The backoff should have resolved by now; retry once.
+                manager.start(timeout=10.0)
         else:
             manager.pause()
     except Exception:

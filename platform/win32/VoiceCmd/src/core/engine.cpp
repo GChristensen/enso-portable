@@ -263,6 +263,18 @@ void Engine::handle(Msg& m) {
             break;
         case Cmd::BackendEnded:
             if (!host_stopping_ && started_) {
+                // If the desktop is locked, the audio device is unavailable on
+                // the secure desktop. Restarting would just recreate the
+                // backend into another immediate SPEI_END_SR_STREAM, producing
+                // a runaway restart loop. Stop cleanly and let the session-
+                // unlock handler's Cmd::Start do the real recovery.
+                if (session_locked_.load(std::memory_order_acquire)) {
+                    log(LogLevel::Info,
+                        "recognition ended while session locked; "
+                        "deferring restart to unlock");
+                    doStop(/*keep_engine=*/true);
+                    break;
+                }
                 if (cfg_.restart_max_attempts > 0 &&
                     restart_attempts_ >= cfg_.restart_max_attempts) {
                     // Fully stop and stay put until the host acts.
@@ -352,14 +364,34 @@ void Engine::doRestart() {
         delay *= 2.0;
         if (delay >= 30.0) { delay = 30.0; break; }
     }
-    // Interruptible back-off (proper timed wait, never a spin-wait) so the audio
-    // device can release. close() cuts it short.
+    // Interruptible back-off: wakes for close, host-driven commands (Stop /
+    // Start from the session monitor or UI), OR the timer expiring. Without
+    // this, a session-lock Stop queued during backoff sits blocked until the
+    // full delay elapses, causing the runaway restart loop and Python-side
+    // timeouts when the user tries to re-enable listening from the menu.
     {
         std::unique_lock<std::mutex> lk(qmx_);
         qcv_.wait_for(lk, dur(delay),
-                      [this] { return close_requested_.load(std::memory_order_acquire); });
+                      [this] {
+                          return close_requested_.load(std::memory_order_acquire)
+                              || hasPendingHostCmd_();
+                      });
     }
     if (close_requested_.load(std::memory_order_acquire)) return;
+    // A host command (Stop, Start, etc.) arrived during backoff. Abort the
+    // restart and let the normal worker loop dispatch it — the host's intent
+    // supersedes auto-recovery.
+    {
+        std::lock_guard<std::mutex> lk(qmx_);
+        if (hasPendingHostCmd_()) return;
+    }
+    // If the session was locked while we were in backoff, don't restart into
+    // an unavailable audio device — the unlock handler will start us.
+    if (session_locked_.load(std::memory_order_acquire)) {
+        log(LogLevel::Info,
+            "session locked during restart backoff; deferring to unlock");
+        return;
+    }
     host_stopping_ = false;
     doStart();
 }
@@ -368,6 +400,27 @@ Ruleset Engine::currentRuleset() const {
     if (confirming_) return Ruleset::YesNo;
     if (state() == State::SoftPaused) return Ruleset::ResumeOnly;
     return Ruleset::Commands;
+}
+
+bool Engine::hasPendingHostCmd_() const {
+    // Must be called with qmx_ held. Returns true if the queue contains a
+    // host-driven lifecycle command (Stop, Start, Pause, Resume, Restart,
+    // Shutdown, Close) that should pre-empt an auto-restart.
+    for (const auto& m : queue_) {
+        switch (m.cmd) {
+            case Cmd::Stop:
+            case Cmd::Start:
+            case Cmd::Pause:
+            case Cmd::Resume:
+            case Cmd::Restart:
+            case Cmd::Shutdown:
+            case Cmd::Close:
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 // ---- recognition classification -------------------------------------------
