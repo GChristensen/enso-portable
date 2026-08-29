@@ -285,6 +285,18 @@
 (function () {
   "use strict";
 
+  // ---- iframe-aware link handling ----
+  // When embedded in an iframe, links post a message to the parent window
+  // instead of navigating; standalone, they behave normally.
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest("a[href]");
+    if (!link) return;
+    if (window.parent && window.parent !== window) {
+      e.preventDefault();
+      window.parent.postMessage({ type: "gc-forward-link", data: link.href }, "*");
+    }
+  }, false);
+
   // ---- typing / autocomplete demo ----
   var MAX = 9, HOLD_END = 14, HOLD_IDLE = 5, REVEAL = 2;
   var full = "open notepad";
