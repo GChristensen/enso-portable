@@ -82,6 +82,11 @@ watch(
     applying = true
     // -1 parks the cursor at the start instead of selecting the whole buffer.
     editor.setValue(value, -1)
+    // An external value is a document swap, not an edit: drop the history so
+    // the swap itself cannot be undone. Doing it here -- after setValue, not
+    // from the parent before the prop has propagated -- is what makes the
+    // reset land on the right side of the change. See resetHistory() below.
+    editor.getSession().setUndoManager(new ace.UndoManager())
     applying = false
   },
 )
