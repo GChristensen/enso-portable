@@ -53,7 +53,7 @@ It looks like this:
 #### Known issues
 
 * The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state
-  if it's wrong). This problem could be mitigated by digitally signing the
+  if it's wrong). This problem could be mitigated by [digitally signing](docs/signing-python.md) the
   bundled Python binary. Now signing is built into the installer as an installation option.
 * Some security tools may consider run-enso.exe as a potentially unwanted program.  
   These are false-positive claims, since the launcher uses API needed to run other programs.
@@ -61,15 +61,15 @@ It looks like this:
 #### Modal vs. quasimodal
 
 The original Enso, in the spirit of Jeff Raskin, was strictly quasimodal. The quasimode (the command line)
-stayed open only while you physically held a key, such as CapsLock, and closed the instant it was released.  
+stayed open only while you physically held a key, such as CapsLock, and closed the instant it was released. 
 A Shift key, for example, works the same way: it capitalizes only while you hold it. This was a deliberate consequence
 of Raskin's humane interface philosophy: software modes often lead users to make errors. This happens because the interface
 behaves differently depending on invisible state the user must remember. But a mode you must actively sustain by holding a
 key can never be forgotten.
 
 Speed was the other half of Raskin's argument. In *The Humane Interface*, he pointed out that using a mouse implies two
-steps. First, you visually hunt for a target. Then you guide the pointer onto it. 
-This is an action governed by Fitts's Law: the smaller and farther the target, the longer the movement takes.
+steps. First, you visually hunt for a target. Then you guide the pointer onto it, a movement governed by Fitts's Law:
+the smaller and farther the target, the longer it takes.
 Moreover, reaching for the mouse also breaks the rhythm a touch typist has built up on the keyboard.
 Switching windows is a familiar example of this cost. To click a taskbar entry or an icon buried in another window, you
 must first find it on screen.
@@ -88,31 +88,33 @@ variable to False in the textual configuration block at the settings UI.
 The speed of the [quasimodal approach](https://youtu.be/o_TlE_U_X3c?t=22) however, does not come naturally to anyone 
 used to mainstream computer interaction. You have to train yourself into the habit.
 
-#### Speech Recognition
+## Speech Recognition
 
-Enso can listen for your commands and run them without the quasimode. Currently this feature
-is available only in Windows and requires the `voicecmd` Enso module to be installed; if it is
-missing, the voice controls simply do not appear at the option pages and everything else works as usual.
+Enso can listen for your commands and run them without the quasimode. For now, this feature is available only on
+Windows, and it requires the `voicecmd` Enso module. If the module is missing, the voice controls simply don't appear on
+the option pages, and everything else works as usual.
 
-Spoken commands are prefixed with a keyword, `computer` by default. Saying
+Each spoken command starts with a keyword, which is `computer` by default. For example, saying:
 
-    computer open notepad
+```
+computer open notepad
+```
 
-runs the same command as typing `open notepad` in the quasimode. Only the commands explicitly
-enabled for voice at the 'Your Commands' page are listened for. For commands that take an argument,
-the available arguments become a part of what can be said, so `open` with its list of applications
-lets you say `computer open google chrome` as one phrase.
+runs the same command as typing `open notepad` in the quasimode.
 
-A command may also be marked as voice-only (spoken, but hidden from the quasimode suggestion list)
-or as requiring confirmation - such a command is held back until you answer `yes` or `no`,
-which is useful for anything that cannot be undone.
+Enso listens only for the commands that are explicitly enabled for voice on the 'Your Commands' page. If a command takes
+an argument, its available arguments become part of what you can say. For instance, `open` comes with a list of
+applications, so you can say `computer open google chrome` as a single phrase.
 
-Listening can be suspended and resumed by saying `computer stop listening` and
-`computer resume listening`. It also stops by itself while the workstation is locked.
+You can also mark a command as voice-only. Such a command responds to speech but is hidden from the quasimode suggestion
+list. A command can also require confirmation. In this case, Enso holds it back until you answer `yes` or `no`, which is
+useful for anything that cannot be undone.
 
-The keyword, the recognizer language, and other voice settings may be changed through the
-'Custom Initialization' block at the Enso settings page. See the tutorial at the Enso option
-pages for the details.
+To pause listening, say `computer stop listening`. To resume it, say `computer resume listening`. Listening also pauses
+automatically while the workstation is locked.
+
+You can change the keyword, the recognizer language, and other voice settings in the 'Custom Initialization' block on
+the Enso settings page. For details, see the tutorial on the Enso option pages.
 
 #### Required dependencies
 

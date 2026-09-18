@@ -261,18 +261,21 @@ cmd_test.on_quasimode_start = my_func
 
     <h2><a id="user-content-including-other-files" class="anchor" aria-hidden="true" href="#including-other-files"></a>Including Other Files</h2>
     <p>It is possible to install or uninstall Python libraries from <a href="https://pypi.org/">PyPi</a>
-        using 'enso install' and 'enso uninstall' commands respectively.<br>
+        using 'enso install' and 'enso uninstall' commands respectively.
+    </p>
+    <p>
         If you need to import some code that is not installable as a Python package,
         place it under the 'lib' folder in your Enso configuration directory. The 'lib' directory is added to Enso <code>PYTHONPATH</code>.
         The path of the Enso configuration folder could be found on the Enso <a href="/settings">settings</a> page.
-        <br>
         If there is an __init__.py file in the 'lib' directory it will be imported as a module before Enso initialization.
         This may be used to create complex Enso-based applications, for example, using Flask Blueprints.
-        <br>
+    </p>
+    <p>
         Use Python's standard <code>import</code> statement in command editor to import packages you created in the lib folder.
         The disadvantage of doing this with evolving
         code is that imported modules won't be automatically reloaded
-        if their contents change. You need to change the code in the command editor or restart Enso in this case.</p>
+        if their contents change. You need to change the code in the command editor or restart Enso in this case.
+    </p>
 
     <h3>Example: a package with a Flask blueprint</h3>
     <p>Let's create a package named <code>mytools</code> that stores notes in a file and shows them on a web page served by

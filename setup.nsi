@@ -10,7 +10,7 @@ Unicode True
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
-InstallDir "$APPDATA\${DIRNAME}"
+InstallDir "$PROGRAMFILES64\${DIRNAME}"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
 OutFile "enso-open-source-${VERSION}-x86_64.exe"
 
