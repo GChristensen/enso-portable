@@ -408,17 +408,17 @@ voicecmd: rejected 'open notepad' (confidence=0.55)</code></pre>
     <p>See more at the config.py in the enso source directory.</p>
 
 
-    <h1><a id="user-content-mediaprobes" class="anchor" aria-hidden="true" href="#mediaprobes"></a>Mediaprobes</h1>
-    <p>Mediaprobes allow to create commands that automatically pass items found in the filesystem (or listed
+    <h1><a id="user-content-menu-constructors" class="anchor" aria-hidden="true" href="#menu-constructors"></a>Menu constructors</h1>
+    <p>Menu constructors allow to create commands that automatically pass items found in the filesystem (or listed
         in a dictionary) to the specified program. Let's assume that
         you have a directory named 'd:/tv-shows', which contains subdirectories: 'columbo', 'the octopus', and 'inspector gadget'.
         Let's create a command named 'show' that has the names of all subdirectories
         under 'd:/tv-shows' as suggestions for its argument (the argument will be named "series") and opens the given directory (or file) in Media Player Classic.</p>
     <div class="highlight highlight-source-python"><pre><span class="pl-c"><span class="pl-c">#</span> place the following into the command editor</span>
 
-<span class="pl-k">from</span> enso.user <span class="pl-k">import</span> mediaprobe
+<span class="pl-k">from</span> enso.user <span class="pl-k">import</span> menu_constructors
 
-cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-s"><span
+cmd_show <span class="pl-k">=</span> menu_constructors.directory_menu(<span class="pl-s"><span
                 class="pl-pds">"</span>show<span class="pl-pds">"</span></span>, <span
                 class="pl-s"><span class="pl-pds">"</span>d:/tv-shows<span
                 class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to MPC-HC&gt;<span
@@ -431,19 +431,19 @@ cmd_show <span class="pl-k">=</span> mediaprobe.directory_probe(<span class="pl-
         <li>prev - open the previous show in the player.</li>
         <li>all - pass 'd:/tv-shows' to the player.</li>
     </ul>
-    <p><code>mediaprobe.dictionary_probe</code> allows to create probe commands based on a
+    <p><code>menu_constructors.dictionary_menu</code> allows to create menu commands based on a
         dictionary:</p>
     <div class="highlight highlight-source-python"><pre>what_to_watch <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>formula 1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula 1 stream&gt;<span class="pl-pds">"</span></span>,
                  <span class="pl-s"><span class="pl-pds">"</span>formula e<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;a link to my favorite formula e stream&gt;<span class="pl-pds">"</span></span>}
-cmd_watch <span class="pl-k">=</span> mediaprobe.dictionary_probe(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
-    <p>If player does not accept directories (as, for example, ACD See does), use <code>mediaprobe.findfirst_probe</code> to pass a first file in a directory (one of the specified at
+cmd_watch <span class="pl-k">=</span> menu_constructors.dictionary_menu(<span class="pl-s"><span class="pl-pds">"</span>stream<span class="pl-pds">"</span></span>, what_to_watch, <span class="pl-s"><span class="pl-pds">"</span>&lt;absolute path to my network player&gt;<span class="pl-pds">"</span></span>)</pre></div>
+    <p>If player does not accept directories (as, for example, ACD See does), use <code>menu_constructors.findfirst_menu</code> to pass a first file in a directory (one of the specified at
         a dictionary):</p>
     <pre><code>what_to_stare_at = {'nature': 'd:/images/nature',
                     'cosmos': 'd:/images/cosmos'}
 
 # if player is not specified, the command will use the default system application
 # associated with the encountered file type
-cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
+cmd_stare = menu_constructors.findfirst_menu("at", what_to_stare_at)
 </code></pre>
 
 </div>

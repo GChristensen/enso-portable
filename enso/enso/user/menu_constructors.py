@@ -1,0 +1,116 @@
+import os
+import re
+import time
+import random
+import logging
+import subprocess
+
+COMMON_ARGS = ['what', 'prev', 'next', 'all']
+
+menu_registry = {}
+
+
+def open_menu_item(cmd, api, basedir, cat, player, findfirst=False):
+    global menu_registry
+
+    cmd = menu_registry[cmd]
+
+    if cat == 'what':
+        api.display_message(", ".join(cmd.valid_args[3:]))
+        return
+    elif cat == 'next':
+        idx = cmd.valid_args.index(cmd.cat) if hasattr(cmd, 'cat') else 3
+        cat = cmd.valid_args[idx + 1] if idx < len(cmd.valid_args) - 1 else cmd.valid_args[4]
+    elif cat == 'prev':
+        idx = cmd.valid_args.index(cmd.cat) if hasattr(cmd, 'cat') else len(cmd.valid_args) - 1
+        cat = cmd.valid_args[idx - 1] if idx > 4 else cmd.valid_args[len(cmd.valid_args) - 1]
+
+    cmd.cat = cat
+
+    if basedir:
+        if os.path.isdir(basedir):
+            os.chdir(basedir)
+        item = basedir if cat == "all" else cmd.arg2dir[cat]
+    else:
+        if cat == "all":
+            api.display_message("Nothing to play")
+            return
+        else:
+            item = cmd.arg2dir[cat]
+
+    if findfirst and os.path.isdir(item):
+        items = os.listdir(item)
+        for i in items:
+            path = os.path.join(item, i)
+            if os.path.isfile(path):
+                item = path
+                break
+
+    if player:
+        subprocess.Popen([player, item])
+    else:
+        os.startfile(item)
+
+
+def dictionary_menu(category, dictionary, player="", all="", findfirst=False):
+    """Sends values found in the dictionary (may be directory paths) to player by the corresponding arguments.
+    The category parameter specifies the name of command argument.
+    if findfirst is true and the value is a directory path, the first file found
+    in the directory is sent into the player instead of the item.
+    If player is empty string, the default shell application is used.
+    The 'all' command argument value is substituted by the 'all' function parameter.
+    """
+
+    global menu_registry
+
+    cmd_name = "fun" + str(int(time.time() * 1000000)) + str(random.randint(0, 1000))
+    cmd_text = """
+def {0}(ensoapi, {1}):
+    open_menu_item({0!r}, ensoapi, {2!r}, {1}, {3!r}, {4!r})
+"""
+
+    cmd_text = cmd_text.format(cmd_name, category, all, player, findfirst)
+    allLocals = {}
+
+    exec(compile(cmd_text, "<menu_constructors:%s>" % cmd_name, "exec"), globals(), allLocals)
+    func = allLocals[cmd_name]
+
+    func.arg2dir = dictionary
+    func.valid_args = COMMON_ARGS + list(func.arg2dir.keys())
+    menu_registry[cmd_name] = func
+    return func
+
+
+def collect_descendants(directory):
+    pattern = re.compile(r"(^\d+\.? ?)?(.*)")
+    try:
+        if os.path.exists(directory):
+            dirs = os.listdir(directory)
+            args = [pattern.match(name)[2] for name in dirs]
+            arg2dir = {}
+
+            for i, val in enumerate(dirs):
+                arg2dir[args[i]] = os.path.join(directory, dirs[i])
+
+            return arg2dir
+    except Exception as e:
+        logging.exception(e)
+        return {}
+
+
+def directory_menu(category, directory, player="", additional=None):
+    """Sends directory entries found in the 'directory' to 'player',
+    makes command arguments from the directory entries."""
+
+    dictionary = collect_descendants(directory) or {}
+
+    if additional:
+        dictionary.update(additional)
+
+    return dictionary_menu(category, dictionary, player, directory)
+
+
+def findfirst_menu(category, dictionary, player=""):
+    """Uses the default shell program to open a first **file** in the directory
+    designated by the 'dictionary' argument, or uses player if specified."""
+    return dictionary_menu(category, dictionary, player, findfirst=True)

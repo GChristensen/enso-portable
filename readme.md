@@ -6,7 +6,7 @@ A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/Mac
 
 At first there was a proprietary closed-source Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
 Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
-The original version was extensible by many programming languages, but one day it went 
+This original version was extensible by many programming languages, but one day it went 
 open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python. 
 By some reasons it has also ceased.
 
@@ -17,10 +17,11 @@ Enso Community Edition.
 #### What is Enso
 
 Enso is a keyboard-driven launcher that appears on top of whatever you're doing rather than in a window of its own.
-Holding CapsLock brings up a small, unobtrusive command line at the top-left of the screen, and as you type it filters a
-list of short, memorable commands - open notepad, google quark, define serendipity - showing the best matches below the
-input line, where the arrow keys let you move between them. Releasing Caps or pressing return runs the selected command,
-and the interface disappears. Commands are plain Python functions, so anyone who can write one can extend Enso.
+Holding CapsLock brings up a small, unobtrusive command line at the top-left of the screen, and as you type it filters
+through a list of short, memorable commands - open notepad, google quark, define serendipity - showing the best matches
+below the input line, where the arrow keys let you move between them. Releasing Caps or pressing return runs the
+selected command, and the interface disappears. Commands are plain Python functions, so anyone who can write one can
+extend Enso.
 
 A handful of built-ins cover most of what you'd otherwise reach for the mouse to do, only faster. open launches
 applications, documents, and folders by name, and can be taught new names for the things you open often. The window
@@ -35,6 +36,24 @@ It looks like this:
 
 ![Enso quasimode calculating an expression](media/enso-calculate.gif)
 
+#### New features since Enso Community Edition 
+
+* Python 3 support.
+* Option pages with a built-in command editor.
+* Ability to disable commands.
+* It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
+* Menu constructors (templates for automatic command generation from file-system).
+* Ability to restart using tray menu or 'enso restart' command.
+* Enso Retreat - a break reminder utility that could be controlled with Enso commands.
+* Voice-based command execution.
+
+#### Known issues
+
+* The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state
+  if it's wrong). This problem could be mitigated by digitally signing the
+  bundled Python binary. Now signing is built into the installer as an installation option.
+* Some security tools may consider run-enso.exe as a potentially unwanted program.  
+  These are false-positive claims, since the launcher uses API needed to run other programs.
 
 #### Modal vs. quasimodal
 
@@ -75,26 +94,6 @@ variable to `False` in `ensorc.py` (available in the settings UI).
 The speed of the [quasimodal approach](https://youtu.be/o_TlE_U_X3c?t=22), however, does not come naturally to anyone used
 to mainstream computer interaction.
 You have to train yourself into the habit.
-
-
-#### Additional features not found in the original Enso
-
-* Python 3 support.
-* Option pages with a built-in command editor.
-* Ability to disable commands.
-* It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
-* Mediaprobes (templates for automatic command generation from file-system).
-* Ability to restart using tray menu or 'enso restart' command.
-* Enso Retreat - a break reminder utility.
-* Voice-based command execution.
-
-#### Known issues
-
-* The trigger key will not show the command line if any privileged (adminstrator) process is under the focus (use the 'capslock toggle' command to flip CAPSLOCK state 
-  if it's wrong). This problem could be mitigated by digitally signing the
-  bundled Python binary. See the section below for details
-* Some security tools may consider run-enso.exe as a potentially unwanted program.  
-  These are false-positive claims, since the launcher uses API needed to run other programs.
 
 
 #### Digitally signing Python binary to make Enso work properly with elevated processes
@@ -184,9 +183,9 @@ The keyword, the recognizer language, and other voice settings may be changed th
 'Custom Initialization' block at the Enso settings page. See the tutorial at the Enso option
 pages for the details.
 
-#### Mediaprobes
+#### Menu constructors
 
-Mediaprobes allow to create commands that automatically pass items found in filesystem 
+Menu constructors allow to create commands that automatically pass items found in filesystem 
 (or listed in a dictionary) to the specified program. Let's assume that you have a directory 
 named 'd:/tv-shows', which contains subdirectories: 'columbo', 'the octopus' and 'inspector gadget'.
 Let's create a command named 'show' that has the names of all subdirectories under 'd:/tv-shows'
@@ -196,9 +195,9 @@ Media Player Classic.
 ```python
 # place the following into command editor
 
-from enso.user import mediaprobe
+from enso.user import menu_constructors
 
-cmd_show = mediaprobe.directory_probe("show", "d:/tv-shows", "<absolute path to MPC-HC>")
+cmd_show = menu_constructors.directory_menu("show", "d:/tv-shows", "<absolute path to MPC-HC>")
 ```
 That's all. The command will have the following additional arguments:
 
@@ -207,12 +206,12 @@ That's all. The command will have the following additional arguments:
     prev - open the previous show in the player.
     all - pass 'd:/tv-shows' to the player.
 
-It is possible to create probe commands based on a dictionary:
+It is possible to create menu commands based on a dictionary:
 
 ```python
 what_to_watch = {"formula 1": "<a link to my favorite formula 1 stream>",
                  "formula e": "<a link to my favorite formula e stream>"}
-cmd_watch = mediaprobe.dictionary_probe("stream", what_to_watch, "<absolute path to my network player>")
+cmd_watch = menu_constructors.dictionary_menu("stream", what_to_watch, "<absolute path to my network player>")
 ```
 
 If player does not accept directories (as, for example, ACD See does), it is possible to pass a first file in the directory specified at a dictionary:
@@ -223,7 +222,7 @@ what_to_stare_at = {'nature': 'd:/images/nature',
 
 # if player is not specified, the command will use the default system application 
 # associated with the encountered file type
-cmd_stare = mediaprobe.findfirst_probe("at", what_to_stare_at)
+cmd_stare = menu_constructors.findfirst_menu("at", what_to_stare_at)
 ```
 
 Of course, you may construct dictionaries in various ways.
