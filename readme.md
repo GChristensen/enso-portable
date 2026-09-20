@@ -29,7 +29,7 @@ It looks like this:
 
 #### History
 
-At first there was a proprietary closed-source Enso app from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
+At first there was a proprietary closed-source app called Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
 Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
 This original version was extensible by many programming languages, but one day it went
 open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python.
