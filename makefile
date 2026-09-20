@@ -31,3 +31,10 @@ clean-platform:
 	find platform -name "*.ilk" -type f -delete
 	find platform -name "*.pdb" -type f -delete
 	find platform -name "*.dblite" -type f -delete
+
+.PHONY: landing
+landing:
+	cd webui-src; npm run build:landing
+
+webui:
+	cd webui-src; npm run build

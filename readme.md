@@ -1,22 +1,11 @@
-## Enso Launcher (Open-Source)
+## Enso Open-Source
 
 A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/MacOS). 
 
-#### History
-
-At first there was a proprietary closed-source Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
-Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
-This original version was extensible by many programming languages, but one day it went 
-open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python. 
-By some reasons it has also ceased.
-
-At the moment [Enso Open-Source](https://gchristensen.github.io/enso-portable/) is the most feature-rich descendant of 
-Enso Community Edition. 
-
-
 #### What is Enso
 
-Enso is a keyboard-driven launcher. It floats over whatever you're doing as a transparent overlay, not in a bulky window of its own.
+Enso is a keyboard-driven application that offers an unconventional way to interact with your computer.
+It floats over whatever you're doing as a transparent overlay, not in a bulky window of its own.
 Tap CapsLock, and a small, unobtrusive command line appears at the top-left of the screen. As you type, it filters through 
 a list of short, memorable commands, such as `open notepad`, `google quark`, or `define serendipity`. 
 The best matches appear below the input line. You can use the arrow keys to move between them and press Return to run the selected command. 
@@ -38,6 +27,16 @@ It looks like this:
 
 ![Enso quasimode calculating an expression](media/enso-calculate.gif)
 
+#### History
+
+At first there was a proprietary closed-source Enso app from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
+Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
+This original version was extensible by many programming languages, but one day it went
+open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python.
+By some reasons it has also ceased.
+
+At the moment [Enso Open-Source](https://gchristensen.github.io/enso-portable/) is the most feature-rich descendant of
+Enso Community Edition.
 
 #### New features since Enso Community Edition 
 
@@ -133,10 +132,3 @@ mingw32-make) to build and copy binaries to the proper destination.
 
 The original source code of **Enso Community Edition** could be found here:
 [https://launchpad.net/enso/community-enso](https://launchpad.net/enso/community-enso) (you can download the original source without installing bazaar by using [this](https://bazaar.launchpad.net/%7Ecommunityenso/enso/community-enso/tarball/145?start_revid=145) link).
-
-#### Contributors
-
-* [Brian Peiris](https://github.com/brianpeiris)
-* [thdoan](https://github.com/thdoan)
-* [Caleb John](https://github.com/CalebJohn)
-* [Mark Wiseman](https://github.com/mawiseman)

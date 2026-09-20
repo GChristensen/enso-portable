@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enso Launcher</title>
-<meta name="description" content="Enso Launcher &mdash; a quasimodal, fully scriptable command launcher for Windows, macOS and Linux.">
+<title>Enso Open Source</title>
+<meta name="description" content="Enso Open Source &mdash; a keyboard-driven, quasimodal, fully scriptable command line overlay for Windows, macOS and Linux.">
 <link rel="icon" href="../media/enso-circle-green.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
   <div class="nav-links mono">
     <a href="#features">Features</a>
     <a href="#about">About</a>
-    <a href="https://github.com/GChristensen/enso-portable#enso-launcher-open-source">Docs</a>
+    <a href="https://github.com/GChristensen/enso-portable#enso-open-source">Docs</a>
     <a class="btn-star" href="https://github.com/GChristensen/enso-portable">&#9733; Star</a>
   </div>
 </nav>
@@ -33,13 +33,13 @@
   <div>
     <div class="hero-badge mono">
       <span class="dot"></span>
-      open source &middot; scriptable &middot; quasimodal
+      keyboard-driven &middot; scriptable &middot; quasimodal
     </div>
     <h1 class="hero-title">
       <span class="l1">Enso</span>
-      <span class="l2">Launcher</span>
+      <span class="l2">Open Source</span>
     </h1>
-    <p class="hero-tagline mono">The legendary quasimodal launcher returns.</p>
+    <p class="hero-tagline mono">The legendary quasimodal interface returns.</p>
     <div class="hero-actions">
       <a class="btn-primary" href="https://github.com/GChristensen/enso-portable/releases/latest">
         <span class="icon">&#8595;</span> Download from GitHub
@@ -66,11 +66,18 @@
 <section id="about" class="about">
   <div class="eyebrow mono">// what is enso</div>
   <p>
-    Enso is a launcher that lives on Caps Lock: tap it, type a command, hit Enter, and you're done &mdash; no windows
-    to find, no menus to click through. It stays out of sight until called, acting as a command line for your entire
-    computer, while making every command scriptable. A revival of the original Enso by Humanized,
-      since 2010 it keeps that legendary feel of your fingers run the show.
-      If you have tasted it, you can never go back.
+    Enso is a keyboard-driven application that offers an unconventional way to interact with your computer.
+    It floats over whatever you're doing as a transparent overlay, not in a bulky window of its own.
+  </p>
+  <p>
+    Tap Caps Lock, and a small, unobtrusive command line appears at the top-left of the screen. As you type, it filters
+    through a list of short, memorable commands, such as <code>open notepad</code>, <code>google quark</code>,
+    or <code>hibernate</code>. The best matches appear below the input line. Use the arrow keys to move
+    between them and press Return to run the selected command. The interface then disappears.
+  </p>
+  <p>
+    A revival of the original Enso by Humanized, since 2010 it keeps that legendary feel of your fingers running the
+    show. If you have tasted it, you can never go back.
   </p>
 </section>
 
@@ -87,7 +94,7 @@
     </div>
     <div class="feature-card">
       <div class="feature-tag mono">&#8594; open</div>
-      <h3>Launch anything</h3>
+      <h3>Open anything</h3>
       <p>Open apps, files, folders, and bookmarks in a keystroke. Fuzzy matching gets you there before you finish typing.</p>
     </div>
     <div class="feature-card">
@@ -127,6 +134,38 @@
   </p>
 </section>
 
+<section id="example" class="example">
+  <div class="example-text">
+    <div class="eyebrow mono">// example</div>
+    <h2>A command is just a function.</h2>
+    <p>
+      Name a Python function with the <code>cmd_</code> prefix and Enso picks it up. Its arguments are the words you
+      type after the command name, and <code>valid_args</code> offers them as suggestions along the way.
+    </p>
+    <p>
+      Select some text anywhere, type <code>change case title</code>, hit Enter &mdash; and the selection is replaced
+      with its Title Case version.
+    </p>
+  </div>
+  <div class="editor">
+    <div class="editor-bar mono">
+      <span class="editor-dot"></span><span class="editor-dot"></span><span class="editor-dot"></span>
+      <span class="editor-name">command editor &middot; change_case.py</span>
+    </div>
+<pre class="editor-code mono"><span class="c-kw">def</span> <span class="c-fn">cmd_change_case</span>(ensoapi, style=<span class="c-str">"upper"</span>):
+    <span class="c-comment">"""Change the case of the selected text."""</span>
+    text = ensoapi.get_selection().get(<span class="c-str">"text"</span>, <span class="c-str">""</span>)
+
+    <span class="c-kw">if not</span> text:
+        ensoapi.display_message(<span class="c-str">"No selection!"</span>)
+    <span class="c-kw">else</span>:
+        ensoapi.set_selection({<span class="c-str">"text"</span>: <span class="c-kw">getattr</span>(text, style)()})
+
+<span class="c-comment"># Suggest the argument values as you type.</span>
+<span class="c-fn">cmd_change_case</span>.valid_args = [<span class="c-str">"upper"</span>, <span class="c-str">"lower"</span>, <span class="c-str">"title"</span>]</pre>
+  </div>
+</section>
+
 <div class="cta-wrap">
   <div class="cta">
     <img src="../media/enso-circle-green.png" alt="">
@@ -141,7 +180,7 @@
 <footer class="site">
   <div class="footer-brand">
     <img src="../media/enso-circle-green.png" alt="">
-    Enso Launcher &middot; MIT Licensed
+    Enso Open Source &middot; MIT Licensed
   </div>
   <div class="footer-links mono">
     <a href="https://github.com/GChristensen/enso-portable">GitHub</a>
