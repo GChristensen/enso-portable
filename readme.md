@@ -41,7 +41,7 @@ Enso Community Edition.
 #### New features since Enso Community Edition 
 
 * Python 3 support.
-* Option pages with a built-in command editor.
+* Option web-UI with a built-in command editor.
 * Ability to disable commands.
 * It is possible to execute user-supplied code in a separate thread on Enso start (useful for scheduling).
 * Menu constructors (templates for automatic command generation from file-system).
@@ -60,7 +60,7 @@ Enso Community Edition.
 #### Modal vs. quasimodal
 
 The original Enso, in the spirit of Jeff Raskin, was strictly quasimodal. The quasimode (the command line)
-stayed open only while you physically held a key, such as CapsLock, and closed the instant it was released. 
+stayed open only while you physically held a key, such as CapsLock, and closed the instant it was released.
 A Shift key, for example, works the same way: it capitalizes only while you hold it. This was a deliberate consequence
 of Raskin's humane interface philosophy: software modes often lead users to make errors. This happens because the interface
 behaves differently depending on invisible state the user must remember. But a mode you must actively sustain by holding a
@@ -68,23 +68,22 @@ key can never be forgotten.
 
 Speed was the other half of Raskin's argument. In *The Humane Interface*, he pointed out that using a mouse implies two
 steps. First, you visually hunt for a target. Then you guide the pointer onto it, a movement governed by Fitts's Law:
-the smaller and farther the target, the longer it takes.
-Moreover, reaching for the mouse also breaks the rhythm a touch typist has built up on the keyboard.
-Switching windows is a familiar example of this cost. To click a taskbar entry or an icon buried in another window, you
-must first find it on screen.
+the smaller and farther the target, the longer it takes. Switching windows is a familiar example of this cost: to click
+a taskbar entry or an icon buried in another window, you must first find it on screen. Reaching for the mouse also
+breaks the rhythm a touch typist has built up on the keyboard.
 
 Typing the name of a command instead skips the hunting and pointing entirely. You recall a word almost instantly. The keystrokes
 are the same practiced motions your hands are already making. And because the quasimode matches words as you type, you can
 stop as soon as the command is unambiguous.
 The original Enso applied this directly: switching windows and acting on selected text are both quasimodal commands there.
-Your hands never leave the keyboard by holding the CapsLock key.
+By holding the CapsLock key, your hands never leave the keyboard.
 
-For convenience, Enso Open-Source defaults to a modal quasimode. Tap the activation key once, and the
+For convenience, Enso Open-Source now defaults to a modal quasimode. Tap the activation key once, and the
 command line opens. It stays open ("sticky") until you run a command or dismiss it, so you don't need to hold CapsLock
-down. This default can be reverted to Raskin's original quasimodal behavior by setting the IS_QUASIMODE_MODAL configuration 
+down. This default can be reverted to Raskin's original quasimodal behavior by setting the IS_QUASIMODE_MODAL configuration
 variable to False in the textual configuration block at the settings UI.
 
-The speed of the [quasimodal approach](https://youtu.be/o_TlE_U_X3c?t=22) however, does not come naturally to anyone 
+The speed of the [quasimodal approach](https://youtu.be/o_TlE_U_X3c?t=22), however, does not come naturally to anyone
 used to mainstream computer interaction. You have to train yourself into the habit.
 
 ## Speech Recognition
