@@ -7,7 +7,7 @@ A feature-rich descendant of Enso Community Edition (Microsoft Windows/Linux/Mac
 Enso is a keyboard-driven application that offers an unconventional way to interact with your computer.
 It floats over whatever you're doing as a transparent overlay, not in a bulky window of its own.
 Tap CapsLock, and a small, unobtrusive command line appears at the top-left of the screen. As you type, it filters through 
-a list of short, memorable commands, such as `open notepad`, `google quark`, or `define serendipity`. 
+a list of short, memorable commands, such as `open notepad`, `next track`, or `reboot`. 
 The best matches appear below the input line. You can use the arrow keys to move between them and press Return to run the selected command. 
 The interface then disappears.
 
