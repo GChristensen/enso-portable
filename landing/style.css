@@ -99,8 +99,14 @@ header.hero {
   white-space: pre; visibility: hidden; background: rgba(8,10,9,.86); padding: 8px 26px 10px;
   border-bottom-right-radius: 14px; box-shadow: 0 24px 55px -12px rgba(0,0,0,.75);
 }
-.demo-command .typed { font-size: 74px; font-weight: 300; line-height: 1; letter-spacing: -.01em; color: #f4fbf7; }
-.demo-command .suggest { font-size: 74px; font-weight: 300; line-height: 1; letter-spacing: -.01em; color: #8bbf4e; }
+/* The typed/ghost split moves as letters change color; kerning and contextual shaping don't apply across
+   the span boundary, so disable them to keep every glyph's position identical whatever the split is. */
+.demo-command .typed, .demo-command .suggest {
+  font-size: 74px; font-weight: 300; line-height: 1; letter-spacing: -.01em;
+  font-kerning: none; font-variant-ligatures: none; font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+}
+.demo-command .typed { color: #f4fbf7; }
+.demo-command .suggest { color: #8bbf4e; }
 .demo-suggestion {
   display: inline-block; background: rgba(8,10,9,.86); padding: 2px 26px 12px; border-bottom-right-radius: 14px;
   box-shadow: 0 24px 55px -12px rgba(0,0,0,.75); visibility: hidden;
