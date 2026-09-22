@@ -178,6 +178,27 @@ header.hero {
   .editor-code { font-size: 12px; }
 }
 
+/* WATCH */
+.watch { position: relative; z-index: 4; max-width: 1000px; margin: 0 auto 70px; padding: 0 40px; text-align: center; }
+.watch-head { margin-bottom: 30px; }
+.watch-head .eyebrow { font-size: 13px; color: #34e88a; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 16px; }
+.watch-head h2 { font-size: 44px; font-weight: 700; letter-spacing: -.02em; }
+.watch-frame {
+  position: relative; width: 100%; max-width: 712px; margin: 0 auto;
+  border: 1px solid rgba(52,232,138,.18); box-shadow: 0 0 80px -24px rgba(52,232,138,.45);
+}
+.watch-video { display: block; width: 100%; height: auto; max-height: 400px; background: #05070a; }
+.watch-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border-radius: 50%; border: 1px solid rgba(255,255,255,.4);
+  background: rgba(5,7,10,.5);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: opacity .2s ease, background .2s ease; pointer-events: auto;
+}
+.watch-play:hover { background: rgba(5,7,10,.7); }
+.watch-play svg { width: 24px; height: 24px; fill: #f4fbf7; margin-left: 3px; }
+.watch-frame.is-playing .watch-play { opacity: 0; pointer-events: none; }
+
 /* CTA */
 .cta-wrap { position: relative; z-index: 4; max-width: 1240px; margin: 0 auto 60px; padding: 0 40px; }
 .cta {

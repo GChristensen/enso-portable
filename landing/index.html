@@ -166,6 +166,19 @@
   </div>
 </section>
 
+<section id="watch" class="watch">
+  <div class="watch-head">
+    <div class="eyebrow mono">// see it in action</div>
+    <h2>Watch it fly.</h2>
+  </div>
+  <div class="watch-frame" id="watch-frame">
+    <video class="watch-video" id="watch-video" src="../media/demo.webm" controls preload="metadata" playsinline></video>
+    <button class="watch-play" id="watch-play" type="button" aria-label="Play video">
+      <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"></polygon></svg>
+    </button>
+  </div>
+</section>
+
 <div class="cta-wrap">
   <div class="cta">
     <img src="../media/enso-circle-green.png" alt="">
@@ -197,5 +210,17 @@
 <script src="main.js"></script>
 <script src="enso-demo.js"></script>
 <script src="particles.js"></script>
+<script>
+(function () {
+  var frame = document.getElementById('watch-frame');
+  var video = document.getElementById('watch-video');
+  var play = document.getElementById('watch-play');
+  if (!frame || !video || !play) return;
+  play.addEventListener('click', function () { video.play(); });
+  video.addEventListener('play', function () { frame.classList.add('is-playing'); });
+  video.addEventListener('pause', function () { frame.classList.remove('is-playing'); });
+  video.addEventListener('ended', function () { frame.classList.remove('is-playing'); });
+})();
+</script>
 </body>
 </html>
