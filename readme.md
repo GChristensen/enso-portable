@@ -30,7 +30,7 @@ It looks like this:
 #### History
 
 At first there was a proprietary closed-source app called Enso Launcher from [Humanized](https://web.archive.org/web/20140701081042/http://humanized.com/).
-Its design was based on radical UI principles developed by Jeff Raskin (more on this below).
+Its design was based on radical UI principles developed by Jef Raskin (more on this below).
 This original version was extensible by many programming languages, but one day it went
 open ([Enso Community Edition](https://web.archive.org/web/20110128205130/http://www.ensowiki.com/wiki/index.php?title=Main_Page)) and became extensible only in Python.
 By some reasons it has also ceased.
@@ -59,7 +59,7 @@ Enso Community Edition.
 
 #### Modal vs. quasimodal
 
-The original Enso, in the spirit of Jeff Raskin, was strictly quasimodal. The quasimode (the command line)
+The original Enso, in the spirit of Jef Raskin, was strictly quasimodal. The quasimode (the command line)
 stayed open only while you physically held a key, such as CapsLock, and closed the instant it was released.
 A Shift key, for example, works the same way: it capitalizes only while you hold it. This was a deliberate consequence
 of Raskin's humane interface philosophy: software modes often lead users to make errors. This happens because the interface
