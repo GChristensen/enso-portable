@@ -1,7 +1,7 @@
 from datetime import date
 
 # Enso version for use in UI
-ENSO_VERSION = "1.4β"
+ENSO_VERSION = "1.4"
 
 # The message displayed when the user types some text that is not a command.
 BAD_COMMAND_MSG = "<p><command>%s</command> is not a command.</p>" \
