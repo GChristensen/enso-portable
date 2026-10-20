@@ -223,3 +223,6 @@ footer.site {
 .footer-brand img { width: 24px; height: 24px; opacity: .8; }
 .footer-links { display: flex; gap: 26px; font-size: 13px; }
 .footer-links a { color: #34e88a !important; }
+
+.gc-credit a { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.gc-credit img { filter: invert(1); }
