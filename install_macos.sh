@@ -12,7 +12,12 @@ set -e
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_DIR="$HOME/.enso/venv"
 PLIST="$HOME/Library/LaunchAgents/com.ensoos.enso.plist"
-LAUNCHER="$REPO_DIR/enso/scripts/run_enso.py"
+# Repository checkout: <repo>/enso/scripts; unix archive: <root>/scripts.
+if [ -f "$REPO_DIR/enso/scripts/run_enso.py" ]; then
+    LAUNCHER="$REPO_DIR/enso/scripts/run_enso.py"
+else
+    LAUNCHER="$REPO_DIR/scripts/run_enso.py"
+fi
 
 if [ "$(uname)" != "Darwin" ]; then
     echo "Error: this script is for macOS." >&2

@@ -30,9 +30,15 @@ For **KDE Wayland** sessions:
 sudo zypper install typelib-1_0-GtkLayerShell-0_1 wl-clipboard
 ```
 
-plus the `evdev` Python module (the install script puts it into the
-venv; otherwise `pip install evdev`), and two one-time permission
-steps:
+plus the `evdev` Python module, best taken from the distribution:
+
+```
+sudo zypper install python3-evdev
+```
+
+(`pip install evdev` also works, but it compiles the module and needs
+`gcc python3-devel linux-glibc-devel`; X11 sessions don't need evdev
+at all), and two one-time permission steps:
 
 ```
 # let Enso watch the trigger key (Caps Lock) on the raw input devices
@@ -56,9 +62,11 @@ Optional:
 
 - `typelib-1_0-AyatanaAppIndicator3-0_1` - enables the tray icon
   (About/Restart/Start at login/Quit). Without it, Enso runs without a
-  tray.
+  tray. Bare window managers such as Openbox have no tray of their own;
+  the icon shows up only if a panel with a system tray (e.g. `tint2`)
+  is running.
 - `picom` - a compositing manager, required for transparent overlays on
-  X11 desktops that don't composite by default (LXQt). KDE's KWin always
+  X11 desktops that don't composite by default (LXQt, Openbox). KDE's KWin always
   composites, so nothing extra is needed there — and Wayland is always
   composited. On LXQt, start it with `picom -b` (or enable it in the
   LXQt session settings); without a compositor Enso still works, but
@@ -70,14 +78,16 @@ Optional:
 
 After the distro packages above are in place, the install script sets
 up a virtual environment at `~/.enso/venv` (sharing the system GTK
-bindings) with the pure-python extras (flask for the web UI, evdev for
-the Wayland backend).
+bindings) with the pure-python extras (flask for the web UI; evdev for
+the Wayland backend only when run from a Wayland session or with
+`--wayland`).
 The install script also can optionally register an XDG autostart entry
 so Enso starts with the desktop session:
 
 ```
 ./install_linux.sh              # venv + dependencies only
 ./install_linux.sh --autostart  # also start Enso at login
+./install_linux.sh --wayland    # force evdev install (Wayland backend)
 ```
 
 ## Running

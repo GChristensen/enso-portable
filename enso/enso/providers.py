@@ -117,6 +117,15 @@ def _initDefaultProviders():
             logging.info( "Added provider %s." % moduleName )
         except ProviderUnavailableError:
             logging.info( "Skipping provider %s." % moduleName )
+        except ModuleNotFoundError as e:
+            # The provider package itself is absent (e.g. the unix
+            # distribution archive ships without enso.platform.win32).
+            # A missing dependency *inside* an existing provider still
+            # propagates, so real breakage isn't silently hidden.
+            if e.name and moduleName.startswith( e.name ):
+                logging.info( "Skipping missing provider %s." % moduleName )
+            else:
+                raise
 
 
 # ----------------------------------------------------------------------------

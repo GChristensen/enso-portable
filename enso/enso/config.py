@@ -34,6 +34,10 @@ QUASIMODE_BYPASS_TO_VMWARE = False
 # Do not enter the quasimode if a NoMachine window is in the foreground
 QUASIMODE_BYPASS_TO_NOMACHINE = False
 
+# Do not enter the quasimode if a Hyper-V Virtual Machine Connection window
+# is in the foreground
+QUASIMODE_BYPASS_TO_HYPERV = False
+
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
 # in the os-specific input module in use.

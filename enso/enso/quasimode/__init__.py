@@ -169,7 +169,8 @@ class Quasimode:
         self.__eventMgr.setModality( self.__isModal )
 
         # Bypassing works by un-registering the quasimode key while a
-        # bypassed window (RDP/VMware/NoMachine) is in the foreground:
+        # bypassed window (RDP/VMware/NoMachine/Hyper-V) is in the
+        # foreground:
         # the keyhook only eats the trigger key when it matches the
         # registered keycode, and it makes that decision before Enso
         # gets a say.  Merely refusing to enter the quasimode would
@@ -517,7 +518,8 @@ class Quasimode:
         return bool( self.__contextUtils and
                      ( config.QUASIMODE_BYPASS_TO_RDP or
                        config.QUASIMODE_BYPASS_TO_VMWARE or
-                       config.QUASIMODE_BYPASS_TO_NOMACHINE ) )
+                       config.QUASIMODE_BYPASS_TO_NOMACHINE or
+                       config.QUASIMODE_BYPASS_TO_HYPERV ) )
 
     def __isBypassedWindowInForeground(self):
         """
@@ -545,6 +547,18 @@ class Quasimode:
                 if foregroundClass == "QWidget":
                     title = self.__contextUtils.getForegroundWindowTitleUnicode()
                     if title and "NoMachine" in title:
+                        return True
+
+            if config.QUASIMODE_BYPASS_TO_HYPERV:
+                # vmconnect.exe is a WinForms app, so its window class
+                # is a generated "WindowsForms10.Window.8.app.0.<hash>"
+                # name; recognize it by the class prefix and the title
+                # ("<VM> on <host> - Virtual Machine Connection").
+                if foregroundClass and \
+                        foregroundClass.startswith( "WindowsForms10." ):
+                    title = self.__contextUtils.getForegroundWindowTitleUnicode()
+                    if title and \
+                            title.endswith( "Virtual Machine Connection" ):
                         return True
         except:
             pass
