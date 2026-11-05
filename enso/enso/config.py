@@ -38,6 +38,10 @@ QUASIMODE_BYPASS_TO_NOMACHINE = False
 # is in the foreground
 QUASIMODE_BYPASS_TO_HYPERV = False
 
+# Do not enter the quasimode if a RustDesk remote desktop window is in the
+# foreground
+QUASIMODE_BYPASS_TO_RUSTDESK = False
+
 # The keys to start, exit, and cancel the quasimode.
 # Their values are strings referring to the names of constants defined
 # in the os-specific input module in use.

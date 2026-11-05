@@ -169,8 +169,8 @@ class Quasimode:
         self.__eventMgr.setModality( self.__isModal )
 
         # Bypassing works by un-registering the quasimode key while a
-        # bypassed window (RDP/VMware/NoMachine/Hyper-V) is in the
-        # foreground:
+        # bypassed window (RDP/VMware/NoMachine/Hyper-V/RustDesk) is in
+        # the foreground:
         # the keyhook only eats the trigger key when it matches the
         # registered keycode, and it makes that decision before Enso
         # gets a say.  Merely refusing to enter the quasimode would
@@ -519,7 +519,8 @@ class Quasimode:
                      ( config.QUASIMODE_BYPASS_TO_RDP or
                        config.QUASIMODE_BYPASS_TO_VMWARE or
                        config.QUASIMODE_BYPASS_TO_NOMACHINE or
-                       config.QUASIMODE_BYPASS_TO_HYPERV ) )
+                       config.QUASIMODE_BYPASS_TO_HYPERV or
+                       config.QUASIMODE_BYPASS_TO_RUSTDESK ) )
 
     def __isBypassedWindowInForeground(self):
         """
@@ -559,6 +560,15 @@ class Quasimode:
                     title = self.__contextUtils.getForegroundWindowTitleUnicode()
                     if title and \
                             title.endswith( "Virtual Machine Connection" ):
+                        return True
+
+            if config.QUASIMODE_BYPASS_TO_RUSTDESK:
+                # All of RustDesk's session windows share this class, so
+                # the title ("<peer> - Remote Desktop - RustDesk") tells
+                # remote desktops from file transfers, port forwards etc.
+                if foregroundClass == "RustdeskMultiWindow":
+                    title = self.__contextUtils.getForegroundWindowTitleUnicode()
+                    if title and "Remote Desktop" in title:
                         return True
         except:
             pass
