@@ -41,6 +41,7 @@
 
 import logging
 
+import pywintypes
 import win32con
 import win32clipboard
 
@@ -51,6 +52,14 @@ from . import _ContextUtils as ContextUtils
 # ----------------------------------------------------------------------------
 # Module Variables
 # ----------------------------------------------------------------------------
+
+# "Thread does not have a clipboard open."
+_ERROR_CLIPBOARD_NOT_OPEN = 1418
+
+# How many times, and how often (ms), to retry restoring the clipboard
+# when another process interferes.
+_RESTORE_ATTEMPTS = 5
+_RESTORE_RETRY_INTERVAL = 20
 
 # A LIFO array of ClipboardState objects.  The most recent clipboard state
 # is on the top of the stack.
@@ -127,16 +136,36 @@ class ClipboardState:
                 self.__formatData[ format ] = rawData
 
 
-    @ContextUtils.clipboardDependent
     def restore( self ):
         """
         Puts the data contained in this object back into the
         clipboard.
+
+        The clipboard is opened without an owner window, so another
+        process (clipboard managers, RDP/RustDesk clipboard sync, etc.)
+        can occasionally yank it away between OpenClipboard() and
+        EmptyClipboard(), which then fails with
+        ERROR_CLIPBOARD_NOT_OPEN.  Retry a few times in that case.
         """
 
         logging.debug( "Attempting to restore clipboard data from"
                           " ClipboardState object" )
-        
+
+        for attempt in range( _RESTORE_ATTEMPTS ):
+            try:
+                self.__restoreOnce()
+                return
+            except pywintypes.error as e:
+                if e.winerror != _ERROR_CLIPBOARD_NOT_OPEN or \
+                        attempt == _RESTORE_ATTEMPTS - 1:
+                    raise
+                logging.info( "Clipboard was taken away during restore, "
+                              "retrying." )
+                ContextUtils.sleepForMs( _RESTORE_RETRY_INTERVAL )
+
+
+    @ContextUtils.clipboardDependent
+    def __restoreOnce( self ):
         win32clipboard.EmptyClipboard()
 
         for format in list(self.__formatData.keys()):
@@ -186,7 +215,13 @@ def clipboardPreserving( function ):
         try:
             result = function( *args, **kwargs )
         finally:
-            popState()
+            # Failing to put the user's old clipboard back is
+            # unfortunate, but it must not turn a successful
+            # copy/paste into an error (or mask the real one).
+            try:
+                popState()
+            except Exception:
+                logging.exception( "Failed to restore clipboard state." )
         return result
 
     return finalizeWrapper( function,
