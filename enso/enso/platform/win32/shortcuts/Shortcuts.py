@@ -719,6 +719,8 @@ class Shortcuts:
                                             "mode con cols=512; Get-AppxPackage"],
                                            stdout=subprocess.PIPE,
                                            universal_newlines=True,
+                                           encoding="oem",
+                                           errors="replace",
                                            shell=False,
                                            startupinfo=startupinfo).communicate()
 
