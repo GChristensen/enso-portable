@@ -44,7 +44,10 @@
 
 import win32clipboard
 import win32con
+import win32gui
+import win32process
 import logging
+import time
 
 from . import ClipboardBackend
 from . import ClipboardArchive
@@ -103,6 +106,28 @@ def _concatenate( currentTextDict, additionalTextDict ):
         newDict[ "text" ] = newPlainText
     if len( newHtml ) > 0:
         newDict[ "html" ] = newHtml
+
+def _windowPid( hwnd ):
+    if not hwnd:
+        return None
+    try:
+        return win32process.GetWindowThreadProcessId( hwnd )[1]
+    except Exception:
+        return None
+
+def _foregroundPid():
+    return _windowPid( win32gui.GetForegroundWindow() )
+
+def _clipboardRequesterPid():
+    """
+    Process id of whoever has the clipboard open right now (i.e. who is
+    asking us to render a format), or None if it was opened without a
+    window.
+    """
+    try:
+        return _windowPid( win32clipboard.GetOpenClipboardWindow() )
+    except Exception:
+        return None
 
 def _textDictToAscii( textDict ):
     text = textDict.get( "text", "" )
@@ -279,7 +304,7 @@ class AbstractTextSelection:
         elif format == CF_HTML:
             text = _textDictToClipboardHtml( textDict )
             # No terminator should be used on clipboard html format.
-            terminator = ""
+            terminator = b""
 
         result = text + terminator
         # Postcondition:
@@ -295,11 +320,17 @@ class AbstractTextSelection:
         returns True.  If the attempt fails, returns False.
         """
 
+        targetPid = _foregroundPid()
+        targetHasRead = [ False ]
+
         # Create the function which will be used for callback
         def getPendingData( formatCode ):
             try:
+                if targetPid is not None and \
+                        _clipboardRequesterPid() == targetPid:
+                    targetHasRead[0] = True
                 if formatCode == ContextUtils.CF_CLIPBOARD_VIEWER_IGNORE:
-                    return "HumanizedEnsoTextSelectionContext\0"
+                    return b"HumanizedEnsoTextSelectionContext\0"
                 else:
                     return self._renderClipboardFormat( textDict, formatCode )
             except Exception:
@@ -310,13 +341,31 @@ class AbstractTextSelection:
 
         # Give the above function to clipboard backend, along with the
         # list of formats in which we can support pasting
-        ClipboardBackend.prepareForPasting( getPendingData,
-                                            SUPPORTED_FORMATS )
+        # Only offer HTML when we actually have some: otherwise apps
+        # that prefer HTML (browsers, Electron) would paste an empty
+        # HTML page instead of falling back to the plain text.
+        formats = [ f for f in SUPPORTED_FORMATS
+                    if f != CF_HTML or textDict.get( "html" ) ]
+        ClipboardBackend.prepareForPasting( getPendingData, formats )
         # then type the paste command key, which will cause the app to
         # draw the data out of getPendingData.
+        start = time.monotonic()
         self.simulatePasteKeystroke()
 
         ClipboardBackend.waitForPaste( STANDARD_WAIT_TIME )
+
+        # waitForPaste() returns as soon as *anyone* renders the data,
+        # and clipboard monitors (RustDesk, clipboard managers, ...)
+        # grab it the instant the clipboard changes -- usually before
+        # a slower target app (IntelliJ/Java) has even handled the
+        # Ctrl+V.  Emptying the clipboard then makes the paste fail.
+        # So keep the data available until the target app itself has
+        # asked for it, or the standard wait time has passed.  (Once a
+        # monitor has rendered a format, Windows serves the stored copy
+        # to the target without asking us again, hence the timeout.)
+        deadline = start + STANDARD_WAIT_TIME / 1000.0
+        while not targetHasRead[0] and time.monotonic() < deadline:
+            time.sleep( 0.01 )
 
         success = ClipboardBackend.finalizePasting()
         return success
