@@ -19,6 +19,19 @@ const outPath = path.join(here, "..", "index.html");
 
 const isLocal = (url) => !/^([a-z]+:)?\/\//i.test(url);
 
+// Fonts referenced by url() in a local stylesheet are embedded as data: URIs.
+const fontTypes = { woff2: "font/woff2", woff: "font/woff", ttf: "font/ttf", otf: "font/otf" };
+async function inlineFonts(cssUrl, css) {
+  const re = /url\(\s*(['"]?)([^'")]+\.(woff2?|ttf|otf))\1\s*\)/gi;
+  const data = new Map();
+  for (const [, , ref, ext] of css.matchAll(re)) {
+    if (/^([a-z]+:)?\/\//i.test(ref) || ref.startsWith("data:") || data.has(ref)) continue;
+    const file = await readFile(path.join(here, path.dirname(cssUrl), ref));
+    data.set(ref, `data:${fontTypes[ext.toLowerCase()]};base64,${file.toString("base64")}`);
+  }
+  return css.replace(re, (m, q, ref) => data.has(ref) ? `url(${data.get(ref)})` : m);
+}
+
 let src = await readFile(srcPath, "utf8");
 let before = Buffer.byteLength(src, "utf8");
 
@@ -30,7 +43,8 @@ const assetRefs = [
 ];
 for (const [, url] of assetRefs) {
   if (isLocal(url) && !assets.has(url)) {
-    const content = await readFile(path.join(here, url), "utf8");
+    let content = await readFile(path.join(here, url), "utf8");
+    if (url.endsWith(".css")) content = await inlineFonts(url, content);
     assets.set(url, content);
     before += Buffer.byteLength(content, "utf8");
   }
