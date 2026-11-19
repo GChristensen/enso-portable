@@ -44,13 +44,17 @@ def main(argv = None):
 
     lu.configure_init_files()
 
+    # Start Retreat as early as possible: it only needs the ensorc settings
+    # loaded above. It is also an enso.config.PLUGINS entry, whose later load()
+    # on the init event is then a no-op; it stops via its own atexit handler.
+    from enso.contrib import retreat
+    retreat.load()
+
     lu.start_platform_extras(opts)
 
     user_lib_index = os.path.join(config.ENSO_USER_DIR, "lib")
     import_package_by_path(user_lib_index)
 
-    # Retreat is an enso.config.PLUGINS entry now; it starts on the init event
-    # and stops via its own atexit handler.
     enso.run()
 
     lu.stop_platform_extras()

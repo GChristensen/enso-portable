@@ -40,8 +40,21 @@ _NATIVE_MODULE = "enso.contrib.retreatlib"
 # Plugin lifecycle
 # ----------------------------------------------------------------------------
 
+_loaded = False
+
+
 def load():
-    """Plugin entry point; called on Enso's init event."""
+    """
+    Plugin entry point; called on Enso's init event. The launcher also calls
+    it directly, as soon as ensorc is loaded (the native module reads
+    RETREAT_SHOW_ICON from enso.config), so that breaks are enforced without
+    waiting for the heavy parts of startup. Only the first call does anything.
+    """
+    global _loaded
+    if _loaded:
+        return
+    _loaded = True
+
     if not _enabled():
         logging.info("enso.contrib.retreat: not started (%s).",
                      "disabled by RETREAT_DISABLE" if installed()
