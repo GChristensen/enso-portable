@@ -65,7 +65,10 @@ def _getCommandInfoFromFunc( func, funcName, cmdName,
             cmdExpr = "%s {%s}" % (cmdName, argName)
         if not argDefaults:
             isArgRequired = True
-        if hasattr( func, "valid_args" ):
+        if hasattr( func, "valid_args" ) and getattr( func, "arbitrary_arg", False ):
+            # It takes any argument; valid_args are only suggestions.
+            cmdType = "suggested-arg"
+        elif hasattr( func, "valid_args" ):
             # It's a command that takes a bounded argument.
             cmdType = "bounded-arg"
         else:

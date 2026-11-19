@@ -103,6 +103,24 @@ class BoundedArgFuncCommand( GenericPrefixFactory, ArgFuncMixin ):
 
     _generateCommandObj = ArgFuncMixin._generateCommandObj
 
+class SuggestedArgFuncCommand( ArbitraryPostfixFactory, ArgFuncMixin ):
+    """
+    Accepts any argument, like ArbitraryArgFuncCommand, but lists the
+    func.valid_args entries matching the typed text as suggestions.
+    """
+
+    def __init__( self, *args, **kwargs ):
+        ArbitraryPostfixFactory.__init__( self )
+        ArgFuncMixin.__init__( self, *args, **kwargs )
+
+    @safetyNetted
+    def update( self ):
+        self._postfixes = self.func.valid_args
+
+    retrieveSuggestions = GenericPrefixFactory.retrieveSuggestions
+
+    _generateCommandObj = ArgFuncMixin._generateCommandObj
+
 def makeCommandFromInfo( info, ensoapi, generatorManager ):
     if info["cmdType"] == "no-arg":
         return FuncCommand(
@@ -113,9 +131,11 @@ def makeCommandFromInfo( info, ensoapi, generatorManager ):
             ensoapi,
             generatorManager
             )
-    elif info["cmdType"] in ["bounded-arg", "arbitrary-arg"]:
+    elif info["cmdType"] in ["bounded-arg", "arbitrary-arg", "suggested-arg"]:
         if info["cmdType"] == "bounded-arg":
             CommandClass = BoundedArgFuncCommand
+        elif info["cmdType"] == "suggested-arg":
+            CommandClass = SuggestedArgFuncCommand
         else:
             CommandClass = ArbitraryArgFuncCommand
         return CommandClass(
